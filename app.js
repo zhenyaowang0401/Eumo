@@ -92,7 +92,7 @@ function renderDeviceTimer(){
  if(!deviceControl)return;
  const s=deviceActivity.snapshot,elapsed=Math.floor(s?.sessionElapsed||0);
  $('#timeDisplay').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
- $('#timerLabel').textContent=Date.now()>=deviceActivity.until?'Watch offline':deviceIsDigging()?'Watch digging':'Watch paused';
+ $('#timerLabel').textContent=Date.now()>=deviceActivity.until?'Watch offline':deviceIsDigging()?'Watch digging':s?.status==='idle'?'Watch ended':'Watch paused';
  $('#startText').textContent='Use watch';$('#durationLabel').textContent='Synced from your watch';
  $('#minusTime').disabled=true;$('#plusTime').disabled=true;$('#demoButton').hidden=true;$$('[data-mode]').forEach(b=>b.disabled=true);
 }

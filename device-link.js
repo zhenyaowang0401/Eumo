@@ -2,14 +2,17 @@
 // Four-digit request + physical device confirmation. Long-lived tokens never appear in the UI.
 (()=>{
  const host=document.querySelector('#focus');if(!host||!window.DeviceImportBridge)return;
- const KEY='eumo-linked-watch-v2',PENDING='eumo-pair-pending-v1',panel=document.createElement('section');panel.className='device-sync-panel';
- const title=document.createElement('strong');title.textContent='连接小鼹鼠';
+ const KEY='eumo-linked-watch-v2',PENDING='eumo-pair-pending-v1',panel=document.createElement('dialog');panel.className='device-sync-panel';panel.setAttribute('aria-labelledby','screenPairTitle');
+ const title=document.createElement('h2');title.id='screenPairTitle';title.textContent='连接小鼹鼠';
+ const opener=document.createElement('button');opener.type='button';opener.className='quiet-button focus-device-button';opener.textContent='连接小屏幕';opener.onclick=()=>panel.showModal();
+ (host.querySelector('.focus-meta')||host).prepend(opener);
+ const close=document.createElement('button');close.type='button';close.className='dialog-close';close.textContent='×';close.setAttribute('aria-label','关闭配对窗口');close.onclick=()=>panel.close();
  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const form=document.createElement('form'),input=document.createElement('input');input.type='text';input.inputMode='numeric';input.pattern='[0-9]{4}';input.maxLength=4;input.required=true;input.autocomplete='off';input.placeholder='四位配对码';input.setAttribute('aria-label','小屏幕上的四位配对码');
  input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4)});
  const connect=document.createElement('button');connect.type='submit';connect.textContent='配对小屏幕';
  const disconnect=document.createElement('button');disconnect.type='button';disconnect.textContent='断开小屏幕';disconnect.hidden=true;
- form.append(input,connect);panel.append(title,status,form,disconnect);host.prepend(panel);
+ form.append(input,connect);panel.append(close,title,status,form,disconnect);document.body.append(panel);
  let binding=null,pending=null,requesting=false,generation=0,lastSequence=-1;
  const messages={SYNC_NOT_CONFIGURED:'同步服务尚未发布或配置。',NO_DEVICE_DATA:'等待小屏幕上传进度。',UPDATE_DEVICE_FIRMWARE:'请先更新小屏幕固件。',BROWSER_STORAGE_CONFLICT:'请关闭同站点其他标签页，刷新后重试。',END_BROWSER_SESSION_FIRST:'请先结束网页自身的计时，再配对。',DEVICE_PROGRESS_WENT_BACKWARDS:'设备存档发生回退，已停止合并。',PAIRING_EXPIRED:'配对码已过期，请在小屏幕生成新码。',INVALID_OR_EXPIRED_CODE:'配对码错误或已过期。',PAIRING_BUSY:'有人正在配对，请在小屏幕重新生成配对码。',RATE_LIMITED:'尝试过于频繁，请一分钟后重试。',FOUR_DIGITS_REQUIRED:'请输入完整的四位数字，保留开头的 0。',DEVICE_IDENTITY_CONFLICT:'同一设备存在两份导入记录，请先核对存档。'};
  function error(e){status.textContent=messages[e.message]||'连接失败，原有记录已保留，可稍后重试。';}
@@ -19,7 +22,7 @@
  }
  const read=async token=>{const d=await request('/api/dig-sync',token,{action:'read'});DeviceProgress.validateSnapshot(d.snapshot);return d;};
  const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
- function attached(){form.hidden=true;disconnect.hidden=false;disconnect.textContent=pending?'取消配对':'断开小屏幕';}
+ function attached(){form.hidden=true;disconnect.hidden=false;disconnect.textContent=pending?'取消配对':'断开小屏幕';opener.textContent=pending?'小屏幕 · 待确认':'小屏幕 · 已配对';}
  async function poll(){
   if(requesting||(!binding&&!pending))return;requesting=true;const epoch=generation;
   try{
@@ -33,7 +36,9 @@
    }
    const active=binding,data=await read(active.token);if(epoch!==generation||binding!==active)return;if(data.sequence<lastSequence)return;
    DeviceImportBridge.apply(active.id,data);lastSequence=data.sequence;
-   status.textContent=data.serverTime-Date.parse(data.updated_at)>20000?'小屏幕离线，已保留最后记录。':`小屏幕${data.snapshot.status==='digging'?'正在挖掘':data.snapshot.status==='idle'?'本次已结束':'已暂停'} · 累计 ${data.snapshot.depth.toFixed(1)} 米 · 已同步`;
+   const stale=data.serverTime-Date.parse(data.updated_at)>20000;
+   opener.textContent=stale?'小屏幕 · 离线':data.snapshot.status==='digging'?'小屏幕 · 挖掘中':data.snapshot.status==='idle'?'小屏幕 · 已结束':'小屏幕 · 已暂停';
+   status.textContent=stale?'小屏幕离线，已保留最后记录。':`小屏幕${data.snapshot.status==='digging'?'正在挖掘':data.snapshot.status==='idle'?'本次已结束':'已暂停'} · 累计 ${data.snapshot.depth.toFixed(1)} 米 · 已同步`;
   }catch(e){if(epoch===generation){DeviceImportBridge.offline();error(e);if(pending&&['PAIRING_EXPIRED','INVALID_OR_EXPIRED_CODE'].includes(e.message)){pending=null;localStorage.removeItem(PENDING);DeviceImportBridge.disconnect();form.hidden=false;disconnect.hidden=true;}}}finally{requesting=false;}
  }
  form.onsubmit=async e=>{
@@ -50,7 +55,7 @@
  };
  disconnect.onclick=()=>{
   const old=pending||binding;generation++;pending=binding=null;lastSequence=-1;localStorage.removeItem(KEY);localStorage.removeItem(PENDING);DeviceImportBridge.disconnect();form.hidden=false;disconnect.hidden=true;
-  status.textContent='已断开，导入的记录保留。';
+  status.textContent='已断开，导入的记录保留。';opener.textContent='连接小屏幕';
   if(old)request('/api/dig-pair',old.token,{action:'disconnect'}).catch(()=>{status.textContent='本机已断开；云端撤销未完成，可在小屏幕撤销全部配对。'});
  };
  status.textContent='在小屏幕 Setup → Pair screen 获取四位码；在这里输入，然后在设备上确认。';

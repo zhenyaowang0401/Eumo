@@ -1,0 +1,4 @@
+Subset of GFX Library for Arduino 1.6.9, https://github.com/moononournation/Arduino_GFX
+Kept drawing base, ESP32 SPI bus, ST7789, RGB565 canvas and Unifont Chinese4.
+Changes: relative bus include; one externally linked font instead of including every font in every translation unit; explicit U8G2_WITH_UNICODE to retain the decoder previously enabled by U8g2lib.h. Rendering and SPI implementations unchanged.
+Original copyright and license notices retained. Font license is in its header.

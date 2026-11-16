@@ -16,3 +16,8 @@ test('upgrading private link to code uses stable device identity without crediti
  const old={depth:120,totalSeconds:3600,balance:10,inventory:[5,0,0,0],reportDays:{[day]:{seconds:600}},deviceImports:{[legacy]:{sequence:1,depth:20,seconds:600,reportDays:{[day]:{seconds:600}}}}};
  const state=merge(old,id,packet(2,[first])).state;assert.equal(state.depth,120);assert.equal(state.totalSeconds,3600);assert.equal(state.balance,12);assert.ok(state.deviceImports[id]);assert.equal(state.deviceImports[legacy],undefined);
 });
+test('preserves a session split across midnight for the original daily history view',()=>{
+ const h={...first,daySeconds:{'2026-11-15':300,'2026-11-16':300}};
+ const state=merge({},id,packet(1,[h])).state;assert.deepEqual(state.history[0].daySeconds,h.daySeconds);
+ assert.throws(()=>merge({},id,packet(1,[{...h,daySeconds:{'2026-02-30':600}}])),/INVALID_DEVICE_RECORDS/);
+});

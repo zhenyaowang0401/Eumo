@@ -364,3 +364,4 @@ dialog.friends-dialog{width:min(600px,calc(100% - 28px));max-width:600px;max-hei
 .device-sync-panel button{padding:9px 12px;background:var(--pink);color:var(--primary-ink,var(--deep));border-radius:4px}
 .device-sync-panel .dialog-close{background:transparent;color:inherit;padding:3px 8px}
 .focus-device-button{white-space:nowrap}
+@media(max-width:600px){#focus .page-heading{flex-wrap:wrap;gap:8px}#focus .focus-meta{flex-wrap:wrap;justify-content:flex-start}}

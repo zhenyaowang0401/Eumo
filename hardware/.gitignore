@@ -1,0 +1,12 @@
+build/
+assets.json
+SOURCE.json
+__pycache__/
+tests/ui-output/
+tests/*_test
+tests/*_test.exe
+tests/*.obj
+tests/*.pdb
+tests/reference.json
+tests/device-snapshot.json
+tests/test-storage/

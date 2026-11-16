@@ -28,6 +28,11 @@ test('actual SQL: ordered snapshots, read-only token, RLS and validation',async(
  assert.equal((await request({action:'publish',sequence:4,viewerToken:viewer,snapshot:v2})).accepted,true);
  read=await request({action:'read'},viewer);assert.equal(read.snapshot.version,2);assert.equal(read.snapshot.sessionElapsed,90);assert.equal(read.snapshot.reportDays['2026-11-16'].seconds,90);
  assert.equal((await request({action:'publish',sequence:5,viewerToken:viewer,snapshot:{...v2,reportDays:{'2026-02-30':{seconds:1}}}})).status,400);
+ const h={id:'study-1',at:1000000,startedAt:400000,seconds:600,depth:20,stars:2,mode:'study',outcome:'stopped',demo:false,finds:[1,0,0,0],golden:['moon-globe']};
+ const v3={...v2,version:3,earned:{stars:2,sessions:0,finds:[1,0,0,0],golden:{'moon-globe':1}},records:[h]};
+ assert.equal((await request({action:'publish',sequence:6,viewerToken:viewer,snapshot:v3})).accepted,true);
+ read=await request({action:'read'},viewer);assert.deepEqual(read.snapshot.records,[h]);assert.equal(read.snapshot.earned.golden['moon-globe'],1);assert.match(read.deviceId,/^[a-f0-9]{64}$/);
+ assert.equal((await request({action:'publish',sequence:7,viewerToken:viewer,snapshot:{...v3,earned:{...v3.earned,stars:99}}})).status,400);
  for(const role of ['anon','authenticated']){await db.exec('set role '+role);await assert.rejects(db.query('select * from eumo_dig_streams'),/permission denied/);await assert.rejects(db.query("select eumo_publish_dig('a','b',1,'{}')"),/permission denied/);await db.exec('reset role');}
  }finally{await db.close();}
 });

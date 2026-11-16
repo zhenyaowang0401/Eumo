@@ -21,6 +21,7 @@ const server=http.createServer((req,res)=>{
   const cdp=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;waiting.set(id,x=>x.error?reject(Error(JSON.stringify(x.error))):resolve(x.result));socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const x=await cdp('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(x.exceptionDetails)throw Error(JSON.stringify(x.exceptionDetails));return x.result.value;};
   await cdp('Runtime.enable');await cdp('Page.enable');
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
   const url='http://127.0.0.1:'+server.address().port+'/#focus';
   async function ready(){for(let i=0;i<100;i++){if(await evaluate("!!window.DeviceImportBridge && saveOwnerReady"))return;await delay(100);}throw Error('app not ready');}
   await cdp('Page.navigate',{url});await ready();
@@ -31,7 +32,7 @@ const server=http.createServer((req,res)=>{
   for(let i=0;i<60;i++){if(await evaluate('state.depth===240'))break;await delay(100);}
   assert.equal(await evaluate('state.depth'),240);assert.equal(await evaluate('deviceIsDigging()'),true);assert.equal(await evaluate("document.querySelector('#startButton').disabled"),true);
   assert.equal(await evaluate('state.balance'),12);assert.equal(await evaluate("state.rareInventory['moon-globe']"),1);assert.equal(await evaluate('state.history.length'),1);
-  assert.match(await evaluate("getComputedStyle(document.body).fontFamily"),/Pixelify Sans/);
+  assert.match(await evaluate("getComputedStyle(document.body).fontFamily"),/Silver/);
   await evaluate("document.querySelector('#mineToSurface').click()");assert.equal(await evaluate('MineView.cameraFor(state)'),0);
   current={...current,sequence:2,snapshot:{...current.snapshot,depth:145,seconds:4350,reportDays:{'2026-11-16':{seconds:4350}}}};
   await delay(5500);assert.equal(await evaluate('state.depth'),245);
@@ -40,6 +41,7 @@ const server=http.createServer((req,res)=>{
   await cdp('Page.reload');await delay(600);await ready();await delay(700);assert.equal(await evaluate('state.depth'),245);
   assert.equal(await evaluate('state.totalSeconds'),7350);
   assert.equal(await evaluate('state.balance'),12);assert.equal(await evaluate('state.history.length'),1);
+  if(process.env.EUMO_CAPTURE){const out=path.resolve(process.env.EUMO_CAPTURE);fs.mkdirSync(out,{recursive:true});await evaluate("navigateTo('focus');document.querySelector('.device-sync-panel').close()");await delay(700);fs.writeFileSync(path.join(out,'screen-pair-main.png'),Buffer.from((await cdp('Page.captureScreenshot',{format:'png'})).data,'base64'));await evaluate("document.querySelector('.focus-device-button').click()");fs.writeFileSync(path.join(out,'screen-pair-dialog.png'),Buffer.from((await cdp('Page.captureScreenshot',{format:'png'})).data,'base64'));await evaluate("document.querySelector('.device-sync-panel').close()");}
   // A failed atomic receipt+progress write must leave memory and disk untouched.
   assert.equal(await evaluate(`(()=>{const original=Storage.prototype.setItem;let writes=0;Storage.prototype.setItem=function(k,v){if(k===STORAGE_KEY&&++writes===2)throw Error('quota');return original.call(this,k,v)};try{DeviceImportBridge.apply('a'.repeat(64),{sequence:3,snapshot:${JSON.stringify({...current.snapshot,depth:150})},serverTime:Date.now(),updated_at:new Date().toISOString()});return false;}catch{return state.depth===245&&JSON.parse(localStorage.getItem(STORAGE_KEY)).depth===245;}finally{Storage.prototype.setItem=original}})()`),true);
   await evaluate("DeviceImportBridge.offline()");assert.equal(await evaluate('deviceIsDigging()'),false);
