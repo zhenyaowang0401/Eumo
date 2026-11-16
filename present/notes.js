@@ -39,7 +39,7 @@ window.EumoNotes = Object.freeze({
     html: `<p><strong>Alex, 20:</strong> an undergraduate doing independent reading, coursework and project work on a laptop.</p>
       <p><strong>JTBD:</strong> when starting a task alone feels difficult, begin a manageable session, make progress and recover from interruptions.</p>
       <p><strong>Context:</strong> a library, dorm or home desk. Relevant needs include low setup effort, optional company and flexible pauses.</p>
-      <p class="note">Alex is a proto-persona synthesized for design and testing, not an interviewed individual. Age alone does not define this segment; the context and needs require validation.</p>`
+      <p class="note">Alex is a proto-persona informed by founder-reported feedback. The study context, goals and needs are design assumptions to validate, not a profile of an interviewed participant. The pixel character is an illustration, not a participant portrait. Age alone does not define this segment.</p>`
   },
   landscape: {
     title: 'Competitive Landscape',

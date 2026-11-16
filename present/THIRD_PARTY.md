@@ -29,8 +29,9 @@ Unmodified Taste copy lint: no failures; warnings for numbered steps and eyebrow
 | Asset | Origin and use |
 | --- | --- |
 | `assets/co-study-pixels.png` | Generated pixel illustration of four human students in a co-study call. It illustrates the founder's inspiration; it is not a participant photograph, a Zoom screenshot or study evidence. |
+| `assets/persona-alex.png` | Generated pixel illustration of a 20-year-old student with glasses, a notebook and pencil. The fictional Alex proto-persona is a design hypothesis, not a real interviewee. |
 | `assets/digital-pet-illustration.png` | Generated Tamagotchi-style electronic-pet illustration. It is not an authentic Bandai product photograph or a representation of the Eumo handheld. |
 | `assets/competitor-reference-illustrations.png` | Generated reference sheet based on the presenter's supplied Cat On Chair promotional picture and red tomato timer icon. The original inline image bytes were unavailable in the workspace. These are visibly labeled **Reference illustration**, not represented as original or verified current app screenshots. |
 | `../docs/images/eumo-friends-live.png` | Existing repository development capture containing sample friend profiles. The Feedback panel identifies it as an earlier development UI with sample profiles, not live users. |
 
-The supplied references identify the comparison; they do not establish efficacy, current feature parity or permission to imply endorsement. The three new illustrations were produced with the image-generation tool. Existing keychain/handheld visualizations remain unchanged.
+The supplied references identify the comparison; they do not establish efficacy, current feature parity or permission to imply endorsement. The four new illustrations were produced with the image-generation tool. Existing keychain/handheld visualizations remain unchanged.

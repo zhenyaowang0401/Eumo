@@ -37,6 +37,10 @@ Visual review covered the revised overview, pixel-student call, electronic-pet r
 
 Reports and screenshots remain outside the deliverable at `/workspace/scratch/presentation-v3-qa/` (`report.json`, `targeted-recheck.json`, `fixed-*` captures) and `/workspace/scratch/presentation-v3-visual/`. The previous V2 results remain in their original scratch directories.
 
+## Persona follow-up
+
+The subsequent Persona-only revision replaces the monitor illustration with a generated human student and adds study context, goals, pain points, product needs and a concise job to be done. **50/50 targeted checks passed** across the same six viewports. Desktop Persona fits, mobile content does not overlap or overflow horizontally, the character decodes with its aspect ratio intact, and the detail dialog closes with focus restored. Adjacent Research and Competitive Landscape pages were checked for style leakage. No JavaScript errors or failed local resources were recorded. This is targeted verification, not another full-suite run. Reports and screenshots: `/workspace/scratch/persona-v4-qa/`.
+
 ## Requested skill checks
 
 All three requested repositories were downloaded at pinned revisions; see [third-party provenance](../present/THIRD_PARTY.md). GSAP was bundled locally, and a small React Bits-inspired pixel transition was integrated into the static site.

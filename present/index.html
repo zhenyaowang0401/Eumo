@@ -5,7 +5,7 @@
 <meta name="description" content="Eumo: a product case study of a focus companion, from research hypotheses to working software and physical prototypes.">
 <title>Eumo — Product Case Study</title><link rel="icon" href="assets/mushroom.svg" type="image/svg+xml">
 <link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=3"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=3"></script><script defer src="app.js?v=3"></script>
+<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=4"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=4"></script><script defer src="app.js?v=3"></script>
 </head><body>
 <a class="skip" href="#story">Skip to presentation</a>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -33,7 +33,27 @@
 <div class="research-layout"><div class="research-select" role="tablist" aria-label="Research themes" aria-orientation="vertical"><button id="research-presence" role="tab" aria-selected="true" aria-controls="researchPanel" data-research="presence"><span class="item-number">01</span><span>Co-presence</span><svg><use href="#i-arrow"/></svg></button><button id="research-motivation" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="motivation"><span class="item-number">02</span><span>Motivation</span><svg><use href="#i-arrow"/></svg></button><button id="research-companion" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="companion"><span class="item-number">03</span><span>Companionship</span><svg><use href="#i-arrow"/></svg></button></div><div id="researchPanel" class="research-panel" role="tabpanel" aria-labelledby="research-presence" tabindex="0"><div class="research-visual" aria-hidden="true"><img class="research-mole" src="assets/mole-default.png" alt=""><span class="connection-line"></span><svg id="researchIcon"><use href="#i-screen"/></svg></div><span class="eyebrow">PRODUCT RESPONSE</span><h3 id="researchResponse">Optional friend visibility</h3><p id="researchQuestion">Does shared presence help people start?</p></div></div><div class="section-bottom"><span><strong>Evaluation:</strong> real task progress</span><span class="muted">Literature verification pending</span></div>
 </section>
 <section id="persona" class="chapter" data-title="Persona" data-time="0:40" aria-labelledby="persona-title">
-<div class="chapter-heading"><span class="eyebrow">04 / PERSONA</span><button class="text-button" data-detail="persona">Persona basis ↗</button></div><div class="persona-layout"><div class="persona-profile"><span class="status">Proto-persona</span><h2 id="persona-title">Alex<span>, 20</span></h2><p>Undergraduate student</p><div class="persona-desk" aria-hidden="true"><svg class="desk-book"><use href="#i-book"/></svg><div class="laptop"><svg><use href="#i-screen"/></svg><img src="assets/mole-default.png" alt=""></div><img class="desk-flower" src="assets/mushroom.svg" alt=""></div><span class="profile-context">Independent study · Laptop</span></div><div class="persona-details"><span class="eyebrow">PAIN POINTS</span><h3>Starting alone.<br>Recovering after interruptions.</h3><div class="jtbd"><span class="eyebrow">JOBS TO BE DONE</span><p>Begin a manageable session, make progress, and return without pressure.</p></div><div class="journey"><span>Start</span><i aria-hidden="true">→</i><span>Focus</span><i aria-hidden="true">→</i><span>Return</span></div></div></div>
+<div class="chapter-heading"><span class="eyebrow">04 / PERSONA</span><button class="text-button" data-detail="persona">Persona basis ↗</button></div>
+<div class="persona-layout persona-with-character">
+  <div class="persona-profile">
+    <span class="status">Proto-persona</span>
+    <h2 id="persona-title">Alex<span>, 20</span></h2>
+    <p>Undergraduate student</p>
+    <figure class="persona-character"><img src="assets/persona-alex.png" alt="Pixel illustration of Alex, a young adult with glasses, holding a notebook and pencil"></figure>
+    <span class="profile-context">Independent study · Laptop</span>
+  </div>
+  <div class="persona-details persona-expanded">
+    <span class="eyebrow">USER PROFILE</span>
+    <h3>Independent study.<br><em>A sense of company.</em></h3>
+    <div class="persona-facts">
+      <div><h4>Study context</h4><p>Studies on a laptop at home or in the library. Moves between readings, notes and coursework.</p></div>
+      <div><h4>Goals</h4><p>Start a manageable session and <strong>complete a concrete task</strong>, with company and control over the pace.</p></div>
+      <div><h4>Pain points</h4><p>Starting alone feels difficult. Interruptions break momentum; phone-based tools occupy the phone and use its battery.</p></div>
+      <div><h4>Product needs</h4><p>A persistent companion, flexible pauses and optional friend visibility. <strong>Rewards that support task progress.</strong></p></div>
+    </div>
+    <div class="persona-job"><span class="eyebrow">JOBS TO BE DONE</span><p>Begin a focused session, make progress, and return after interruptions.</p></div>
+  </div>
+</div>
 </section>
 <section id="landscape" class="chapter" data-title="Competitive Landscape" data-time="0:50" aria-labelledby="landscape-title">
 <div class="chapter-heading"><span class="eyebrow">05 / COMPETITIVE LANDSCAPE</span><button class="text-button" data-detail="landscape">Comparison basis ↗</button></div><h2 id="landscape-title">Three approaches to <em>focus.</em></h2>

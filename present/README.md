@@ -24,6 +24,7 @@ Total: **12:40**, including a six-minute live demonstration. No speaker script i
 - Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. Older deep links such as `#thankyou`, `#beyond` and `#hello` still work.
 - Research themes, four feedback examples, three development workstreams and walkthrough steps change manually. Arrow keys move within tab groups; vertical groups use up/down.
 - Inspiration connects illustrated pixel co-study with traditional electronic pets. Competitive Landscape gives each approach a visual reference and one short mechanism statement.
+- Persona pairs an illustrated human student, Alex (20), with study context, goals, pain points, product needs and a concise job to be done. The profile remains explicitly a proto-persona to validate.
 - Feedback pairs reported themes with implemented responses: apparel, desktop access, friend visibility and simpler interactions. Reward timing and idle farming remain an open design question.
 - Next Steps covers **UI optimization**, **reward-mechanism refinement** and **physical-product optimization**, each with an evaluation criterion.
 - Details open in native dialogs. Escape closes a dialog and restores trigger focus.
