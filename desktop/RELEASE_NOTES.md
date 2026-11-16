@@ -1,10 +1,9 @@
 Eumo for Windows and macOS brings the web game's focus timer, mole companion, outfits, underground home, and reports to your desktop.
 
-## What's new in 3.7.3
+## What's new in 3.7.4
 
-- **Silver** now supplies the interface lettering, with a matching pixel supplement for its missing Chinese characters and symbols. All 711 distinct Han characters in the current Chinese interface are covered, including mole, digging, home and decoration labels.
-- The supplement aligns its pixel size, character widths and baseline with Silver. Existing Silver glyphs stay unchanged. Chat, timer digits, reports and the floating companion share the same font pair.
-- Both fonts are bundled for offline use on web, Windows and Mac. The EUMO startup artwork and its VG credit keep their previous appearance.
+- The **EUMO** startup greeting stays on screen for an additional half second before fading out. It now waits 1.2 seconds before the existing 0.24-second fade, across web, offline, Windows and Mac versions.
+- Reduced-motion preferences still skip the greeting, and it does not replay when switching pages or opening the floating companion.
 
 Windows users on 3.3.0 or later can use Help → App updates to download this version and restart to install. Older Windows versions need one manual overwrite installation. Mac users can use the update check to download the matching DMG.
 

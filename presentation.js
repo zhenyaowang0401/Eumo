@@ -7,7 +7,7 @@
   splash?.addEventListener('animationend', event => {
     if (event.target === splash) dismiss();
   });
-  setTimeout(dismiss, 1400);
+  setTimeout(dismiss, 1900);
   window.addEventListener('pagehide', dismiss, { once: true });
 
   const home = document.getElementById('home');

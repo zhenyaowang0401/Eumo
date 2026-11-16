@@ -1412,7 +1412,7 @@ body[data-period="night"]:has(#home:not([hidden])) .painted-backdrop{opacity:.09
 .startup-splash {
   position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center;
   overflow: hidden; pointer-events: none; background: #dce6d5; color: #485d45;
-  animation: eumo-splash-away 240ms ease-out 700ms forwards;
+  animation: eumo-splash-away 240ms ease-out 1200ms forwards;
 }
 .startup-splash .startup-meadow { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .36; }
 .startup-splash::after { content: ''; position: absolute; inset: 0; background: #f9f3d31a; }
@@ -1576,7 +1576,7 @@ body[data-period="night"]:has(#home:not([hidden])) .painted-backdrop{opacity:.09
   splash?.addEventListener('animationend', event => {
     if (event.target === splash) dismiss();
   });
-  setTimeout(dismiss, 1400);
+  setTimeout(dismiss, 1900);
   window.addEventListener('pagehide', dismiss, { once: true });
 
   const home = document.getElementById('home');

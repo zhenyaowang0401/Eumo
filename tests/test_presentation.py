@@ -26,7 +26,7 @@ try:
    page = context.new_page()
    page.on('pageerror', lambda e: errors.append(str(e)))
    page.goto(url + entry + '#home')
-   assert page.evaluate('splashSeen && splashTime > 0 && splashTime <= 1.1 && splashPointer === "none"')
+   assert page.evaluate('splashSeen && splashTime >= 1.4 && splashTime <= 1.6 && splashPointer === "none"')
    expect(page.locator('#startupSplash')).to_have_count(0, timeout=2500)
    expect(page.locator('.page-heading #homeThemeName')).to_have_text('Twilight forest')
    for width, height in [(1920,1080),(1440,900),(1366,768),(1280,600),(1024,640),(1366,500),(844,390),(768,1024),(390,844),(320,568)]:
