@@ -454,6 +454,56 @@ body[data-period="night"] .painted-night { display: block; }
 .outfit-card.equipped{box-shadow:inset 0 0 0 1px var(--edge),2px 2px var(--drop-shadow)}
 @media(max-width:480px){.focus-meta{gap:7px}.focus-status{gap:6px;padding:3px 5px}.focus-status #focusMode{padding-right:5px}.focus-status .device-time{font-size:14px}}
 @media(max-width:600px){.focus-meta{flex-wrap:nowrap}.focus-meta .float-mole-button{flex:0 0 44px;width:44px}}
+/* Canele uses the same small painted button and window chrome as its neighbour. */
+#connectCaneleButton{flex:0 0 48px;width:48px;height:44px;min-height:44px;margin:0;padding:4px;display:grid;place-items:center;color:var(--glyph)}
+#connectCaneleButton .focus-icon{width:34px;height:34px}
+#connectCaneleButton[aria-expanded="true"]{background:var(--selected);box-shadow:inset 1px 2px var(--button-shadow),inset 0 -2px var(--board)}
+dialog.canele-dialog{width:min(540px,calc(100% - 24px));max-width:540px;max-height:calc(100dvh - 24px);padding:3px;border:3px solid var(--edge);background:var(--board);text-align:left;overflow:hidden}
+dialog.canele-dialog[open]{display:flex;flex-direction:column}
+.canele-dialog .music-window-bar{flex-shrink:0;min-height:32px;padding:4px 6px;gap:10px}
+.canele-window-label{font-size:13px;letter-spacing:.5px;white-space:nowrap}
+.canele-dialog .dialog-close{position:static;flex:0 0 24px;width:24px;height:24px;padding:0;font-size:20px;line-height:20px;color:var(--text)}
+.canele-dialog-body{overflow:auto;overscroll-behavior:contain;min-height:0;padding:26px;background:var(--panel)}
+.canele-intro{display:flex;align-items:center;gap:22px}
+.canele-device-art{display:grid;place-items:center;flex:0 0 104px;height:112px;color:var(--glyph);background:var(--selected);border:1px solid var(--edge-soft);box-shadow:inset 2px 2px var(--board-light)}
+.canele-device-art .focus-icon{width:88px;height:88px}
+.canele-intro-copy{min-width:0}
+.canele-status{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}
+.canele-status i{width:6px;height:6px;background:var(--muted)}
+.canele-dialog h2{margin:6px 0;color:var(--text);font-size:30px;line-height:1.05;font-weight:600;letter-spacing:0}
+.canele-intro-copy p{margin:8px 0 0;font-size:15px;line-height:1.4}
+.canele-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:22px 0 24px;padding:13px 0;border-top:1px solid var(--edge-soft);border-bottom:1px solid var(--edge-soft)}
+.canele-features>span{display:flex;align-items:center;justify-content:center;gap:7px;font-size:14px}
+.canele-features>span+span{border-left:1px solid var(--edge-soft)}
+.canele-features svg{width:20px;height:20px;color:var(--glyph)}
+.canele-features svg[fill="none"],.canele-wifi svg{fill:none}
+.canele-pair-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.canele-pair-heading h3{font-size:20px;font-weight:600;margin:0}
+.canele-wifi{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px}
+.canele-wifi svg{width:20px;height:20px}
+#canelePairHelp{font-size:15px;line-height:1.45;margin:8px 0 20px}
+#canelePairForm label{display:block;font-size:14px;margin-bottom:7px}
+.canele-code-row{display:flex;align-items:stretch;gap:10px}
+#canelePairCode{width:100%;min-width:0;flex:1;min-height:46px;padding:9px 12px;border:2px solid var(--edge-soft);background:var(--deep);color:var(--text);font-size:18px;line-height:24px;letter-spacing:1px;box-shadow:inset 1px 2px var(--inset-shadow)}
+#canelePairCode[aria-invalid="true"]{border-color:var(--pink)}
+.canele-code-row .dialog-primary{flex:0 0 auto;width:auto;min-width:100px;min-height:46px;margin:0;padding:9px 18px;font-size:16px}
+.canele-dialog .canele-feedback{margin:12px 0 0;color:var(--pink);font-size:14px;line-height:1.45}
+.canele-dialog .canele-availability{font-size:13px;line-height:1.5;margin:20px 0 0;padding:10px 12px;border-left:2px solid var(--line);background:var(--raised)}
+@media(max-width:600px){#connectCaneleButton{flex-basis:44px;width:44px}}
+@media(max-width:420px){
+ #focus>.page-heading{flex-wrap:wrap;row-gap:10px}
+ #focus>.page-heading h1{flex:1 0 100%}
+ #focus>.page-heading .focus-meta{margin-left:auto}
+ .canele-dialog-body{padding:18px}
+ .canele-intro{gap:14px}
+ .canele-device-art{flex-basis:76px;height:88px}
+ .canele-device-art .focus-icon{width:64px;height:64px}
+ .canele-dialog h2{font-size:26px}
+ .canele-features>span{flex-direction:column;gap:4px;font-size:13px}
+ .canele-code-row{gap:8px}
+ .canele-code-row .dialog-primary{min-width:82px;padding:8px 12px}
+ #canelePairCode{font-size:16px;padding:9px}
+}
 /* A wide, two-level burrow with a separate decorating drawer. */
 .home-layout{display:block}.home-room{position:relative;top:auto}.home-stage canvas{aspect-ratio:16/9;width:100%;height:auto;display:block}
 .home-stage{overflow:hidden}.chest-hotspot{left:71.09375%;top:78.3333%;width:7.8125%;height:10%;min-width:0;min-height:0}

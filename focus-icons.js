@@ -12,6 +12,9 @@ window.FocusIcons=(()=>{
  // Two distinct doorway poses inspired by the user's sketches.
  paths.depart='<path fill="#c6af80" d="M15 3h13v25H15z"/><path d="M15 3h13v25H15M25 15v3"/><path fill="#8e9daf" d="M3 27v-9l3-6 4-3h5l5 5v13z"/><path fill="#fff0c5" stroke="none" d="M7 16h2v8H7z"/><path fill="#f2b3a4" d="M18 18h6v4h-6z"/><path d="M1 28h29"/>';
  paths.return='<path fill="#c6af80" d="M2 3 12 6v22L2 25zM12 6l17-3v22l-17 3z"/><path d="M2 3 12 6v22L2 25zM12 6l17-3v22l-17 3z"/><path fill="#a9b4c6" d="M8 27V16l4-5h7l5 5v11z"/><path stroke="none" fill="#28214c" d="M11 17h2v2h-2zm8 0h2v2h-2z"/><path stroke="none" fill="#d86651" d="M15 20h3v2h-3z"/><path d="M26 24 23 10" stroke="#65855b"/><path fill="#d98e91" stroke="none" d="M21 4h4v3h3v4h-3v3h-4v-3h-3V7h3z"/><path fill="#f5dc87" stroke="none" d="M21 7h4v4h-4z"/>';
+ // Upright front / fluted back, following the canele device sketches.
+ paths.canele='<path fill="var(--glyph-accent)" d="M9 4h14v2h3v5h2v17H4V11h2V6h3z"/><path d="M11 4v5m5-5v5m5-5v5"/><path fill="var(--board-light)" d="M9 10h14v2h2v12h-2v2H9v-2H7V12h2z"/><path stroke="none" fill="var(--button)" d="M10 13h10v2H12v6h-2z"/>';
+ paths.caneleConnected='<path fill="var(--glyph-accent)" d="M10 4h12v2h3v5h2v8h2v9H3v-9h2v-8h2V6h3z"/><path d="M11 5v8H9v14m7-23v24m5-23v8h2v14"/><path stroke="none" fill="var(--board-light)" d="M8 9h2v5H8zm9-2h2v18h-2z"/>';
  function svg(id){return `<svg class="focus-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" shape-rendering="crispEdges" aria-hidden="true">${paths[id]||paths.study}</svg>`;}
  function set(el,id,label){if(el.dataset.icon!==id){el.innerHTML=svg(id);el.dataset.icon=id;}const text=window.EumoI18n?.t(label)||label;el.setAttribute('aria-label',text);el.title=text;}
  return {svg,set};

@@ -3,6 +3,14 @@
 window.EumoI18n=(()=>{
  const KEY='eumo-language';let language='en';try{if(localStorage.getItem(KEY)==='zh')language='zh';}catch{}
  const dictionary={
+ "Connect your canele":"连接你的 canele","Close canele connection":"关闭 canele 连接窗口",
+ "Not connected":"未连接","Your pocket digging companion.":"随身携带的挖掘伙伴。",
+ "Planned sync features":"计划支持的同步功能","Dig":"挖掘","Track time":"记录时间","Keep rewards":"记录奖励",
+ "Pair with a code":"使用配对码连接","Pairing code":"配对码","Enter pairing code":"输入配对码",
+ "Connect canele to Wi-Fi, then enter the pairing code from its screen.":"让 canele 连上 Wi-Fi，再输入它屏幕上显示的配对码。",
+ "Pairing is coming soon. Time and rewards are not syncing yet.":"配对功能即将开放，时间和奖励目前尚未同步。",
+ "Enter the pairing code shown on your canele.":"请输入 canele 屏幕上显示的配对码。",
+ "Pairing is not available yet. Your canele has not been connected.":"配对功能尚未开放，你的 canele 目前还没有连接。",
  "Wardrobe collection":"装扮收藏","Owned items":"已拥有的物品","All types":"全部类别",
  "Your wardrobe is empty.":"你还没有装扮物品。","No owned items in this category.":"你还没有这个类别的物品。",
  "You own everything here.":"这里的物品你都已经拥有了。","You own everything in this category.":"这个类别的物品你都已经拥有了。",
