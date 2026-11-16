@@ -1,5 +1,6 @@
 'use strict';
 const {randomBytes,createHash}=require('node:crypto');
+const {deviceIdentity}=require('./device.js');
 const catalog=require('../wardrobe.js'),homeCatalog=require('../home.js');
 const COOKIE='eumo_friend_session',CODE=/^[A-HJ-NP-Z2-9]{10}$/,UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const ACTIONS=new Set(['connect','sync','state','request','accept','decline','cancel','remove','pause','resume']),buckets=new Map();
@@ -39,7 +40,10 @@ function createHandler({env=process.env,fetchImpl=globalThis.fetch,now=Date.now,
   let input;try{input=await readBody(req);}catch{return send(res,400,{error:'INVALID_REQUEST'});}
   if(!input||!ACTIONS.has(input.action))return send(res,400,{error:'INVALID_REQUEST'});
   if(limited(req,now(),input.action)){res.setHeader('Retry-After','60');return send(res,429,{error:'RATE_LIMITED'});}
-  let token=tokenOf(req);const created=!token&&input.action==='connect';if(!token&&!created)return send(res,401,{error:'UNAUTHORIZED'});if(created)token=randomBytes(32).toString('hex');
+  let deviceHash=null;
+  if(req.headers.authorization){try{deviceHash=await deviceIdentity(req,env,fetchImpl,now());}catch{return send(res,503,{error:'DEVICE_SERVICE_NOT_CONFIGURED'});}if(!deviceHash)return send(res,401,{error:'UNAUTHORIZED'});if(input.action==='connect')return send(res,400,{error:'ALREADY_CONNECTED'});}
+  let token=tokenOf(req);const created=!deviceHash&&!token&&input.action==='connect';if(!deviceHash&&!token&&!created)return send(res,401,{error:'UNAUTHORIZED'});if(created)token=randomBytes(32).toString('hex');
+  const authHash=deviceHash||createHash('sha256').update(token).digest('hex');
   const payload={};
   if(['connect','sync','resume'].includes(input.action)){if(!input.snapshot||typeof input.snapshot!=='object'||Array.isArray(input.snapshot))return send(res,400,{error:'INVALID_REQUEST'});payload.snapshot=snapshot(input.snapshot);payload.visible=input.visible!==false;}
   if(input.action==='connect')payload.friendCode=makeCode();
@@ -54,10 +58,10 @@ function createHandler({env=process.env,fetchImpl=globalThis.fetch,now=Date.now,
    };
    // Older tabs do not send home yet. Keep a previously synced layout when they update status.
    if(input.action==='sync'&&!payload.snapshot.home){
-    const rows=await profiles(new URLSearchParams({select:'snapshot',auth_hash:'eq.'+createHash('sha256').update(token).digest('hex')}).toString());
+    const rows=await profiles(new URLSearchParams({select:'snapshot',auth_hash:'eq.'+authHash}).toString());
     payload.snapshot.home=homeCatalog.sharedHome(rows[0]?.snapshot?.home);
    }
-   const response=await fetchImpl(config.url+'/rest/v1/rpc/eumo_friends_action',{method:'POST',headers,body:JSON.stringify({p_token_hash:createHash('sha256').update(token).digest('hex'),p_action:input.action,p_payload:payload}),signal:controller.signal});
+   const response=await fetchImpl(config.url+'/rest/v1/rpc/eumo_friends_action',{method:'POST',headers,body:JSON.stringify({p_token_hash:authHash,p_action:input.action,p_payload:payload}),signal:controller.signal});
    if(!response.ok)return send(res,503,{error:'FRIENDS_UNAVAILABLE'});
    const data=await response.json();
    if(data.error){const allowed=new Set(['UNAUTHORIZED','REQUEST_LIMITED','CODE_NOT_FOUND','SELF_REQUEST','REQUEST_NOT_FOUND','FRIEND_LIMIT','INVALID_REQUEST']);const error=allowed.has(data.error)?data.error:'FRIENDS_UNAVAILABLE';if(error==='UNAUTHORIZED')res.setHeader('Set-Cookie',COOKIE+'=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'+(env.VERCEL||req.headers['x-forwarded-proto']==='https'?'; Secure':''));return send(res,error==='UNAUTHORIZED'?401:error==='REQUEST_LIMITED'?429:error==='FRIENDS_UNAVAILABLE'?503:400,{error});}
@@ -78,7 +82,7 @@ function createHandler({env=process.env,fetchImpl=globalThis.fetch,now=Date.now,
     const homes=new Map(rows.map(row=>[row.id,homeCatalog.sharedHome(row.snapshot?.home)]));
     for(const friend of data.friends)friend.home=homes.get(friend.id)||null;
    }
-   res.setHeader('Set-Cookie',`${COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`+(env.VERCEL||req.headers['x-forwarded-proto']==='https'?'; Secure':''));
+   if(!deviceHash)res.setHeader('Set-Cookie',`${COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`+(env.VERCEL||req.headers['x-forwarded-proto']==='https'?'; Secure':''));
    return send(res,200,data);
   }catch{return send(res,503,{error:'FRIENDS_UNAVAILABLE'});}finally{clearTimeout(timer);}
  };

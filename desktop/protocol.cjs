@@ -17,7 +17,9 @@ function createHandler({root,manifest,readFile,upstream}){
    if(request.method!=='POST')return new Response('Method not allowed',{status:405});
    try{
     const body=await request.arrayBuffer();if(body.byteLength>48000)return new Response('Request too large',{status:413});
-    const response=await upstream(APP_ORIGIN+url.pathname,{method:'POST',headers:{'Content-Type':'application/json',Origin:APP_ORIGIN},body,credentials:'include',redirect:'error',signal:AbortSignal.timeout(60000),bypassCustomProtocolHandlers:true});
+    const headers={'Content-Type':'application/json',Origin:APP_ORIGIN};
+    if(['/api/dig-sync','/api/dig-pair'].includes(url.pathname)){const auth=request.headers.get('authorization');if(/^Bearer [a-f0-9]{64}$/.test(auth||''))headers.Authorization=auth;}
+    const response=await upstream(APP_ORIGIN+url.pathname,{method:'POST',headers,body,credentials:'include',redirect:'error',signal:AbortSignal.timeout(60000),bypassCustomProtocolHandlers:true});
     // Preserve the response; createUpstream persists the HttpOnly friend credential.
     return response;
    }catch{return Response.json({error:'NETWORK_UNAVAILABLE'},{status:503});}

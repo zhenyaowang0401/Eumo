@@ -38,3 +38,9 @@ test('desktop friend identity stays in the HttpOnly cookie jar across API calls'
  await call(APP_ORIGIN+'/api/friends',{headers:{}});assert.equal(sent.Cookie,'eumo_friend_session='+token);
  ses.fetch=async()=>Response.json({error:'UNAUTHORIZED'},{status:401,headers:{'set-cookie':'eumo_friend_session=; Max-Age=0; Path=/'}});await call(APP_ORIGIN+'/api/friends',{headers:{}});assert.equal(removed,true);
 });
+
+test('desktop forwards read-only device authorization only to sync API',async()=>{
+ let options;const handle=createHandler({root:'/app',manifest:new Set(),readFile:async()=>'',upstream:async(_,o)=>{options=o;return Response.json({});}});
+ const auth='Bearer '+'b'.repeat(64);await handle(new Request(APP_ORIGIN+'/api/dig-sync',{method:'POST',headers:{Authorization:auth},body:'{"action":"read"}'}));assert.equal(options.headers.Authorization,auth);
+ await handle(new Request(APP_ORIGIN+'/api/chat',{method:'POST',headers:{Authorization:auth},body:'{}'}));assert.equal(options.headers.Authorization,undefined);
+});

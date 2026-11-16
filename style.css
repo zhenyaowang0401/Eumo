@@ -285,3 +285,12 @@ dialog.friends-dialog{width:min(600px,calc(100% - 28px));max-width:600px;max-hei
 #simpleViewButton .visibility-eye-closed { display: none; }
 .simple-view #simpleViewButton .visibility-eye-open { display: none; }
 .simple-view #simpleViewButton .visibility-eye-closed { display: block; }
+
+/* Shared website / packaged app / watch typography. Same OFL source font. */
+:root{--font:'Pixelify Sans','Segoe UI','Microsoft YaHei',sans-serif}
+.timer-digits{font-family:var(--font)}
+.device-sync-panel{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 16px;margin-bottom:16px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.device-sync-panel p{flex:1 1 260px;margin:0;font-size:14px}
+.device-sync-panel form{display:flex;gap:8px;flex-wrap:wrap}
+.device-sync-panel input{width:130px;max-width:100%;padding:8px;border:1px solid var(--line);background:var(--deep);color:var(--text);letter-spacing:3px}
+.device-sync-panel button{padding:9px 12px;background:var(--pink);color:var(--primary-ink,var(--deep));border-radius:4px}

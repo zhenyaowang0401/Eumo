@@ -40,7 +40,7 @@ window.PixelArt=(()=>{
  function item(c,id,x,y,s=1){for(const [a,b,w,h,col] of itemRects[id]||itemRects.star)box(c,x+a*s,y+b*s,w*s,h*s,col);}
  function random(a,b){const z=Math.sin(a*127.1+b*311.7)*43758.5453;return z-Math.floor(z);}
  function digMetrics(s){const active=s.session,elapsed=active?.elapsed||0,depth=active&&Journey.eligible(active)?elapsed/Journey.rate(active):0,fraction=active?Math.min(1,elapsed/active.plannedSeconds):0;return {depth,fraction,worldDepth:Math.max(0,(s.depth||0)-(s.surfaceDepth||0))+depth};}
- function renderMine(c,s,frame){const w=384,h=224,t=WorldClock.snapshot(),m=digMetrics(s),running=s.session?.status==='running'&&Journey.eligible(s.session);const end=76+m.worldDepth*6;const camera=MineView.cameraFor(s);const ground=87-camera;sky(c,w,h,t,camera);
+ function renderMine(c,s,frame){const w=384,h=224,t=WorldClock.snapshot(),m=digMetrics(s),running=(s.session?.status==='running'&&Journey.eligible(s.session))||s.deviceDigging===true;const end=76+m.worldDepth*6;const camera=MineView.cameraFor(s);const ground=87-camera;sky(c,w,h,t,camera);
  if(t.period==='night')for(let i=0;i<22;i++){let x=Math.floor(random(i,2)*w/2)*2,y=Math.floor(random(i,7)*80/2)*2-camera;if(y>-5&&y<ground){if(i%5===0)star(c,x,y,1,i%2?'#fff3a8':'#7ee6ec');else box(c,x,y,2,2,'#b6c7a7');}}
  if(ground>0){if(t.period!=='night'){cloud(c,24,31-camera,t.cloud);cloud(c,248,15-camera,t.cloudBack);}celestial(c,t,camera);
  // Distant pixel mountains and rolling terrain.

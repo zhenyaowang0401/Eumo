@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eumo · Pair your screen</title><style>body{font:17px system-ui;background:#eee4c9;color:#253633;max-width:480px;margin:40px auto;padding:20px}input,button{font:inherit;padding:14px;box-sizing:border-box;width:100%;margin:10px 0}button{background:#738b65;color:white;border:0}p{line-height:1.6}</style>
+<h1>Pair your Eumo screen</h1><p>Open this page in the browser where your original Eumo friends are connected. Your screen will use the same friend identity. Game progress is transferred separately using a backup.</p>
+<form id="pair"><label>12-character code on your screen<input id="code" maxlength="16" autocomplete="off" required></label><button>Approve this screen</button></form>
+<p id="status" role="status"></p><button id="revoke">Disconnect all paired screens</button><p><a href="/#companions">Return to original friends page</a></p>
+<script>
+async function action(body){const r=await fetch('/api/device',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error||'Connection failed');return data;}
+document.querySelector('#pair').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;try{await action({action:'approve',code:document.querySelector('#code').value});document.querySelector('#status').textContent='Paired. On the screen, select Check pairing.';}catch(e){document.querySelector('#status').textContent=e.message;}finally{button.disabled=false;}};
+document.querySelector('#revoke').onclick=async()=>{if(!confirm('Disconnect every paired screen from your friend identity?'))return;try{await action({action:'revoke'});document.querySelector('#status').textContent='Screens disconnected. Your browser friends are unchanged.';}catch(e){document.querySelector('#status').textContent=e.message;}};
+</script>

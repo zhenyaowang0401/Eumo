@@ -1,3 +1,19 @@
 {
-  "functions": { "api/chat.js": { "maxDuration": 60 }, "api/friends.js": { "maxDuration": 30 } }
+  "functions": {
+    "api/chat.js": {
+      "maxDuration": 60
+    },
+    "api/friends.js": {
+      "maxDuration": 30
+    },
+    "api/device.js": {
+      "maxDuration": 30
+    },
+    "api/dig-sync.js": {
+      "maxDuration": 30
+    },
+    "api/dig-pair.js": {
+      "maxDuration": 30
+    }
+  }
 }
