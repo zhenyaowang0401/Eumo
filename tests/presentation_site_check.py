@@ -1,112 +1,255 @@
-import json,os,shutil,subprocess,time
-from pathlib import Path
-from playwright.sync_api import sync_playwright, expect
-root=Path(__file__).resolve().parents[1]; output=root.parent/'scratch/presentation-qa'; output.mkdir(parents=True,exist_ok=True)
-proc=subprocess.Popen(['node','scripts/dev_server.cjs'],cwd=root,env={**os.environ,'PORT':'0'},stdout=subprocess.PIPE,text=True)
-base=proc.stdout.readline().strip().split('Eumo: ')[1]; url=base+'/present/index.html'
-report={'viewport_checks':[],'checks':[],'errors':[],'bad_responses':[],'links':[]}
-def check(name,func):
- try: func(); report['checks'].append({'name':name,'pass':True})
- except Exception as e:report['checks'].append({'name':name,'pass':False,'error':str(e)[:1000]})
-def need(value,message='assertion failed'):
- assert value,message
-try:
- with sync_playwright() as p:
-  browser=p.chromium.launch(executable_path=shutil.which('chromium'),args=['--no-sandbox'])
-  context=browser.new_context(viewport={'width':1440,'height':900},reduced_motion='reduce')
-  context.add_init_script("localStorage.setItem('eumo-presentation-qa-sentinel','unchanged');")
-  page=context.new_page();page.on('pageerror',lambda e:report['errors'].append(str(e)))
-  page.on('response',lambda r:report['bad_responses'].append({'status':r.status,'url':r.url}) if r.status>=400 and r.url.startswith(base) else None)
-  page.goto(url);page.evaluate('document.fonts.ready');page.wait_for_timeout(100)
-  ids=page.locator('.chapter').evaluate_all('els=>els.map(e=>e.id)')
-  report['chapters']=ids
-  def goto(id):
-   page.evaluate('(id)=>document.getElementById(id).scrollIntoView({behavior:"instant",block:"start"})',id);page.wait_for_timeout(80)
-  for w,h in [(1440,900),(1366,768),(1280,720),(390,844),(320,568)]:
-   page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(100)
-   for id in ids:
-    goto(id)
-    data=page.evaluate('''(id)=>{const chapter=document.getElementById(id), s=document.querySelector('#story'), cr=chapter.getBoundingClientRect();
-     const visible=e=>{const st=getComputedStyle(e);return st.visibility!=="hidden"&&st.display!=="none"&&e.getClientRects().length&&e.offsetWidth>0};
-     const out=[...chapter.querySelectorAll('h1,h2,h3,p,button,a,span,img')].filter(visible).filter(e=>{const r=e.getBoundingClientRect();return r.left< -2||r.right>innerWidth+2}).map(e=>({tag:e.tagName,id:e.id,cl:e.className,text:e.textContent.slice(0,60),left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right}));
-     const clipped=[...chapter.querySelectorAll('h1,h2,h3,p,button,a')].filter(visible).filter(e=>e.getBoundingClientRect().bottom>cr.bottom+2).map(e=>({tag:e.tagName,text:e.textContent.slice(0,80)}));
-     return {id,width:innerWidth,height:innerHeight,documentOverflow:document.documentElement.scrollWidth>innerWidth,storyOverflow:s.scrollWidth>s.clientWidth,chapterHeight:cr.height,storyHeight:s.clientHeight,horizontal:out,clippedBottom:clipped,footerBottom:document.querySelector('footer').getBoundingClientRect().bottom};}''',id)
-    report['viewport_checks'].append(data)
-    check(f'Viewport {w}x{h} / {id}',lambda data=data:(need(not data['horizontal'],str(data['horizontal'])),need(not data['clippedBottom'],str(data['clippedBottom'])),need(not data['documentOverflow']),need(not data['storyOverflow']),need(data['footerBottom']<=h+1)))
-    if w>=1280 and id!='hello':check(f'Desktop chapter fits {w}x{h} / {id}',lambda data=data:need(data['chapterHeight']<=data['storyHeight']+2,str(data)))
-    if id in ['hello','beyond','loop'] or data['horizontal'] or data['clippedBottom']:page.screenshot(path=str(output/f'{w}x{h}-{id}.png'))
-  for w,h in [(390,844),(320,568)]:
-   page.set_viewport_size({'width':w,'height':h});goto('hello')
-   overlap=page.evaluate('''()=>{const a=document.querySelector('.hero-mole').getBoundingClientRect();return ['.hero .primary','.hero-bottom p'].filter(s=>{const b=document.querySelector(s).getBoundingClientRect();return Math.max(a.left,b.left)<Math.min(a.right,b.right)&&Math.max(a.top,b.top)<Math.min(a.bottom,b.bottom)})}''')
-   check(f'Hero controls clear {w}',lambda overlap=overlap:need(not overlap,str(overlap)))
-  page.set_viewport_size({'width':1440,'height':900});goto('beyond')
-  colors=['Sunflower','Mint','Lavender','Charcoal','Blue & orange','Tangerine'];positions=[]
-  for i,name in enumerate(colors):
-   page.locator(f'[data-color="{i}"]').click()
-   check('color '+name,lambda name=name,i=i:(need(page.locator('#colorName').inner_text()==name),need(page.locator('[data-color][aria-pressed="true"]').count()==1),need(page.locator(f'[data-color="{i}"]').get_attribute('aria-pressed')=='true'),need(name in page.locator('#keychainSprite').get_attribute('aria-label'))))
-   positions.append(page.locator('#keychainSprite').evaluate('e=>[getComputedStyle(e).backgroundImage,getComputedStyle(e).backgroundPosition]'))
-  check('Six unique image selections',lambda:need(len(set(map(str,positions)))==6));report['color_positions']=positions
-  for key,target in [('handheld','#handheldRender'),('app','#familyAppImage'),('keychain','#keychainSprite')]:
-   page.locator(f'[data-family="{key}"]').click()
-   check('Family '+key,lambda key=key,target=target:(need(page.locator(target).is_visible()),need(page.locator('[data-family][aria-selected="true"]').count()==1),need(page.locator('#familyPanel').get_attribute('aria-labelledby')=='family-'+key)))
-   page.locator('#familyMore').click();check('Family '+key+' details',lambda:need(page.locator('#detailDialog').is_visible()));page.keyboard.press('Escape')
-  page.locator('#family-keychain').focus();page.keyboard.press('ArrowRight');check('Family keyboard next',lambda:need(page.locator('#family-handheld').get_attribute('aria-selected')=='true'))
-  page.keyboard.press('End');check('Family keyboard End',lambda:need(page.locator('#family-app').get_attribute('aria-selected')=='true'))
-  page.keyboard.press('Home');check('Family keyboard Home',lambda:need(page.locator('#family-keychain').get_attribute('aria-selected')=='true'))
-  page.keyboard.press('ArrowLeft');check('Family keyboard wrap',lambda:need(page.locator('#family-app').get_attribute('aria-selected')=='true'))
-  goto('loop')
-  for key in ['focus','discover','dress','home']:
-   page.locator(f'[data-product="{key}"]').click();check('Product '+key,lambda key=key:(need(page.locator('#productPanel').get_attribute('aria-labelledby')=='tab-'+key),need(page.locator('#productShot').evaluate('e=>e.complete&&e.naturalWidth>0')),need(page.locator('[data-product][aria-selected="true"]').count()==1)))
-  page.locator('#tab-home').focus();page.keyboard.press('ArrowRight');check('Product keyboard wrap',lambda:need(page.locator('#tab-focus').get_attribute('aria-selected')=='true'))
-  page.keyboard.press('End');check('Product keyboard End',lambda:need(page.locator('#tab-home').get_attribute('aria-selected')=='true'))
-  page.keyboard.press('Home');check('Product keyboard Home',lambda:need(page.locator('#tab-focus').get_attribute('aria-selected')=='true'))
-  goto('hello');page.locator('#story').focus()
-  page.keyboard.press('ArrowRight');page.wait_for_timeout(100);check('Chapter ArrowRight',lambda:need(page.locator('#chapterNumber').inner_text()=='02'))
-  page.keyboard.press('PageDown');page.wait_for_timeout(100);check('Chapter PageDown',lambda:need(page.locator('#chapterNumber').inner_text()=='03'))
-  page.keyboard.press('ArrowLeft');page.wait_for_timeout(100);check('Chapter ArrowLeft',lambda:need(page.locator('#chapterNumber').inner_text()=='02'))
-  page.keyboard.press('Home');page.wait_for_timeout(100);check('Chapter Home',lambda:need(page.locator('#chapterNumber').inner_text()=='01'))
-  page.keyboard.press('End');page.wait_for_timeout(100);check('Chapter End',lambda:need(page.locator('#chapterNumber').inner_text()==str(len(ids))))
-  check('End disabled',lambda:need(page.locator('#nextChapter').is_disabled()))
-  page.locator('#contentsButton').click();check('Contents visible/focus',lambda:(need(page.locator('#contentsDialog').is_visible()),need(page.evaluate('document.activeElement.id')=='closeContents')))
-  page.keyboard.press('Shift+Tab');check('Contents focus trap',lambda:need(page.evaluate('document.activeElement===document.body||document.activeElement.closest("#contentsDialog")!==null')))
-  page.keyboard.press('Escape');check('Escape restores contents trigger',lambda:(need(not page.locator('#contentsDialog').is_visible()),need(page.evaluate('document.activeElement.id')=='contentsButton')))
-  page.locator('#contentsButton').click();page.locator('#chapterLinks button').nth(8).click();page.wait_for_timeout(100);check('Contents jump family',lambda:need(page.locator('#chapterNumber').inner_text()=='09'))
-  page.locator('#sourcesButton').click();check('Detail visible/focus',lambda:(need(page.locator('#detailDialog').is_visible()),need(page.evaluate('document.activeElement.id')=='closeDetail')))
-  page.keyboard.press('Shift+Tab');check('Detail focus trap',lambda:need(page.evaluate('document.activeElement.closest("#detailDialog")!==null')))
-  page.keyboard.press('Escape');check('Escape restores details trigger',lambda:(need(not page.locator('#detailDialog').is_visible()),need(page.evaluate('document.activeElement.id')=='sourcesButton')))
-  # All notes buttons must open content; reset clock is handled below.
-  detailkeys=page.locator('[data-detail]').evaluate_all('els=>[...new Set(els.map(e=>e.dataset.detail))]')
-  for key in detailkeys:
-   el=page.locator(f'[data-detail="{key}"]').first;el.evaluate('e=>e.scrollIntoView({behavior:"instant",block:"center"})');el.click();check('Note '+key,lambda:(need(page.locator('#detailBody').inner_text().strip()!=''),need(page.locator('#detailTitle').inner_text().strip()!='')));page.keyboard.press('Escape')
-  goto('demo');page.locator('#startDemoClock').click();page.wait_for_timeout(3200);check('Demo clock advances',lambda:need(page.locator('#demoTimer').inner_text().startswith(('00:02','00:03'))))
-  page.locator('#startDemoClock').click();value=page.locator('#demoTimer').inner_text();page.wait_for_timeout(2100);check('Demo clock pauses',lambda:need(page.locator('#demoTimer').inner_text()==value))
-  page.locator('#startDemoClock').click();page.wait_for_timeout(2300);check('Demo clock resumes',lambda:need(page.locator('#demoTimer').inner_text().startswith(('00:04','00:05'))))
-  page.locator('[data-detail="demo"]').click();page.locator('#resetDemoClock').click();check('Demo clock reset',lambda:(need(page.locator('#demoTimer').inner_text().startswith('00:00')),need('Start' in page.locator('#startDemoClock').inner_text())));page.keyboard.press('Escape')
-  # All static local links resolve. External URLs are inspected but network retrieval remains constrained.
-  links=page.locator('a[href]').evaluate_all('els=>els.map(e=>({href:e.href,target:e.target,rel:e.rel}))')
-  for link in links:
-   if link['href'].startswith(base):
-    response=context.request.get(link['href'].split('#')[0]);report['links'].append({**link,'status':response.status})
-   else:report['links'].append(link)
-  check('Local links resolve',lambda:need(all(link.get('status',200)<400 for link in report['links'])))
-  goto('hello');page.locator('#petMole').click();check('Mole reacts',lambda:need(page.locator('#moleSpeech').inner_text()!='One little step?'))
-  check('Reduced motion disables hop',lambda:need(page.locator('#petMole img').evaluate('e=>getComputedStyle(e).animationName')=='none'))
-  check('Game save untouched',lambda:need(page.evaluate("localStorage.getItem('loop-pet-soft-universe-v1')===null && localStorage.getItem('eumo-presentation-qa-sentinel')==='unchanged'")))
-  check('No JavaScript errors',lambda:need(not report['errors'],str(report['errors'])))
-  check('No failed local resources',lambda:need(not report['bad_responses'],str(report['bad_responses'])))
-  normal=browser.new_context(viewport={'width':1366,'height':768})
-  normal_page=normal.new_page(); normal_page.goto(url+'#beyond');normal_page.evaluate('document.fonts.ready');normal_page.wait_for_timeout(150)
-  check('Deep link preserved',lambda:need(normal_page.locator('#chapterNumber').inner_text()=='09'))
-  normal_page.locator('#nextChapter').click();normal_page.wait_for_timeout(800)
-  check('Animated chapter navigation',lambda:need(normal_page.locator('#chapterNumber').inner_text()=='10'))
-  normal_page.locator('#fullscreenButton').click();normal_page.wait_for_timeout(200)
-  check('Fullscreen entry',lambda:need(normal_page.evaluate('!!document.fullscreenElement')))
-  normal_page.locator('#fullscreenButton').click();normal_page.wait_for_timeout(200)
-  check('Fullscreen exit',lambda:need(normal_page.evaluate('!document.fullscreenElement')))
-  normal.close()
-  browser.close()
-finally:
- proc.terminate();proc.wait();(output/'report.json').write_text(json.dumps(report,indent=2));print(json.dumps({'checks':len(report['checks']),'failed':[x for x in report['checks'] if not x['pass']],'overflow':[x for x in report['viewport_checks'] if x['horizontal'] or x['clippedBottom'] or x['documentOverflow'] or x['storyOverflow']],'errors':report['errors'],'bad_responses':report['bad_responses']},indent=2))
+"""Browser regression checks for Eumo's ten-chapter presentation.
 
-failures=[x for x in report['checks'] if not x['pass']]
+Runs the repository server on an ephemeral port. Writes screenshots and a JSON
+report outside the app. The game save is never created or changed by this test.
+"""
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+from playwright.sync_api import sync_playwright
+
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v2-qa'
+OUTPUT.mkdir(parents=True, exist_ok=True)
+REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
+CHAPTERS = ['overview', 'inspiration', 'research', 'persona', 'landscape',
+            'demo', 'testing', 'roadmap', 'extensions', 'business']
+
+
+def need(condition, message='Assertion failed'):
+    assert condition, message
+
+
+def check(name, callback):
+    try:
+        callback()
+        REPORT['checks'].append({'name': name, 'pass': True})
+    except Exception as error:
+        REPORT['checks'].append({'name': name, 'pass': False, 'error': str(error)[:3000]})
+
+
+proc = subprocess.Popen(['node', 'scripts/dev_server.cjs'], cwd=ROOT,
+                        env={**os.environ, 'PORT': '0'},
+                        stdout=subprocess.PIPE, text=True)
+base = proc.stdout.readline().strip().split('Eumo: ')[1]
+url = base + '/present/index.html'
+
+try:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(executable_path=shutil.which('chromium'),
+                                    args=['--no-sandbox'])
+        context = browser.new_context(viewport={'width': 1440, 'height': 900},
+                                      reduced_motion='reduce')
+        context.add_init_script("localStorage.setItem('eumo-qa-sentinel', 'unchanged')")
+        page = context.new_page()
+        page.on('pageerror', lambda error: REPORT['errors'].append(str(error)))
+        page.on('response', lambda r: REPORT['bad_responses'].append({'url': r.url, 'status': r.status})
+                if r.status >= 400 and r.url.startswith(base) else None)
+        page.goto(url)
+        page.evaluate('document.fonts.ready')
+        page.wait_for_timeout(150)
+        check('Ten chapters in approved order', lambda: need(
+            page.locator('.chapter').evaluate_all('els => els.map(e => e.id)') == CHAPTERS))
+
+        def goto(chapter):
+            page.evaluate('(id) => { location.hash = id; }', chapter)
+            page.wait_for_timeout(120)
+            # The same hash may not fire on a second visit, so explicitly align.
+            page.locator('#' + chapter).evaluate('e => e.scrollIntoView({behavior:"instant",block:"start"})')
+            page.wait_for_timeout(60)
+
+        for width, height in [(1440,900), (1366,768), (1280,720), (768,1024), (390,844), (320,568)]:
+            page.set_viewport_size({'width':width, 'height':height})
+            page.wait_for_timeout(160)
+            for chapter in CHAPTERS:
+                goto(chapter)
+                bounds = page.evaluate('''id => {
+                  const c=document.getElementById(id), cr=c.getBoundingClientRect(), story=document.querySelector('#story');
+                  const visible=e=>!!e.getClientRects().length && getComputedStyle(e).visibility!=='hidden' && e.getBoundingClientRect().width>0;
+                  const data=e=>{const r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id,cls:typeof e.className==='string'?e.className:'svg',text:e.textContent.trim().slice(0,70),x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};
+                  const els=[...c.querySelectorAll('h1,h2,h3,p,button,a,span,img,dd,dt,li,figure,svg')].filter(visible);
+                  return {chapter:id,width:innerWidth,height:innerHeight,chapterHeight:cr.height,storyHeight:story.clientHeight,
+                    horizontal:els.filter(e=>{const r=e.getBoundingClientRect();return r.left < -2 || r.right > innerWidth+2}).map(data),
+                    bottom:els.filter(e=>e.getBoundingClientRect().bottom>cr.bottom+2).map(data),
+                    documentOverflow:document.documentElement.scrollWidth>innerWidth,
+                    storyOverflow:story.scrollWidth>story.clientWidth,
+                    footerBottom:document.querySelector('footer').getBoundingClientRect().bottom};
+                }''', chapter)
+                REPORT['viewports'].append(bounds)
+                check(f'Layout {width}x{height} {chapter}', lambda b=bounds: (
+                    need(not b['horizontal'], str(b['horizontal'])),
+                    need(not b['bottom'], str(b['bottom'])),
+                    need(not b['documentOverflow'], 'Document horizontally overflows'),
+                    need(not b['storyOverflow'], 'Story horizontally overflows'),
+                    need(b['footerBottom']<=height+1, 'Footer outside viewport')))
+                if width>=1000:
+                    check(f'Fits desktop {width}x{height} {chapter}', lambda b=bounds: need(
+                        b['chapterHeight']<=b['storyHeight']+2, str(b)))
+                if width==1366 or (width==390 and chapter in ['overview','extensions','demo','persona']) or bounds['horizontal'] or bounds['bottom']:
+                    page.screenshot(path=str(OUTPUT/f'{width}x{height}-{chapter}.png'))
+
+        page.set_viewport_size({'width':1366,'height':768})
+        page.wait_for_timeout(150)
+        goto('overview')
+        page.locator('#story').focus()
+        page.keyboard.press('ArrowRight');page.wait_for_timeout(120)
+        check('Next chapter keyboard', lambda: need(page.locator('#chapterNumber').inner_text()=='02'))
+        page.keyboard.press('End');page.wait_for_timeout(120)
+        check('End jumps to business', lambda: need(page.locator('#chapterNumber').inner_text()=='10'))
+        page.keyboard.press('Home');page.wait_for_timeout(120)
+        check('Home jumps to overview', lambda: need(page.locator('#chapterNumber').inner_text()=='01'))
+        check('First chapter disables previous', lambda: need(page.locator('#prevChapter').is_disabled()))
+        page.locator('#nextChapter').click();page.wait_for_timeout(120)
+        check('Next button', lambda: need(page.locator('#chapterNumber').inner_text()=='02'))
+        page.locator('#prevChapter').click();page.wait_for_timeout(120)
+        check('Previous button', lambda: need(page.locator('#chapterNumber').inner_text()=='01'))
+
+        page.locator('#contentsButton').click()
+        check('Chapter dialog focus', lambda: need(page.evaluate('document.activeElement.id')=='closeContents'))
+        page.keyboard.press('Shift+Tab')
+        # Native dialogs may send focus to browser chrome (activeElement=body)
+        # at the tab boundary; they must still keep background controls inert.
+        page.locator('#sourcesButton').evaluate('e=>e.focus()')
+        check('Chapter dialog keeps background inert', lambda: need(page.evaluate('document.querySelector(":modal").id==="contentsDialog" && (document.activeElement===document.body || !!document.activeElement.closest("#contentsDialog"))')))
+        page.keyboard.press('Escape')
+        check('Chapter dialog restores focus', lambda: need(page.evaluate('document.activeElement.id')=='contentsButton'))
+        page.locator('#contentsButton').click()
+        page.locator('#chapterLinks button').nth(8).click();page.wait_for_timeout(120)
+        check('Chapter index jumps to extensions', lambda: need(page.locator('#chapterNumber').inner_text()=='09'))
+
+        keys=page.locator('[data-detail]').evaluate_all('els=>[...new Set(els.map(e=>e.dataset.detail))]')
+        for key in keys:
+            button=page.locator(f'[data-detail="{key}"]').first
+            button.evaluate('e=>e.scrollIntoView({behavior:"instant",block:"center"})')
+            button.click()
+            check('Details '+key, lambda: (
+                need(page.locator('#detailDialog').is_visible()),
+                need(page.locator('#detailBody').inner_text().strip()!=''),
+                need(page.evaluate('document.activeElement.id')=='closeDetail')))
+            page.keyboard.press('Escape')
+            check('Detail focus restores '+key, lambda button=button: need(button.evaluate('e=>document.activeElement===e')))
+        page.locator('#sourcesButton').click()
+        check('Research notes disclose status', lambda: need('pending' in page.locator('#detailBody').inner_text().lower()))
+        page.keyboard.press('Escape')
+
+        goto('research');page.locator('#research-presence').focus();page.keyboard.press('ArrowDown')
+        check('Vertical research keyboard tab', lambda: (
+            need(page.locator('#research-motivation').get_attribute('aria-selected')=='true'),
+            need('personalize' in page.locator('#researchResponse').inner_text()),
+            need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-motivation')))
+        page.keyboard.press('End')
+        check('Research End tab', lambda: need(page.locator('#research-companion').get_attribute('aria-selected')=='true'))
+        page.keyboard.press('Home')
+        check('Research Home tab', lambda: need(page.locator('#research-presence').get_attribute('aria-selected')=='true'))
+        check('Tab keys do not navigate chapter', lambda: need(page.locator('#chapterNumber').inner_text()=='03'))
+
+        goto('demo')
+        for name in ['focus','discover','home','friends','music','review','setup']:
+            page.locator(f'[data-demo="{name}"]').click()
+            page.wait_for_function('document.querySelector("#demoShot").complete && document.querySelector("#demoShot").naturalWidth > 0')
+            check('Walkthrough '+name,lambda name=name: (
+                need(page.locator(f'[data-demo="{name}"]').get_attribute('aria-selected')=='true'),
+                need(bool(page.locator('#demoCue').inner_text())),
+                need(page.locator('#demoShot').evaluate('e=>e.complete&&e.naturalWidth>0'))))
+        page.locator('#demo-setup').focus();page.keyboard.press('ArrowDown')
+        check('Walkthrough keyboard',lambda:need(page.locator('#demo-focus').get_attribute('aria-selected')=='true'))
+
+        # Different screenshot aspect ratios must all fit a classroom display.
+        for width,height in [(1440,900),(1366,768),(1280,720)]:
+            page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(160)
+            goto('demo')
+            for name in ['setup','focus','discover','home','friends','music','review']:
+                page.locator(f'[data-demo="{name}"]').click()
+                page.wait_for_function('document.querySelector("#demoShot").complete && document.querySelector("#demoShot").naturalWidth > 0')
+                sizes=page.evaluate('''()=>({chapter:document.querySelector('#demo').getBoundingClientRect().height,available:document.querySelector('#story').clientHeight})''')
+                check(f'Demo selected step fits {width}x{height} {name}',lambda sizes=sizes:need(sizes['chapter']<=sizes['available']+2,str(sizes)))
+                if sizes['chapter']>sizes['available']+2:
+                    page.screenshot(path=str(OUTPUT/f'{width}x{height}-demo-{name}-overflow.png'))
+        page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160)
+
+        goto('testing')
+        for name, expected in [('desktop','focus.png'),('friction','home.png'),('outfits','wardrobe.png')]:
+            page.locator(f'[data-feedback="{name}"]').click()
+            check('Feedback '+name,lambda expected=expected:need(expected in page.locator('#feedbackShot').get_attribute('src')))
+        page.locator('#feedback-outfits').focus();page.keyboard.press('ArrowDown')
+        check('Feedback keyboard',lambda:need(page.locator('#feedback-desktop').get_attribute('aria-selected')=='true'))
+
+        goto('roadmap');page.locator('#road-now').focus();page.keyboard.press('ArrowRight')
+        check('Roadmap horizontal keyboard',lambda:(need(page.locator('#road-next').get_attribute('aria-selected')=='true'),need('Usability' in page.locator('#roadmapTitle').inner_text())))
+        page.keyboard.press('ArrowRight')
+        check('Roadmap December',lambda:need('Reliability' in page.locator('#roadmapTitle').inner_text()))
+        page.keyboard.press('ArrowRight')
+        check('Roadmap wraps keyboard',lambda:need(page.locator('#road-now').get_attribute('aria-selected')=='true'))
+
+        goto('extensions')
+        check('Orange default',lambda:(need(page.locator('#colorName').inner_text()=='Orange'),need(page.locator('[data-color="5"]').get_attribute('aria-pressed')=='true'),need('100% 50%' in page.locator('#keychainSprite').get_attribute('style'))))
+        sprites=[]
+        for i,name in enumerate(['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange']):
+            page.locator(f'[data-color="{i}"]').click()
+            sprites.append(page.locator('#keychainSprite').evaluate('e=>[getComputedStyle(e).backgroundImage,getComputedStyle(e).backgroundPosition]'))
+            check('Color '+name,lambda i=i,name=name:(
+                need(page.locator('#colorName').inner_text()==name),
+                need(page.locator(f'[data-color="{i}"]').get_attribute('aria-pressed')=='true'),
+                need(page.locator('[data-color][aria-pressed="true"]').count()==1),
+                need(page.locator('#keychainSprite').get_attribute('aria-label').startswith(name)),
+                need(page.locator('[data-pixel-wipe]').count()==0,'Reduced motion created overlay')))
+        check('Six distinct color sprite cells',lambda:need(len(set(map(str,sprites)))==6,str(sprites)))
+        check('Two new colors use extra sprite',lambda:need(all('keychains-extra.png' in s[0] for s in sprites[4:])))
+        check('Four original colors use original sprite',lambda:need(all('keychains.png' in s[0] for s in sprites[:4])))
+        page.locator('#family-keychain').focus();page.keyboard.press('ArrowRight')
+        check('Handheld tab and scope',lambda:(need(page.locator('#handheldRender').is_visible()),need(not page.locator('#keychainSprite').is_visible()),need(not page.locator('#colorPicker').is_visible()),need(page.locator('#familyTitle').inner_text()=='Timer + digging.')))
+        page.keyboard.press('ArrowLeft')
+        check('Return keychain preserves selected color',lambda:(need(page.locator('#keychainSprite').is_visible()),need(page.locator('#colorName').inner_text()=='Orange')))
+
+        goto('demo');page.locator('#startDemoClock').click();page.wait_for_timeout(1250)
+        check('Demo clock starts',lambda:need(page.locator('#demoTimer').inner_text()!='00:00'))
+        page.locator('#startDemoClock').click();value=page.locator('#demoTimer').inner_text();page.wait_for_timeout(1100)
+        check('Demo clock pauses',lambda:need(page.locator('#demoTimer').inner_text()==value))
+        page.locator('#startDemoClock').click();page.wait_for_timeout(1100)
+        check('Demo clock resumes',lambda:need(page.locator('#demoTimer').inner_text()!=value))
+        page.locator('#resetDemoClock').click()
+        check('Demo clock resets',lambda:(need(page.locator('#demoTimer').inner_text()=='00:00'),need(page.locator('#startDemoClock').get_attribute('aria-pressed')=='false')))
+
+        for old,new in [('thankyou','business'),('beyond','extensions'),('hello','overview'),('loop','demo'),('people','persona'),('iterations','testing'),('next','roadmap')]:
+            page.evaluate('hash=>location.hash=hash',old);page.wait_for_timeout(150)
+            check('Legacy hash '+old,lambda new=new:need(page.evaluate('location.hash')=='#'+new))
+        page.goto(url+'#extensions');page.evaluate('document.fonts.ready');page.wait_for_timeout(180)
+        check('Direct deep link',lambda:need(page.locator('#chapterNumber').inner_text()=='09'))
+        page.locator('#fullscreenButton').click();page.wait_for_timeout(150)
+        check('Enter fullscreen',lambda:need(page.evaluate('!!document.fullscreenElement')))
+        page.locator('#fullscreenButton').click();page.wait_for_timeout(150)
+        check('Exit fullscreen',lambda:need(page.evaluate('!document.fullscreenElement')))
+        check('Game save untouched',lambda:need(page.evaluate("localStorage.getItem('eumo-qa-sentinel')==='unchanged'&&localStorage.getItem('loop-pet-soft-universe-v1')===null")))
+        link=page.locator('a.primary').first
+        check('Open Eumo new-tab link',lambda:need(link.get_attribute('target')=='_blank' and 'noopener' in link.get_attribute('rel')))
+        response=context.request.get(link.evaluate('e=>e.href'))
+        check('Open Eumo resolves',lambda:need(response.status==200,str(response.status)))
+        check('All loaded images decode', lambda:need(page.locator('img').evaluate_all('els=>els.every(e=>e.complete&&e.naturalWidth>0)')))
+        check('No JS errors',lambda:need(not REPORT['errors'],str(REPORT['errors'])))
+        check('No failed local requests',lambda:need(not REPORT['bad_responses'],str(REPORT['bad_responses'])))
+
+        normal=browser.new_context(viewport={'width':1366,'height':768})
+        np=normal.new_page();normal_errors=[];np.on('pageerror',lambda e:normal_errors.append(str(e)))
+        np.goto(url+'#extensions');np.evaluate('document.fonts.ready');np.wait_for_timeout(200)
+        np.locator('[data-color="0"]').click()
+        check('Normal-motion pixel cover',lambda:need(np.locator('[data-pixel-wipe] span').count()==80))
+        np.evaluate('''()=>{for(const i of [2,4,1,3,5])document.querySelector(`[data-color="${i}"]`).click()}''')
+        np.wait_for_timeout(750)
+        check('Rapid color changes latest wins',lambda:(need(np.locator('#colorName').inner_text()=='Orange'),need(np.locator('#keychainSprite').get_attribute('aria-label').startswith('Orange')),need(np.locator('[data-pixel-wipe]').count()==0)))
+        np.locator('#family-handheld').click();np.locator('#family-keychain').click();np.wait_for_timeout(750)
+        check('Rapid family switches settle',lambda:(need(np.locator('#keychainSprite').is_visible()),need(not np.locator('#handheldRender').is_visible()),need(np.locator('[data-pixel-wipe]').count()==0)))
+        np.locator('#nextChapter').click();np.wait_for_timeout(1000)
+        check('Smooth navigation settles',lambda:need(np.locator('#chapterNumber').inner_text()=='10'))
+        np.goto(url);np.evaluate('document.fonts.ready');np.wait_for_timeout(850)
+        check('Hero entrance restores visibility',lambda:need(np.locator('[data-enter-item]').evaluate_all('els=>els.every(e=>getComputedStyle(e).opacity==="1"&&getComputedStyle(e).visibility!=="hidden")')))
+        check('Normal motion no JS errors',lambda:need(not normal_errors,str(normal_errors)))
+        normal.close();context.close();browser.close()
+finally:
+    proc.terminate();proc.wait()
+    (OUTPUT/'report.json').write_text(json.dumps(REPORT,indent=2))
+    failures=[c for c in REPORT['checks'] if not c['pass']]
+    print(json.dumps({'checks':len(REPORT['checks']),'failures':failures,'errors':REPORT['errors'],'bad_responses':REPORT['bad_responses']},indent=2))
+
 assert not failures, failures

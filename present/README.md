@@ -1,50 +1,53 @@
-# Eumo product story
+# Eumo product case study — v2
 
-An English interactive presentation for a product-management final, styled with Eumo's day palette, floral background, actual pixel artwork and current product UI.
+An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels.
 
-**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html)
+**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html#overview)
 
-## Presenting
+## Presentation structure
 
-- Use the left/right arrows, bottom controls or Chapters menu to navigate 13 chapters.
-- Allow approximately 8 minutes for the story and 5–6 minutes for the live demonstration. Chapter timing suggestions total 13 minutes 15 seconds, including the demo and closing.
-- Field notes and underlined links open supporting detail. Escape closes the panel.
-- Product-loop tabs show current app screenshots. Keychain swatches select six colorway visualizations. The product-family tabs distinguish the NFC keychain, working timer/digging handheld and app.
-- Open Eumo launches the real product in another tab. The presentation remains in place; its optional demo clock tracks elapsed presentation time only.
-- Fullscreen is optional. Reduced-motion preferences are respected. No music starts automatically.
+| Chapter | Time |
+| --- | --- |
+| Product Overview | 0:30 |
+| Project Inspiration | 0:40 |
+| Research Insights | 0:50 |
+| Persona | 0:40 |
+| Competitive Landscape | 0:50 |
+| Product Walkthrough | 6:00 |
+| User Testing & Iteration | 1:00 |
+| Product Roadmap | 0:45 |
+| Product Extensions | 0:50 |
+| Business Model | 0:35 |
 
-The requested speaker script is intentionally not included yet.
+Total: **12:40**, including a six-minute live demonstration. No speaker script is included yet.
 
-## Local preview and verification
+- Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. Older deep links such as `#thankyou`, `#beyond` and `#hello` still work.
+- Research themes, feedback examples, roadmap stages and walkthrough steps change manually. Arrow keys move within tab groups; vertical groups use up/down.
+- Details open in native dialogs. Escape closes a dialog and restores trigger focus.
+- **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The handheld has its own tab.
+- Open Eumo launches the actual application in another tab. The optional demo clock tracks presentation time only.
+- A brief entrance plays once; physical-product swaps use a GSAP pixel transition adapted from React Bits. Reduced motion uses immediate changes. There are no timed carousels, autoplay music or scroll-triggered reveals.
 
-From the repository root:
+## Local preview
 
-```sh
-npm run dev
-```
+From the repository root, run `npm run dev` and open its printed address followed by `/present/index.html`. The development server does not automatically resolve `/present/` to the index file. Runtime dependencies are bundled locally; no additional npm installation is needed for this page.
 
-Open the server's printed URL followed by `/present/index.html`. The custom development server does not resolve `/present/` to an index automatically. No new package dependencies are required.
-
-Browser verification uses the current Chromium installation and Python Playwright:
-
-```sh
-python3 tests/presentation_site_check.py
-```
+Run browser checks with `python3 tests/presentation_site_check.py`. See [QA notes](../docs/presentation-qa.md) and [third-party provenance](THIRD_PARTY.md).
 
 ## Content and evidence status
 
-- Reviewed all 11 transferred DOCX documents and 9 transferred PPTX decks (162 slides). See [DOCX notes](../docs/presentation-course-docx.md) and [PPTX notes](../docs/presentation-course-pptx.md).
-- `Healthcare  Use Cases - Short.pptx` exceeds the attachment transfer limit of 32 MiB and has not been read. It is excluded from the review count.
-- External scholarly sources and reference sites were blocked by the environment's network proxy. [The evidence ledger](../docs/presentation-evidence.md) and `evidence.json` explicitly label reading as pending. No study percentages, efficacy figures, market size, conversion or revenue have been invented.
-- User feedback is qualitative and reported by the founder. Participant counts and study protocol were not provided. The existing user-test plan is a plan, not completed study results.
-- [The product audit](../docs/presentation-product-audit.md) verifies current code behavior. Ending a session early retains earned progress. A timer is not evidence of attention or learning.
-- Hardware functions are founder-confirmed: the NFC keychain opens its programmed link; the working handheld prototype has digging and timekeeping only.
-- Subscriptions, real-money cosmetics and physical-product economics are future validation topics.
+- Reviewed 11 DOCX documents and nine PPTX decks (162 slides): [DOCX notes](../docs/presentation-course-docx.md), [PPTX notes](../docs/presentation-course-pptx.md). `Healthcare  Use Cases - Short.pptx` exceeded the 32 MiB transfer limit and is excluded from that count.
+- Alex, 20, is explicitly a **proto-persona**, not an interviewed participant.
+- Feedback is qualitative and founder-reported. No participant count or protocol was supplied; the structured user-test plan is not completed study evidence.
+- Scholarly sources and competitor pages remain pending direct verification because external retrieval was blocked. The [evidence ledger](../docs/presentation-evidence.md), `evidence.json` and detail panels do not claim unverified study statistics, market size or causal effects.
+- [The product audit](../docs/presentation-product-audit.md) checks current code behavior: early-ending sessions retain earned rewards. Timer time is not evidence of attention or learning. Pomodoro is not inherently a punishment mechanism.
+- Founder-confirmed hardware scope: NFC opens a programmed URL; the working electronic handheld supports timekeeping and digging.
+- Subscriptions, paid cosmetics and physical-product economics are planned hypotheses, not established revenue.
 
-## Asset provenance
+## Assets and isolation
 
-`assets/screenshots/` contains fresh product screenshots from the current code, using an isolated illustrative demo save rather than participant data. Mole PNGs and material SVGs come from the game's renderer. Fonts and floral backgrounds are reused from `../assets/`.
+Product screenshots come from the current code in an isolated illustrative context, not participant data. Mole PNGs and material SVGs come from the game's renderer. Shared fonts and floral backgrounds are under `../assets/`.
 
-`handheld.png`, `keychains.png` and `keychains-extra.png` are generated visualizations based on the supplied physical product references. They are labeled as visualizations and do not prove electronics, battery performance or manufacturing readiness. The handheld rendering leaves its screen blank rather than inventing a device interface. The original photographs are not bundled in this site.
+`handheld.png`, `keychains.png` and `keychains-extra.png` are generated visualizations based on the supplied physical references. Original photographs are not bundled. The handheld screen is blank, avoiding an invented device interface.
 
-No gameplay logic, balances, saves, native packaging or update configuration is changed by this presentation.
+This revision changes only the presentation and its verification/documentation. Gameplay, balances, saves, native packaging and update configuration are unchanged. GitHub source publication and production deployment are separate checks; do not treat a successful push as proof that Vercel has served the revision.
