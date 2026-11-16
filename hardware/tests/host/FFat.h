@@ -8,6 +8,13 @@
 #include <cmath>
 #include <ctime>
 #include <cstdint>
+#include <cstdlib>
+#include <memory>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <sys/time.h>
+#endif
 #include <ArduinoJson.h>
 using std::min;using std::max;using std::round;using std::isfinite;
 constexpr int HEX=16;
@@ -16,6 +23,7 @@ public:
  using std::string::string;
  String(const std::string &s):std::string(s){}
  String(unsigned long long n):std::string(std::to_string(n)){}
+ String(unsigned long n):std::string(std::to_string(n)){}
  String(unsigned n,int base=10){std::ostringstream s;if(base==16)s<<std::hex;s<<n;assign(s.str());}
  String(int n):std::string(std::to_string(n)){}
  String(double n,int precision){std::ostringstream s;s.setf(std::ios::fixed);s.precision(precision);s<<n;assign(s.str());}
@@ -39,8 +47,17 @@ inline uint64_t testEpoch=1794398400000ULL;
 inline uint32_t millis(){return testMillis;}
 inline uint32_t esp_random(){return 1234567;}
 inline time_t fakeTime(time_t *out){time_t v=testEpoch/1000;if(out)*out=v;return v;}
+#ifdef _WIN32
 inline tm *localtime_r(const time_t *v,tm *out){localtime_s(out,v);return out;}
-inline int gettimeofday(timeval *v,void *){v->tv_sec=testEpoch/1000;v->tv_usec=(testEpoch%1000)*1000;return 0;}
+#endif
+inline int fakeGettimeofday(timeval *v,void *){v->tv_sec=testEpoch/1000;v->tv_usec=(testEpoch%1000)*1000;return 0;}
+inline void setTestTimezone(){
+#ifdef _WIN32
+ _putenv_s("TZ","UTC0");_tzset();
+#else
+ setenv("TZ","UTC0",1);tzset();
+#endif
+}
 class File {
  std::shared_ptr<std::fstream> stream;
  std::string path;
@@ -64,3 +81,4 @@ struct FakeFat {
  bool rename(const char *a,const char *b){std::error_code e;std::filesystem::rename(root+a,root+b,e);return !e;}
 } inline FFat;
 #define time fakeTime
+#define gettimeofday fakeGettimeofday

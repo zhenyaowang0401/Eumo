@@ -1,68 +1,148 @@
 'use strict';
-// Four-digit request + physical device confirmation. Long-lived tokens never appear in the UI.
+// Four-digit claim + confirmation on canele. A code alone never authorizes sync.
 (()=>{
- const host=document.querySelector('#focus');if(!host||!window.DeviceImportBridge)return;
- const KEY='eumo-linked-watch-v2',PENDING='eumo-pair-pending-v1',panel=document.createElement('dialog');panel.className='device-sync-panel';panel.setAttribute('aria-labelledby','screenPairTitle');
- const title=document.createElement('h2');title.id='screenPairTitle';title.textContent='连接小鼹鼠';
- const opener=document.createElement('button');opener.type='button';opener.className='quiet-button focus-device-button';opener.textContent='连接小屏幕';opener.onclick=()=>panel.showModal();
- (host.querySelector('.focus-meta')||host).prepend(opener);
- const close=document.createElement('button');close.type='button';close.className='dialog-close';close.textContent='×';close.setAttribute('aria-label','关闭配对窗口');close.onclick=()=>panel.close();
- const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const form=document.createElement('form'),input=document.createElement('input');input.type='text';input.inputMode='numeric';input.pattern='[0-9]{4}';input.maxLength=4;input.required=true;input.autocomplete='off';input.placeholder='四位配对码';input.setAttribute('aria-label','小屏幕上的四位配对码');
- input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4)});
- const connect=document.createElement('button');connect.type='submit';connect.textContent='配对小屏幕';
- const disconnect=document.createElement('button');disconnect.type='button';disconnect.textContent='断开小屏幕';disconnect.hidden=true;
- form.append(input,connect);panel.append(close,title,status,form,disconnect);document.body.append(panel);
- let binding=null,pending=null,requesting=false,generation=0,lastSequence=-1;
- const messages={SYNC_NOT_CONFIGURED:'同步服务尚未发布或配置。',NO_DEVICE_DATA:'等待小屏幕上传进度。',UPDATE_DEVICE_FIRMWARE:'请先更新小屏幕固件。',BROWSER_STORAGE_CONFLICT:'请关闭同站点其他标签页，刷新后重试。',END_BROWSER_SESSION_FIRST:'请先结束网页自身的计时，再配对。',DEVICE_PROGRESS_WENT_BACKWARDS:'设备存档发生回退，已停止合并。',PAIRING_EXPIRED:'配对码已过期，请在小屏幕生成新码。',INVALID_OR_EXPIRED_CODE:'配对码错误或已过期。',PAIRING_BUSY:'有人正在配对，请在小屏幕重新生成配对码。',RATE_LIMITED:'尝试过于频繁，请一分钟后重试。',FOUR_DIGITS_REQUIRED:'请输入完整的四位数字，保留开头的 0。',DEVICE_IDENTITY_CONFLICT:'同一设备存在两份导入记录，请先核对存档。'};
- function error(e){status.textContent=messages[e.message]||'连接失败，原有记录已保留，可稍后重试。';}
- async function request(path,token,body){
-  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body),signal:AbortSignal.timeout(12000)});
-  let d;try{d=await r.json()}catch{throw Error('SYNC_NOT_CONFIGURED')};if(!r.ok||d.error)throw Error(d.error||'SYNC_NOT_CONFIGURED');return d;
- }
- const read=async token=>{const d=await request('/api/dig-sync',token,{action:'read'});DeviceProgress.validateSnapshot(d.snapshot);return d;};
+ const ui=window.CaneleUI,bridge=window.DeviceImportBridge;
+ if(!ui||!bridge)return;
+ const KEY='eumo-linked-watch-v2',PENDING='eumo-pair-pending-v1';
+ const validToken=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
  const secret=()=>Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
- function attached(){form.hidden=true;disconnect.hidden=false;disconnect.textContent=pending?'取消配对':'断开小屏幕';opener.textContent=pending?'小屏幕 · 待确认':'小屏幕 · 已配对';}
+ const messages={
+  SYNC_NOT_CONFIGURED:'Device sync is not available on this website yet. Please try again after it is updated.',
+  NO_DEVICE_DATA:'Waiting for canele. Check its Wi-Fi, or disconnect here and pair again.',
+  UPDATE_DEVICE_FIRMWARE:'Update your canele firmware before syncing.',
+  BROWSER_STORAGE_CONFLICT:'Another tab is updating your progress. Try pairing after its session or sync ends.',
+  END_BROWSER_SESSION_FIRST:'End and save your browser session before pairing.',
+  DEVICE_PROGRESS_WENT_BACKWARDS:'This device has an older save. Sync has stopped to protect your progress.',
+  DEVICE_RECORD_CONFLICT:'These saved sessions do not match. Sync has stopped to protect your progress.',
+  DEVICE_IMPORT_BASELINE_REQUIRED:'This backup needs an import baseline before it can sync. Your progress has been kept.',
+  PAIRING_EXPIRED:'Pairing expired or was declined. Get a new code on canele.',
+  INVALID_OR_EXPIRED_CODE:'That code is incorrect or expired. Get a new code on canele.',
+  PAIRING_BUSY:'This canele already has a pending request. Generate a new code on its screen.',
+  RATE_LIMITED:'Too many attempts. Wait a minute before trying again.',
+  DEVICE_IDENTITY_CONFLICT:'This device has conflicting import records. Your progress has been kept.',
+  TOO_MANY_DEVICES:'This save has reached its device limit.',
+  INVALID_DEVICE_PACKET:'Canele sent an invalid update. Your progress has been kept.',
+  INVALID_DEVICE_RECORDS:'Canele sent an invalid update. Your progress has been kept.'
+ };
+ let binding=null,pending=null,requesting=false,generation=0,lastSequence=-1,restoring=false;
+ const controllers=new Set();
+ function showError(error,state=binding?'offline':pending?'pending':'disconnected'){
+  ui.render({state,message:messages[error.message]||'Could not connect. Your progress is safe; please try again.',detail:'',error:true,invalid:false});
+ }
+ async function request(path,token,body){
+  const controller=new AbortController();controllers.add(controller);
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+   const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body),signal:controller.signal});
+   let data;try{data=await response.json();}catch{throw Error('SYNC_NOT_CONFIGURED');}
+   if(!response.ok||data.error)throw Error(data.error||'SYNC_NOT_CONFIGURED');
+   return data;
+  }finally{clearTimeout(timer);controllers.delete(controller);}
+ }
+ async function read(token,id){
+  const data=await request('/api/dig-sync',token,{action:'read'});
+  if(data.deviceId!==id||!Number.isFinite(data.serverTime)||!Number.isFinite(Date.parse(data.updated_at)))throw Error('INVALID_DEVICE_PACKET');
+  DeviceProgress.validateSnapshot(data.snapshot);
+  return data;
+ }
+ function showSnapshot(data){
+  const stale=data.serverTime-Date.parse(data.updated_at)>20000;
+  const message=stale?'Canele is offline. Your last synced progress is saved.':data.snapshot.status==='digging'?'Canele is digging. Time and progress are syncing.':data.snapshot.status==='idle'?'Session saved. Use canele to start your next dig.':'Canele is paused. Use its screen to resume.';
+  ui.render({state:stale?'offline':'connected',message,detail:'',error:false,invalid:false});
+ }
  async function poll(){
-  if(requesting||(!binding&&!pending))return;requesting=true;const epoch=generation;
+  if(requesting||restoring||(!binding&&!pending))return;
+  requesting=true;const epoch=generation;
   try{
    if(pending){
-    const active=pending,result=await request('/api/dig-pair',active.token,{action:'poll'});if(epoch!==generation)return;
-    if(!result.paired){status.textContent='请在小屏幕确认：'+active.label;return;}
-    const data=await read(active.token);if(epoch!==generation)return;
-    DeviceImportBridge.backup(result.deviceId);DeviceImportBridge.apply(result.deviceId,data);
-    binding={token:active.token,id:result.deviceId,paired:true};localStorage.setItem(KEY,JSON.stringify(binding));pending=null;localStorage.removeItem(PENDING);lastSequence=data.sequence;attached();
-    status.textContent='配对成功。小屏幕负责计时，学习记录和发现物自动同步。';return;
+    const active=pending,result=await request('/api/dig-pair',active.token,{action:'poll'});
+    if(epoch!==generation)return;
+    if(!result.paired){ui.render({state:'pending',message:'Confirm this request on your canele:',detail:active.label,error:false});return;}
+    if(!validToken(result.deviceId))throw Error('INVALID_DEVICE_PACKET');
+    const data=await read(active.token,result.deviceId);if(epoch!==generation)return;
+    bridge.backup(result.deviceId);bridge.apply(result.deviceId,data);
+    const saved={token:active.token,id:result.deviceId,paired:true};
+    localStorage.setItem(KEY,JSON.stringify(saved));localStorage.removeItem(PENDING);
+    binding=saved;pending=null;lastSequence=data.sequence;showSnapshot(data);return;
    }
-   const active=binding,data=await read(active.token);if(epoch!==generation||binding!==active)return;if(data.sequence<lastSequence)return;
-   DeviceImportBridge.apply(active.id,data);lastSequence=data.sequence;
-   const stale=data.serverTime-Date.parse(data.updated_at)>20000;
-   opener.textContent=stale?'小屏幕 · 离线':data.snapshot.status==='digging'?'小屏幕 · 挖掘中':data.snapshot.status==='idle'?'小屏幕 · 已结束':'小屏幕 · 已暂停';
-   status.textContent=stale?'小屏幕离线，已保留最后记录。':`小屏幕${data.snapshot.status==='digging'?'正在挖掘':data.snapshot.status==='idle'?'本次已结束':'已暂停'} · 累计 ${data.snapshot.depth.toFixed(1)} 米 · 已同步`;
-  }catch(e){if(epoch===generation){DeviceImportBridge.offline();error(e);if(pending&&['PAIRING_EXPIRED','INVALID_OR_EXPIRED_CODE'].includes(e.message)){pending=null;localStorage.removeItem(PENDING);DeviceImportBridge.disconnect();form.hidden=false;disconnect.hidden=true;}}}finally{requesting=false;}
+   const active=binding,data=await read(active.token,active.id);
+   if(epoch!==generation||binding!==active)return;
+   if(data.sequence<lastSequence){bridge.offline();throw Error('DEVICE_PROGRESS_WENT_BACKWARDS');}
+   bridge.apply(active.id,data);lastSequence=data.sequence;showSnapshot(data);
+  }catch(error){
+   if(epoch!==generation)return;
+   bridge.offline();
+   if(pending&&['PAIRING_EXPIRED','INVALID_OR_EXPIRED_CODE'].includes(error.message)){
+    pending=null;localStorage.removeItem(PENDING);bridge.disconnect();
+   }
+   showError(error);
+  }finally{requesting=false;}
  }
- form.onsubmit=async e=>{
-  e.preventDefault();if(requesting||pending||binding)return;
-  if(!/^\d{4}$/.test(input.value)){error(Error('FOUR_DIGITS_REQUIRED'));return;}
-  if(!confirm('配对后将小屏幕已有的深度、时间和收获加入当前存档，之后只添加新增记录。网页计时交给小屏幕控制。继续吗？'))return;
-  requesting=true;connect.disabled=true;let locked=false;
+ ui.form.addEventListener('submit',async event=>{
+  event.preventDefault();if(requesting||restoring||pending||binding)return;
+  const code=ui.input.value;
+  if(!/^\d{4}$/.test(code)){ui.render({state:'disconnected',message:'Enter all four digits, including any leading zero.',error:true,invalid:true});ui.input.focus();return;}
+  if(!ui.consent.checked){ui.render({message:'Confirm the progress import before connecting.',error:true,invalid:false});ui.consent.focus();return;}
+  requesting=true;const epoch=++generation;let locked=false,token;
+  ui.render({state:'connecting',message:'Requesting a connection…',detail:'',error:false,invalid:false});
   try{
-   DeviceImportBridge.connect();locked=true;
-   const token=secret(),label='Computer '+String(crypto.getRandomValues(new Uint16Array(1))[0]%10000).padStart(4,'0');
-   await request('/api/dig-pair',token,{action:'claim',code:input.value,label});
-   pending={token,label};localStorage.setItem(PENDING,JSON.stringify(pending));attached();status.textContent='请在小屏幕确认：'+label;
-  }catch(err){if(locked)DeviceImportBridge.disconnect();pending=null;error(err);}finally{requesting=false;connect.disabled=false;}
- };
- disconnect.onclick=()=>{
-  const old=pending||binding;generation++;pending=binding=null;lastSequence=-1;localStorage.removeItem(KEY);localStorage.removeItem(PENDING);DeviceImportBridge.disconnect();form.hidden=false;disconnect.hidden=true;
-  status.textContent='已断开，导入的记录保留。';opener.textContent='连接小屏幕';
-  if(old)request('/api/dig-pair',old.token,{action:'disconnect'}).catch(()=>{status.textContent='本机已断开；云端撤销未完成，可在小屏幕撤销全部配对。'});
- };
- status.textContent='在小屏幕 Setup → Pair screen 获取四位码；在这里输入，然后在设备上确认。';
- setTimeout(()=>{if(binding||pending||requesting||generation)return;try{
-  const saved=JSON.parse(localStorage.getItem(KEY)||'null'),p=JSON.parse(localStorage.getItem(PENDING)||'null');
-  if(saved&&/^[a-f0-9]{64}$/.test(saved.token)&&/^[a-f0-9]{64}$/.test(saved.id)){DeviceImportBridge.connect();binding=saved;attached();poll();}
-  else if(p&&/^[a-f0-9]{64}$/.test(p.token)){DeviceImportBridge.connect();pending=p;attached();poll();}
- }catch(e){error(e)}},300);
- setInterval(poll,3000);
+   await bridge.connect();locked=true;if(epoch!==generation){bridge.disconnect();return;}
+   token=secret();const label='Computer '+String(crypto.getRandomValues(new Uint16Array(1))[0]%10000).padStart(4,'0');
+   await request('/api/dig-pair',token,{action:'claim',code,label});if(epoch!==generation)return;
+   const saved={token,label};localStorage.setItem(PENDING,JSON.stringify(saved));pending=saved;
+   ui.render({state:'pending',message:'Confirm this request on your canele:',detail:label,error:false});
+  }catch(error){
+   if(epoch!==generation)return;
+   if(locked)bridge.disconnect();pending=null;
+   // A failed local save must not leave an inaccessible authorization request.
+   if(token)request('/api/dig-pair',token,{action:'disconnect'}).catch(()=>{});
+   showError(error);
+  }finally{requesting=false;}
+ });
+ ui.disconnect.addEventListener('click',()=>{
+  const old=pending||binding;const epoch=++generation;
+  for(const controller of controllers)controller.abort();
+  pending=binding=null;lastSequence=-1;
+  localStorage.removeItem(KEY);localStorage.removeItem(PENDING);bridge.disconnect();
+  ui.form.reset();ui.render({state:'disconnected',message:'Disconnected. Your imported progress is saved.',detail:'',error:false,invalid:false});
+  if(old)request('/api/dig-pair',old.token,{action:'disconnect'}).catch(()=>{
+   if(epoch===generation)ui.render({message:'Disconnected here. To remove online access, use Revoke paired browsers on canele.',error:true});
+  });
+ });
+ async function restore(){
+  if(binding||pending||requesting||restoring)return;
+  restoring=true;const epoch=generation;
+  try{
+   const saved=JSON.parse(localStorage.getItem(KEY)||'null'),savedPending=JSON.parse(localStorage.getItem(PENDING)||'null');
+   const candidate=saved&&validToken(saved.token)&&validToken(saved.id)?saved:null;
+   const waiting=savedPending&&validToken(savedPending.token)&&typeof savedPending.label==='string'?savedPending:null;
+   if(!candidate&&!waiting)return;
+   await bridge.connect();if(epoch!==generation){bridge.disconnect();return;}
+   binding=candidate;pending=candidate?null:waiting;
+   ui.render({state:binding?'offline':'pending',message:binding?'Checking your canele…':'Confirm this request on your canele:',detail:pending?.label||'',error:false});
+  }catch(error){if(epoch===generation)showError(error);}finally{restoring=false;}
+  poll();
+ }
+ // A back/forward-cache page retains JS memory but loses its save lease on
+ // pagehide. Reacquire from stored credentials instead of polling without it.
+ window.addEventListener('pagehide',()=>{
+  generation++;for(const controller of controllers)controller.abort();
+  binding=pending=null;lastSequence=-1;bridge.disconnect();
+ });
+ window.addEventListener('pageshow',event=>{
+  if(!event.persisted)return;
+  const resume=()=>{if(document.hidden)return;if(requesting||restoring){setTimeout(resume,100);return;}restore();};
+  resume();
+ });
+ // Other tabs can recover a saved binding once the active owner releases it.
+ window.addEventListener('eumo-save-owner-available',()=>restore());
+ window.addEventListener('storage',event=>{
+  if(![KEY,PENDING].includes(event.key))return;
+  if(!localStorage.getItem(KEY)&&!localStorage.getItem(PENDING)){
+   generation++;binding=pending=null;lastSequence=-1;bridge.disconnect();ui.render({state:'disconnected',message:'Disconnected. Your imported progress is saved.',detail:'',error:false});
+  }else restore();
+ });
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(!binding&&!pending)restore();else poll();}});
+ setTimeout(restore,300);
+ setInterval(()=>{if(!document.hidden)poll();},3000);
 })();

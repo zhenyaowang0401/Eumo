@@ -18,6 +18,8 @@ arduino-cli compile --fqbn esp32:esp32:waveshare_esp32_s3_touch_lcd_169:CDCOnBoo
 
 云端代码必须先发布，详见 `../docs/SCREEN_PAIRING.md`。只连 Wi-Fi 并不等于完成配对或已经把数据送达网页。
 
+网页备份往返导入保留原始会话 ID；已由其他设备同步到网页的记录也会保留来源 ID，避免回传时被当作新的学习奖励。固件不会重置已有深度、时间、收获、FFat 或 NVS 来修复同步。若旧备份缺少对应历史，或同一个会话 ID 存在不同结算结果，会显示 `Backup history incomplete; sync paused` / `Backup history conflicts; sync paused` 并暂停同步及生成配对码。原有存档仍保留，需先导出备份并人工核对，不应靠清空存档或计数器解除提示。
+
 ## 源码与验证
 
 `Rules.h` / `Game.h` 对应网站 `journey.js` / `treasures.js`；新会话使用 `rewardVersion: 2`，旧会话继续按旧版本结算。`SyncSnapshot.h` 构建协议 v3；`EumoNetwork.h` 执行 HTTPS、扫描 Wi-Fi 和配对；`MinimalUI.h` 是当前显示界面。
@@ -28,5 +30,13 @@ arduino-cli compile --fqbn esp32:esp32:waveshare_esp32_s3_touch_lcd_169:CDCOnBoo
 
 - `CXX`：clang++ 或 Zig 0.14.1 可执行文件的绝对路径；测试脚本会对 Zig 添加 `c++` 参数。
 - `ARDUINOJSON_INCLUDE`：ArduinoJson 7.4.2 的 `src` 目录。
+
+Linux/macOS 使用相同测试；从仓库根目录运行：
+
+```sh
+ARDUINOJSON_INCLUDE=/path/to/ArduinoJson/src CXX=g++ node hardware/tests/run.cjs
+```
+
+也可将 `CXX` 换成 `clang++`。测试使用真实 `Game.h`，包括 848 组原网页奖励规则对照、备份往返去重、会话完成日期和缺失历史保护；HTTP、Wi-Fi 和屏幕触摸的真实设备联调仍须另行验证。
 
 测试生成临时模拟存档、JSON 和 SVG，只在 `hardware/tests` 下，不读取或修改实体设备。编译、数据库测试和浏览器模拟通过，不代表已经部署服务器或刷写你的设备。

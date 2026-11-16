@@ -36,19 +36,27 @@
    current.reportDays[date] ||= {...day};
    for(const field of fields)current.reportDays[date][field]=Math.max(current.reportDays[date][field],day[field]);
   }
+  const prepared=Records.plan(state,id,current,previous,legacy),overlap=prepared?.overlap;
+  const credit=(now,before,excluded=0,epsilon=1e-3)=>{const value=now-before-excluded;if(value < -epsilon)throw Error('DEVICE_RECORD_CONFLICT');return Math.max(0,value);};
   const next=JSON.parse(JSON.stringify(state));next.deviceImports=next.deviceImports||{};
   if(!previous&&Object.keys(next.deviceImports).length>=8)throw Error('TOO_MANY_DEVICES');
-  const depth=Math.max(0,current.depth-old.depth),seconds=Math.max(0,current.seconds-old.seconds);
+  const depth=credit(current.depth,old.depth,overlap?.depth||0,1e-6),seconds=credit(current.seconds,old.seconds,overlap?.seconds||0);
   next.depth=(next.depth||0)+depth;next.totalSeconds=(next.totalSeconds||0)+seconds;
   // Do not replace the user's current browser session, appearance or rewards.
   if(next.session)next.session.baseDepth=(next.session.baseDepth||0)+depth;
   next.reportDays=next.reportDays||{};
+  for(const date of Object.keys(overlap?.reportDays||{}))if(!current.reportDays[date])throw Error('DEVICE_RECORD_CONFLICT');
   for(const [date,day]of Object.entries(current.reportDays)){
    const target=next.reportDays[date]||(next.reportDays[date]={});
-   for(const field of fields)target[field]=(target[field]||0)+Math.max(0,day[field]-(old.reportDays[date]?.[field]||0));
+   for(const field of fields)target[field]=(target[field]||0)+credit(day[field],old.reportDays[date]?.[field]||0,overlap?.reportDays[date]?.[field]||0);
   }
-  Records.merge(next,id,current,previous);
+  Records.merge(next,id,current,previous,prepared);
   const {records,...receipt}=current;
+  // Legacy v2 snapshots may update time/depth, but never erase the last known
+  // reward settlement or session ledger before a later v3 snapshot arrives.
+  if(!current.earned&&previous?.earned)receipt.earned=JSON.parse(JSON.stringify(previous.earned));
+  if(prepared)receipt.recordIds=prepared.recordIds;
+  else if(previous?.recordIds)receipt.recordIds=[...previous.recordIds];
   if(legacy)delete next.deviceImports[legacy];
   next.deviceImports[id]={sequence:packet.sequence,...receipt};
   return {state:next,changed:true,depth,seconds};

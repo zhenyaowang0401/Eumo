@@ -4,7 +4,7 @@
 #include "../../Eumo169/Application.h"
 #undef time
 void dump(const String &name){render();for(int i=0;i<targetCount;i++){auto t=targets[i];assert(t.w>0&&t.h>0&&t.x>=0&&t.y>=0&&t.x+t.w<=240&&t.y+t.h<=280);}std::ofstream f("ui-output/"+std::string(name)+".svg");f<<screen->svg();}
-int main(){std::filesystem::create_directories("ui-output");game.defaults();deserializeJson(game.catalog,CATALOG_JSON);game.mounted=true;FFat.begin();
+int main(){setTestTimezone();std::filesystem::create_directories("ui-output");game.defaults();deserializeJson(game.catalog,CATALOG_JSON);game.mounted=true;FFat.begin();
 page="focus";dump("surface");assert(targetCount==6);
 command("go:items");assert(page=="focus");command("go:friends");assert(page=="focus");command("buy");assert(game.state["balance"]==0);
 game.state["depth"]=123.4;game.start();assert(game.running());dump("digging");command("start");assert(!game.running());double depth=game.liveDepth();dump("paused");command("go:chat");assert(page=="focus"&&game.liveDepth()==depth);command("chatinput");assert(page=="focus");command("go:chatoptions");assert(page=="focus");command("go:settings");dump("setup");command("confirm:finish");command("yes");assert(!game.active());assert(game.liveDepth()==depth);

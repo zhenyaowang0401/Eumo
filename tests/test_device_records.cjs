@@ -21,3 +21,78 @@ test('preserves a session split across midnight for the original daily history v
  const state=merge({},id,packet(1,[h])).state;assert.deepEqual(state.history[0].daySeconds,h.daySeconds);
  assert.throws(()=>merge({},id,packet(1,[{...h,daySeconds:{'2026-02-30':600}}])),/INVALID_DEVICE_RECORDS/);
 });
+
+// Modern backups preserve exact session identity and its day distribution.
+const at=Date.parse('2026-11-16T18:00:00Z');
+const settled=(key,when=at,extra={})=>({...record(key,when),daySeconds:{[day]:600},...extra});
+function settledPacket(sequence,records,device=id){
+ const p=packet(sequence,records);p.deviceId=device;delete p.legacyId;
+ p.snapshot.seconds=records.filter(h=>!h.demo&&h.mode!=='rest').reduce((n,h)=>n+h.seconds,0);
+ p.snapshot.reportDays={};p.snapshot.earned.sessions=0;
+ for(const h of records){
+  if(h.outcome==='complete')p.snapshot.earned.sessions++;
+  if(h.demo||h.mode==='rest')continue;
+  const field=h.mode==='work'?'workSeconds':'seconds';
+  for(const [date,seconds]of Object.entries(h.daySeconds||{})){const row=p.snapshot.reportDays[date]||={};row[field]=(row[field]||0)+seconds;}
+  if(h.outcome==='complete'){const date=h.completedDay||day,row=p.snapshot.reportDays[date]||={},field=h.mode==='work'?'workCompleted':'completed';row[field]=(row[field]||0)+1;}
+ }
+ return p;
+}
+function savedWeb(records){
+ const p=settledPacket(1,records),s=p.snapshot;
+ return {depth:s.depth,totalSeconds:s.seconds,balance:s.earned.stars,sessions:s.earned.sessions,inventory:[...s.earned.finds],rareInventory:{...s.earned.golden},reportDays:structuredClone(s.reportDays),history:structuredClone(records),owned:['hat']};
+}
+test('web backup round-trip credits only new sessions, even after old rewards were spent',()=>{
+ const shared=settled('original-web'),fresh=settled('new-device',at+900000),source=savedWeb([shared]);
+ source.balance=0;source.inventory=[0,0,0,0];source.rareInventory={};
+ const after=merge(source,id,settledPacket(1,[shared,fresh])).state;
+ assert.equal(after.depth,40);assert.equal(after.totalSeconds,1200);assert.equal(after.balance,2);
+ assert.deepEqual(after.inventory,[1,0,0,0]);assert.equal(after.rareInventory['moon-globe'],1);
+ assert.equal(after.history.length,2);assert.deepEqual(after.owned,['hat']);
+ assert.equal(after.reportDays[day].seconds,1200);
+ const repeated=merge(JSON.parse(JSON.stringify(after)),id,settledPacket(2,[shared,fresh])).state;
+ assert.equal(repeated.balance,2);assert.equal(repeated.depth,40);assert.equal(repeated.history.length,2);
+});
+test('exact known history overlap is shared across device descendants',()=>{
+ const shared=settled('shared-origin'),newer=settled('second-device',at+900000),other='c'.repeat(64);
+ const first=merge({},id,settledPacket(1,[shared])).state;
+ assert.equal(first.history[0].sourceSessionId,'shared-origin');
+ const next=merge(first,other,settledPacket(1,[shared,newer],other)).state;
+ assert.equal(next.depth,40);assert.equal(next.totalSeconds,1200);assert.equal(next.balance,4);assert.equal(next.history.length,2);
+ // Old imported histories did not store sourceSessionId; their exact wrapper
+ // still identifies the original session without treating its totals as an ID.
+ const legacy=structuredClone(first);delete legacy.history[0].sourceSessionId;
+ assert.equal(merge(legacy,other,settledPacket(1,[shared],other)).state.balance,2);
+});
+test('same totals with different IDs are distinct; changed settlement under same ID is rejected',()=>{
+ const shared=settled('web'),source=savedWeb([shared]),distinct={...shared,id:'device'};
+ assert.equal(merge(source,id,settledPacket(1,[distinct])).state.depth,40);
+ const before=JSON.stringify(source),changed={...shared,startedAt:shared.startedAt-1};
+ assert.throws(()=>merge(source,id,settledPacket(1,[changed])),/DEVICE_RECORD_CONFLICT/);
+ assert.equal(JSON.stringify(source),before);
+});
+test('v3 to v2 to v3 retains reward receipts while new legacy time still imports once',()=>{
+ const h=settled('one'),newer=settled('two',at+900000);
+ let state=merge({},id,settledPacket(1,[h])).state;
+ state.balance=0;state.inventory=[0,0,0,0];state.rareInventory={};
+ const legacy=settledPacket(2,[h,newer]);legacy.snapshot.version=2;delete legacy.snapshot.earned;delete legacy.snapshot.records;
+ state=merge(state,id,legacy).state;
+ assert.equal(state.depth,40);assert.equal(state.totalSeconds,1200);
+ assert.equal(state.deviceImports[id].earned.stars,2);
+ assert.deepEqual(state.deviceImports[id].recordIds,['one']);
+ state=merge(JSON.parse(JSON.stringify(state)),id,settledPacket(3,[h,newer])).state;
+ assert.equal(state.depth,40);assert.equal(state.totalSeconds,1200);assert.equal(state.balance,2);
+ assert.deepEqual(state.inventory,[1,0,0,0]);assert.equal(state.history.length,2);
+});
+test('midnight and completed Work overlap preserve exact daily counts',()=>{
+ const h=settled('midnight',Date.parse('2026-11-17T00:00:00Z'),{mode:'work',outcome:'complete',completedDay:'2026-11-17',daySeconds:{[day]:600}});
+ const source=savedWeb([h]),next=merge(source,id,settledPacket(1,[h])).state;
+ assert.equal(next.sessions,1);assert.equal(next.totalSeconds,600);
+ assert.equal(next.reportDays[day].workSeconds,600);assert.equal(next.reportDays['2026-11-17'].workCompleted,1);assert.equal(next.reportDays[day].workCompleted,0);assert.equal(next.history.length,1);
+});
+test('existing receipt observes a newly added matching session without re-crediting its rewards',()=>{
+ const shared=settled('later-web'),own=settled('first-device',at+900000);
+ let state=merge(savedWeb([shared]),id,settledPacket(1,[own])).state;
+ state=merge(state,id,settledPacket(2,[own,shared])).state;
+ assert.equal(state.depth,40);assert.equal(state.totalSeconds,1200);assert.equal(state.balance,4);assert.equal(state.history.length,2);
+});

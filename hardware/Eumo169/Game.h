@@ -104,6 +104,7 @@ public:
   if(!active())return;JsonDocument session;session.set(state["session"]);auto t=session.as<JsonVariantConst>();
   uint64_t elapsed=uint64_t(t["elapsed"].as<double>()*1000+.5),base=uint64_t(t["baseEligible"].as<double>()*1000+.5);
   bool demo=t["demo"]|false,canDig=eligible(t);uint32_t stars=Rules::stars(base,elapsed,canDig,demo),finds[4]={};
+  const String completedDay=formal(t)&&complete?day(time(nullptr)):"";
   JsonDocument gold;gold.to<JsonArray>();
   if(canDig){
    if(demo){if(elapsed>=9000&&t["rewardVersion"]!=2)finds[Rules::hash(t["id"].as<const char*>())%4]++;}
@@ -123,10 +124,11 @@ public:
   if(formal(t)){state["eligibleSeconds"]=state["eligibleSeconds"].as<double>()+elapsed/1000.0;state["totalSeconds"]=state["totalSeconds"].as<double>()+elapsed/1000.0;state["rareClaimed"]=max(state["rareClaimed"].as<uint64_t>(),(base+elapsed)/600000);}
   if(complete)state["sessions"]=state["sessions"].as<int>()+1;
   if(elapsed){JsonArray history=state["history"];int count=history.size();history.add(nullptr);for(int i=count;i>0;i--)history[i].set(history[i-1]);JsonObject h=history[0].to<JsonObject>();h["id"]=t["id"];h["at"]=nowMs();h["startedAt"]=t["startedAt"];h["seconds"]=elapsed/1000.0;h["mode"]=t["mode"];h["demo"]=demo;h["task"]=t["task"];h["note"]="";h["stars"]=stars;h["depth"]=Rules::depth(elapsed,canDig,demo);h["outcome"]=complete?"complete":"stopped";h["daySeconds"]=t["daySeconds"];for(int i=0;i<4;i++)h["finds"][i]=finds[i];h["golden"]=gold;
+   if(completedDay.length())h["completedDay"]=completedDay;
    auto collected=h["collected"].to<JsonArray>();String id=t["id"]|"";if(canDig&&demo){if(elapsed>=9000)collected.add(id+":find");if(elapsed>=15000)collected.add(id+":star");}
    else if(canDig)for(uint64_t n=base/300000+1;n<=(base+elapsed)/300000;n++){if(n%2==0)collected.add(id+":find:"+String((unsigned long long)(n/2)));collected.add(id+":star:"+String((unsigned long long)n));}
   }
-  if(formal(t)&&complete){String key=day(time(nullptr));const char *f=t["mode"]=="work"?"workCompleted":"completed";state["reportDays"][key][f]=state["reportDays"][key][f].as<int>()+1;}
+  if(completedDay.length()){const char *f=t["mode"]=="work"?"workCompleted":"completed";state["reportDays"][completedDay][f]=state["reportDays"][completedDay][f].as<int>()+1;}
   state["session"]=nullptr;state["idleAt"]=nowMs();visit=state["depth"].as<double>();notice="Saved +"+String(stars)+" stars";save();
  }
  JsonVariantConst item(const char *group,const String &id)const{for(JsonVariantConst i:catalog[group].as<JsonArrayConst>())if(i["id"]==id)return i;return JsonVariantConst();}

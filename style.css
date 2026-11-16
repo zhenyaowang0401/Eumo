@@ -356,12 +356,3 @@ dialog.friends-dialog{width:min(600px,calc(100% - 28px));max-width:600px;max-hei
 .home-drag-label{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;padding:5px 8px;background:var(--paper,#fff8e6);border:1px solid var(--line,#5d6e54);color:var(--text,#34483c);font-size:12px}
 
 .home-editor-hint{font-size:13px;line-height:1.6;color:var(--muted);margin:12px 0}.home-theme .home-theme-motion{font-size:12px}
-
-.device-sync-panel{width:min(440px,calc(100% - 32px));padding:26px 22px;background:var(--panel);border:2px solid var(--line);border-radius:8px}
-.device-sync-panel p{margin:16px 0;font-size:16px;line-height:1.6}
-.device-sync-panel form{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.device-sync-panel input{width:130px;max-width:100%;padding:8px;border:1px solid var(--line);background:var(--deep);color:var(--text);letter-spacing:3px}
-.device-sync-panel button{padding:9px 12px;background:var(--pink);color:var(--primary-ink,var(--deep));border-radius:4px}
-.device-sync-panel .dialog-close{background:transparent;color:inherit;padding:3px 8px}
-.focus-device-button{white-space:nowrap}
-@media(max-width:600px){#focus .page-heading{flex-wrap:wrap;gap:8px}#focus .focus-meta{flex-wrap:wrap;justify-content:flex-start}}

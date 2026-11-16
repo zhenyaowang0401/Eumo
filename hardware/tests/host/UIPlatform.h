@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <iomanip>
+#include <vector>
 #include "../../Eumo169/Game.h"
 // Host renderer records the real firmware drawing calls, no second UI implementation.
 #define IRAM_ATTR

@@ -61,23 +61,135 @@ let trendRange=7,selectedDay=todayKey(),calendarView=new Date(new Date().getFull
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
 let deviceLedgerStamp=JSON.stringify(state.deviceImports||{});
 let deviceActivity={until:0,status:'idle',snapshot:null},deviceControl=false;
-let saveOwnerReady=!navigator.locks,saveOwner=true;
+// A tab owns progress only while actively recording or editing, never just
+// because it was opened first. Idle tabs can browse and edit normally.
+const SAVE_OWNER_KEY='eumo-progress-owner-v1',SAVE_OWNER_LOCK='eumo-browser-save-owner';
+const saveTabId=crypto.randomUUID?.()||Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
+let saveOwnerReady=true,saveOwner=true,releaseSaveOwner=null,requestingSaveOwner=null;
+let pendingIdleSave=null,idleSavePromise=null;
+let savedStateStamp=null;try{savedStateStamp=localStorage.getItem(STORAGE_KEY);}catch{}
+const readonlyControls=new Map();let ownerRecoveryPending=false;
+const progressControls='#startButton,#stopButton,#confirmStop,#minusTime,#plusTime,#demoButton,[data-mode],#taskInput,#editHomeButton,#clearHomeSlot,[data-item],[data-tool],#resetTool,#removeOutfit,[data-home-item],[data-theme],[data-hold],[data-display-treasure],[data-store-treasure],[data-sell-treasure],#putBackButton,#putBackTreasure,[data-place-crafted],#confirmCraft,#confirmTreasureSale,#finishTodayButton,#outcomeInput,#petName,#petColor,[data-color],#enterGame,#importProgress,#saveTransferFile';
+function sharedOwner(){try{const value=JSON.parse(localStorage.getItem(SAVE_OWNER_KEY)||'null');return value&&typeof value.id==='string'?value:null;}catch{return null;}}
+function otherProgressOwner(){const owner=sharedOwner();return !!owner&&owner.id!==saveTabId;}
+function mayWriteProgress(){return canSave&&!otherProgressOwner()&&(!navigator.locks||!!releaseSaveOwner||state.session?.status!=='running');}
+function showSaveOwnership(){
+ const blocked=otherProgressOwner();saveOwner=!blocked;if(blocked)ownerRecoveryPending=true;
+ const notice=$('#saveOwnerNotice');if(notice){notice.hidden=!blocked;notice.textContent=EumoI18n.t('Progress is being updated in another tab. You can browse here.');}
+ if(blocked)for(const el of $$(progressControls)){if(!readonlyControls.has(el))readonlyControls.set(el,el.disabled);el.disabled=true;el.dataset.progressReadonly='true';}
+ else{for(const [el,wasDisabled]of readonlyControls){el.disabled=wasDisabled;delete el.dataset.progressReadonly;}readonlyControls.clear();}
+}
+function adoptSharedSave(){
+ let raw,disk;try{raw=localStorage.getItem(STORAGE_KEY);if(!raw||raw===savedStateStamp)return false;disk=JSON.parse(raw);}catch{return false;}
+ if(!disk?.profile||!Array.isArray(disk.inventory)||!disk.home||!Array.isArray(disk.history))return false;
+ state={...state,...disk,session:disk.session||null,deviceImports:disk.deviceImports||{}};
+ savedStateStamp=raw;deviceLedgerStamp=JSON.stringify(state.deviceImports);lastSave=Date.now();return true;
+}
+function refreshSharedView(){
+ // Restore first, then let normal renderers compute current disabled states.
+ for(const [el,wasDisabled]of readonlyControls){el.disabled=wasDisabled;delete el.dataset.progressReadonly;}readonlyControls.clear();
+ renderProfile();renderStats();renderTimer();renderSimpleView();if(!$('#reports').hidden)renderReports();showSaveOwnership();
+}
+function releaseIdleOwner(force=false){
+ if(!releaseSaveOwner||!force&&(deviceControl||state.session?.status==='running'||homeEditing))return;
+ const release=releaseSaveOwner;releaseSaveOwner=null;
+ try{if(sharedOwner()?.id===saveTabId)localStorage.removeItem(SAVE_OWNER_KEY);}catch{}
+ release();showSaveOwnership();
+}
+async function acquireSaveOwner(kind){
+ while(idleSavePromise)await idleSavePromise;
+ if(releaseSaveOwner)return true;
+ if(!navigator.locks){if(kind==='device')throw Error('BROWSER_STORAGE_CONFLICT');return !otherProgressOwner();}
+ if(requestingSaveOwner)return requestingSaveOwner;
+ requestingSaveOwner=new Promise(resolve=>{
+  navigator.locks.request(SAVE_OWNER_LOCK,{ifAvailable:true},async lock=>{
+   if(!lock){showSaveOwnership();resolve(false);return;}
+   let done;const hold=new Promise(r=>done=r);releaseSaveOwner=done;
+   try{localStorage.setItem(SAVE_OWNER_KEY,JSON.stringify({id:saveTabId,kind}));}
+   catch{releaseSaveOwner=null;done();resolve(false);return;}
+   adoptSharedSave();saveOwnerReady=true;saveOwner=true;resolve(true);await hold;
+  }).catch(()=>resolve(false));
+ });
+ try{return await requestingSaveOwner;}finally{requestingSaveOwner=null;}
+}
+async function recoverSaveOwner(){
+ if(releaseSaveOwner||requestingSaveOwner)return;
+ const owner=sharedOwner();
+ if(navigator.locks){
+  const locks=await navigator.locks.query();
+  if(locks.held.some(lock=>lock.name===SAVE_OWNER_LOCK)){showSaveOwnership();return;}
+  // A crashed/closed page can leave its marker, but not its Web Lock.
+  if(owner&&sharedOwner()?.id===owner.id)localStorage.removeItem(SAVE_OWNER_KEY);
+ }
+ if(!otherProgressOwner()){
+  const changed=adoptSharedSave();
+  if(state.session?.status==='running'&&await acquireSaveOwner('timer')){trackStudy();save();}
+  if(changed)refreshSharedView();else showSaveOwnership();
+  if(ownerRecoveryPending&&!releaseSaveOwner&&!requestingSaveOwner){ownerRecoveryPending=false;window.dispatchEvent(new Event('eumo-save-owner-available'));}
+ }else{if(adoptSharedSave())refreshSharedView();else showSaveOwnership();}
+}
+window.addEventListener('storage',event=>{
+ if(![STORAGE_KEY,SAVE_OWNER_KEY].includes(event.key)||releaseSaveOwner)return;
+ if(adoptSharedSave())refreshSharedView();else showSaveOwnership();
+ recoverSaveOwner().catch(()=>{});
+});
+// Refresh an idle tab before its next game edit. If an active owner exists,
+// capture the event before a mutating control can change the local copy.
+for(const type of ['click','input','change','submit'])document.addEventListener(type,event=>{
+ const target=event.target.closest?.(progressControls+',#petSetupForm');if(!target)return;
+ if(otherProgressOwner()){event.preventDefault();event.stopImmediatePropagation();showSaveOwnership();return;}
+ if(!releaseSaveOwner)adoptSharedSave();
+},true);
+setInterval(()=>recoverSaveOwner().catch(()=>{}),1000);
+setTimeout(()=>recoverSaveOwner().catch(()=>{}),0);
 function deviceIsDigging(){return deviceActivity.status==='digging'&&Date.now()<deviceActivity.until;}
-function save(){if(!canSave||!saveOwnerReady||!saveOwner)return false;try{
- const disk=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
- if(JSON.stringify(disk.deviceImports||{})!==deviceLedgerStamp){canSave=false;toast('另一网页已更新手表进度，请刷新本页后继续。');return false;}
- localStorage.setItem(STORAGE_KEY,JSON.stringify(state));lastSave=Date.now();return true;
+function save(){if(!canSave)return false;if(!mayWriteProgress()){if(!releaseSaveOwner)adoptSharedSave();showSaveOwnership();return false;}try{
+ const raw=localStorage.getItem(STORAGE_KEY),disk=JSON.parse(raw||'{}');
+ if(JSON.stringify(disk.deviceImports||{})!==deviceLedgerStamp){
+  // Keep the latest import receipt; a passive tab must never overwrite it.
+  adoptSharedSave();refreshSharedView();return false;
+ }
+ if(!releaseSaveOwner&&raw!==savedStateStamp){adoptSharedSave();refreshSharedView();toast(EumoI18n.t('Progress changed in another tab. Please try that action again.'));return false;}
+ const text=JSON.stringify(state);
+ if(navigator.locks&&!releaseSaveOwner){
+  // Idle edits use short locks too: checking a localStorage marker alone is
+  // not atomic with another tab beginning a device import.
+  pendingIdleSave={text,base:savedStateStamp};
+  if(!idleSavePromise)flushIdleSave();
+  return true;
+ }
+ localStorage.setItem(STORAGE_KEY,text);savedStateStamp=text;lastSave=Date.now();return true;
  }catch(e){canSave=false;if(!storageWarning){storageWarning=true;toast('Storage unavailable. Progress will not survive reload.');}return false;}}
+function flushIdleSave(){
+ idleSavePromise=navigator.locks.request(SAVE_OWNER_LOCK,{ifAvailable:true},lock=>{
+  const pending=pendingIdleSave;pendingIdleSave=null;if(!pending)return;
+  if(!lock||otherProgressOwner()||localStorage.getItem(STORAGE_KEY)!==pending.base){
+   adoptSharedSave();refreshSharedView();toast(EumoI18n.t('Progress changed in another tab. Please try that action again.'));return;
+  }
+  localStorage.setItem(STORAGE_KEY,pending.text);savedStateStamp=pending.text;lastSave=Date.now();
+ }).catch(()=>{canSave=false;toast('Storage unavailable. Progress will not survive reload.');}).finally(()=>{
+  idleSavePromise=null;if(pendingIdleSave)flushIdleSave();
+ });
+ return idleSavePromise;
+}
 window.DeviceImportBridge={
- connect(){if(!saveOwnerReady||!saveOwner)throw Error('BROWSER_STORAGE_CONFLICT');if(state.session)throw Error('END_BROWSER_SESSION_FIRST');deviceControl=true;MineView.reset();renderTimer();},
- disconnect(){deviceControl=false;deviceActivity.until=0;renderTimer();},
- backup(id){trackStudy();if(!save())throw Error('BROWSER_STORAGE_CONFLICT');const key='eumo-before-device-'+id;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(state));},
+ async connect(){
+  while(idleSavePromise)await idleSavePromise;
+  if(!releaseSaveOwner)adoptSharedSave();
+  if(state.session)throw Error('END_BROWSER_SESSION_FIRST');
+  if(!await acquireSaveOwner('device'))throw Error('BROWSER_STORAGE_CONFLICT');
+  if(state.session){releaseIdleOwner();throw Error('END_BROWSER_SESSION_FIRST');}
+  deviceControl=true;MineView.reset();renderTimer();
+ },
+ disconnect(){deviceControl=false;deviceActivity.until=0;releaseIdleOwner();renderTimer();},
+ backup(id){if(!releaseSaveOwner||!deviceControl)throw Error('BROWSER_STORAGE_CONFLICT');trackStudy();if(!save())throw Error('BROWSER_STORAGE_CONFLICT');const key='eumo-before-device-'+id;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(state));},
  apply(id,packet){
+  if(!releaseSaveOwner||!deviceControl)throw Error('BROWSER_STORAGE_CONFLICT');
   trackStudy();if(!save())throw Error('BROWSER_STORAGE_CONFLICT');
   const result=DeviceProgress.merge(state,id,packet);
   if(result.changed){
    // One atomic localStorage write commits progress and its replay receipt.
-   localStorage.setItem(STORAGE_KEY,JSON.stringify(result.state));state=result.state;
+   const text=JSON.stringify(result.state);localStorage.setItem(STORAGE_KEY,text);savedStateStamp=text;state=result.state;
    deviceLedgerStamp=JSON.stringify(state.deviceImports);lastSave=Date.now();
   }
   const age=Math.max(0,packet.serverTime-Date.parse(packet.updated_at));
@@ -92,31 +204,28 @@ function renderDeviceTimer(){
  if(!deviceControl)return;
  const s=deviceActivity.snapshot,elapsed=Math.floor(s?.sessionElapsed||0);
  $('#timeDisplay').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
- $('#timerLabel').textContent=Date.now()>=deviceActivity.until?'Watch offline':deviceIsDigging()?'Watch digging':s?.status==='idle'?'Watch ended':'Watch paused';
- $('#startText').textContent='Use watch';$('#durationLabel').textContent='Synced from your watch';
+ $('#timerLabel').textContent=EumoI18n.t(Date.now()>=deviceActivity.until?'canele offline':deviceIsDigging()?'canele digging':s?.status==='idle'?'canele ended':'canele paused');
+ $('#startText').textContent=EumoI18n.t('Use canele');$('#durationLabel').textContent=EumoI18n.t('Synced from your canele');
  $('#minusTime').disabled=true;$('#plusTime').disabled=true;$('#demoButton').hidden=true;$$('[data-mode]').forEach(b=>b.disabled=true);
 }
-if(navigator.locks)navigator.locks.request('eumo-browser-save-owner',{ifAvailable:true},async lock=>{
- saveOwnerReady=true;saveOwner=!!lock;
- if(!lock){canSave=false;$('#gameShell').inert=true;toast('另一个标签页正在使用这份存档。关闭它并刷新本页。');return;}
- save();await new Promise(()=>{});
-});
+
 
 function remaining(){const s=state.session;return s?(s.status==='running'?Math.max(0,Math.ceil((s.deadline-Date.now())/1000)):s.remaining):(demoSelected?15:state.minutes*60);}
 function focusSession(s){return !!s&&!s.demo&&(s.mode==='study'||s.mode==='work');}
 function trackStudy(){
+ if(!mayWriteProgress())return;
  const t=state.session;if(!t||t.status!=='running')return;
  const from=t.trackedAt??Date.now(),until=Math.min(Date.now(),t.deadline,from+Math.max(0,t.plannedSeconds-(t.elapsed||0))*1000);
  if(until<=from)return;t.trackedAt=until;t.elapsed=Math.min(t.plannedSeconds,Math.round(((t.elapsed||0)+(until-from)/1000)*1000)/1000); // Date.now has millisecond precision; avoid 14.999999999-second completed demos.
  if(!focusSession(t))return;
  let cursor=from;while(cursor<until){const d=new Date(cursor),key=dateKey(d),midnight=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),end=Math.min(until,midnight),day=state.reportDays[key]||(state.reportDays[key]={seconds:0,completed:0,workSeconds:0,workCompleted:0}),seconds=(end-cursor)/1000,field=t.mode==='work'?'workSeconds':'seconds';day[field]=Math.round(((day[field]||0)+seconds)*1000)/1000;t.daySeconds=t.daySeconds||{};t.daySeconds[key]=Math.round(((t.daySeconds[key]||0)+seconds)*1000)/1000;cursor=end;}
 }
-function pauseSession(){trackStudy();const t=state.session;if(!t||t.status!=='running')return;if(remaining()===0){complete();return;}t.remaining=remaining();t.status='paused';save();renderTimer();MoleChat.onGameEvent('session_paused');FriendsClient.notify();}
+function pauseSession(){if(!mayWriteProgress())return;trackStudy();const t=state.session;if(!t||t.status!=='running')return;if(remaining()===0){complete();return;}t.remaining=remaining();t.status='paused';save();releaseIdleOwner();renderTimer();MoleChat.onGameEvent('session_paused');FriendsClient.notify();}
 
 function ensureDigDay(){if(!state.session&&state.digDay!==todayKey()){state.surfaceDepth=state.depth;state.digDay=todayKey();return true;}return false;}
 function petMood(){if(deviceIsDigging())return 'awake';return state.session?(state.session.status==='paused'||state.session.mode==='rest'?'rest':'awake'):(Date.now()-state.idleAt>=300000?'asleep':Date.now()-state.idleAt>=90000?'drowsy':'awake');}
-function renderTimer(){document.body.dataset.petState=petMood();const s=state.session,n=remaining(),min=Math.floor(n/60),sec=n%60;$('#timeDisplay').innerHTML=String(min).padStart(2,'0')+'<span>:</span>'+String(sec).padStart(2,'0');$('#timeDisplay').setAttribute('aria-label',`${min} minutes ${sec} seconds remaining`);$('#durationLabel').textContent=s?(s.demo?'15 sec':`${Math.round(s.plannedSeconds/60)} min`):demoSelected?'15 sec':`${state.minutes} min`;$('#startText').textContent=s?(s.status==='running'?'Pause':'Resume'):'Start';$('.play-symbol').innerHTML=FocusIcons.svg(s?.status==='running'?'pause':'play');$('#startButton').setAttribute('aria-label',EumoI18n.t(s?(s.status==='running'?'Pause':'Resume'):'Start'));$('#startButton').title=$('#startButton').getAttribute('aria-label');$('#stopButton').hidden=!s;$('#demoButton').hidden=!!s;$('#demoButton').textContent=demoSelected?'Exit demo':'15s demo';$('#timerLabel').textContent=s?(s.status==='running'?'Running':'Paused'):demoSelected?'Demo':'Ready';$('#minusTime').disabled=!!s||(!demoSelected&&state.minutes<=5);$('#plusTime').disabled=!!s?.demo||(s?s.plannedSeconds:state.minutes*60)>=7200;FocusIcons.set($('#focusMode'),state.mode,modes[state.mode]);document.body.classList.toggle('running',s?.status==='running');$$('[data-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.mode===state.mode);b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode));FocusIcons.set(b,b.dataset.mode,modes[b.dataset.mode]);b.disabled=!!s;});$('#taskInput').disabled=!!s;if(s)$('#taskInput').value=s.task||'';const busy=!!s;$('#homePetButton').disabled=busy;$('#petButton').disabled=busy;$('#wardrobePetButton').disabled=busy;$('#petButton').title=busy?'Session in progress':`Pet ${state.profile.name}`;updateHomeMode();updateGoldenControls();const gold=s?RareTreasures.awards(s,Journey.pickups(s)):[];$('#goldenPickup').hidden=!gold.length;$('#goldenPickup').textContent=gold.length?'✦ GOLDEN FIND · '+RareTreasures.get(gold[gold.length-1].id).name+' · in your backpack':'';renderDig();MineView.refresh();renderReportStats();renderDeviceTimer();}
-function renderDig(){const m=PixelArt.digMetrics({...state,remaining:remaining()});$('#depthDisplay').textContent=String(Math.floor(m.worldDepth)).padStart(3,'0');$('#totalDepth').textContent=Math.floor(state.depth);$('#digPercent').textContent=Math.floor(m.fraction*100)+'%';$('#digProgress').style.width=(m.fraction*100)+'%';$('#mineStatus').textContent=state.session?(state.session.status==='running'?(Journey.eligible(state.session)?'Digging':'Resting'):'Resting'):({awake:'Idle',rest:'Resting',drowsy:'Drowsy',asleep:'Sleeping'}[petMood()]);if(deviceIsDigging())$('#mineStatus').textContent='Watch digging';if(!state.session&&!deviceIsDigging()&&m.worldDepth===0)$('#mineStatus').textContent='Surface';$('#sceneLabel').textContent=m.worldDepth===0?'Surface':Terrain.layerAt(m.worldDepth).name;}
+function renderTimer(){document.body.dataset.petState=petMood();const s=state.session,n=remaining(),min=Math.floor(n/60),sec=n%60;$('#timeDisplay').innerHTML=String(min).padStart(2,'0')+'<span>:</span>'+String(sec).padStart(2,'0');$('#timeDisplay').setAttribute('aria-label',`${min} minutes ${sec} seconds remaining`);$('#durationLabel').textContent=s?(s.demo?'15 sec':`${Math.round(s.plannedSeconds/60)} min`):demoSelected?'15 sec':`${state.minutes} min`;$('#startText').textContent=s?(s.status==='running'?'Pause':'Resume'):'Start';$('.play-symbol').innerHTML=FocusIcons.svg(s?.status==='running'?'pause':'play');$('#startButton').setAttribute('aria-label',EumoI18n.t(s?(s.status==='running'?'Pause':'Resume'):'Start'));$('#startButton').title=$('#startButton').getAttribute('aria-label');$('#stopButton').hidden=!s;$('#demoButton').hidden=!!s;$('#demoButton').textContent=demoSelected?'Exit demo':'15s demo';$('#timerLabel').textContent=s?(s.status==='running'?'Running':'Paused'):demoSelected?'Demo':'Ready';$('#minusTime').disabled=!!s||(!demoSelected&&state.minutes<=5);$('#plusTime').disabled=!!s?.demo||(s?s.plannedSeconds:state.minutes*60)>=7200;FocusIcons.set($('#focusMode'),state.mode,modes[state.mode]);document.body.classList.toggle('running',s?.status==='running');$$('[data-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.mode===state.mode);b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode));FocusIcons.set(b,b.dataset.mode,modes[b.dataset.mode]);b.disabled=!!s;});$('#taskInput').disabled=!!s;if(s)$('#taskInput').value=s.task||'';const busy=!!s;$('#homePetButton').disabled=busy;$('#petButton').disabled=busy;$('#wardrobePetButton').disabled=busy;$('#petButton').title=busy?'Session in progress':`Pet ${state.profile.name}`;updateHomeMode();updateGoldenControls();const gold=s?RareTreasures.awards(s,Journey.pickups(s)):[];$('#goldenPickup').hidden=!gold.length;$('#goldenPickup').textContent=gold.length?'✦ GOLDEN FIND · '+RareTreasures.get(gold[gold.length-1].id).name+' · in your backpack':'';renderDig();MineView.refresh();renderReportStats();renderDeviceTimer();showSaveOwnership();}
+function renderDig(){const m=PixelArt.digMetrics({...state,remaining:remaining()});$('#depthDisplay').textContent=String(Math.floor(m.worldDepth)).padStart(3,'0');$('#totalDepth').textContent=Math.floor(state.depth);$('#digPercent').textContent=Math.floor(m.fraction*100)+'%';$('#digProgress').style.width=(m.fraction*100)+'%';$('#mineStatus').textContent=state.session?(state.session.status==='running'?(Journey.eligible(state.session)?'Digging':'Resting'):'Resting'):({awake:'Idle',rest:'Resting',drowsy:'Drowsy',asleep:'Sleeping'}[petMood()]);if(deviceIsDigging())$('#mineStatus').textContent=EumoI18n.t('canele digging');if(!state.session&&!deviceIsDigging()&&m.worldDepth===0)$('#mineStatus').textContent='Surface';$('#sceneLabel').textContent=m.worldDepth===0?'Surface':Terrain.layerAt(m.worldDepth).name;}
 function renderStats(){$('#balance').textContent=state.balance;$('#closetBalance').textContent=state.balance;$('#ownedCount').textContent=state.owned.length+state.ownedTools.length;$('#equippedList').innerHTML=state.equipped.length?state.equipped.map(id=>`<span class="equipment-chip">${outfits.find(o=>o.id===id).name}</span>`).join(''):'No equipment';$('#removeOutfit').disabled=!state.equipped.length;HomeCatalog.rememberFinds(state);renderGoldenShelf();renderCloset();renderReportStats();renderHome();}
 function renderCloset(){
  const catalog=[...outfits,...tools.map(t=>({...t,category:'tools'}))],owns=o=>(o.category==='tools'?state.ownedTools:state.owned).includes(o.id),isOwned=selectedFilter==='owned';
@@ -138,7 +247,7 @@ window.addEventListener('popstate',navigate);
 function navigateTo(target){if(target==='rewards')target='home';navigate(target);try{if(location.hash!=='#'+target)history.pushState(null,'','#'+target);}catch(_){/* Embedded previews may disallow URL changes; the view is already updated. */}}
 document.addEventListener('click',e=>{const link=e.target.closest('a[href^="#"]');if(!link||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const target=link.getAttribute('href').slice(1);if(['start','focus','home','rewards','wardrobe','reports','companions'].includes(target)){e.preventDefault();navigateTo(target);}});
 function clearPet(){petAt=0;petSpinAt=0;petCombo=[];petComboCanvas=null;clearTimeout(petTimeout);$('#petSpeech').hidden=true;$('#wardrobeSpeech').hidden=true;$('#homeSpeech').hidden=true;}
-$('#startButton').addEventListener('click',()=>{if(deviceControl)return;trackStudy();clearPet();state.idleAt=Date.now();const t=state.session;if(!t){ensureDigDay();homeEditing=false;const seconds=demoSelected?15:state.minutes*60,now=Date.now();state.lastTask=cleanText($('#taskInput').value);state.session={id:globalThis.crypto?.randomUUID?.()||String(now)+'-'+Math.random().toString(36).slice(2),status:'running',mode:state.mode,plannedSeconds:seconds,deadline:now+seconds*1000,demo:demoSelected,trackedAt:now,startedAt:now,elapsed:0,baseEligible:state.eligibleSeconds,rareSeed:state.rareSeed,rewardVersion:2,baseDepth:state.depth,task:state.lastTask,daySeconds:{}};}else if(t.status==='running'){pauseSession();return;}else{homeEditing=false;t.deadline=Date.now()+t.remaining*1000;t.trackedAt=Date.now();t.status='running';}MineView.reset();save();renderTimer();MoleChat.onGameEvent(t?'session_resumed':'session_started');FriendsClient.notify();});
+$('#startButton').addEventListener('click',async()=>{if(deviceControl)return;if(!await acquireSaveOwner('timer')){showSaveOwnership();return;}if(deviceControl)return;trackStudy();clearPet();state.idleAt=Date.now();const t=state.session;if(!t){ensureDigDay();homeEditing=false;const seconds=demoSelected?15:state.minutes*60,now=Date.now();state.lastTask=cleanText($('#taskInput').value);state.session={id:globalThis.crypto?.randomUUID?.()||String(now)+'-'+Math.random().toString(36).slice(2),status:'running',mode:state.mode,plannedSeconds:seconds,deadline:now+seconds*1000,demo:demoSelected,trackedAt:now,startedAt:now,elapsed:0,baseEligible:state.eligibleSeconds,rareSeed:state.rareSeed,rewardVersion:2,baseDepth:state.depth,task:state.lastTask,daySeconds:{}};}else if(t.status==='running'){pauseSession();return;}else{homeEditing=false;t.deadline=Date.now()+t.remaining*1000;t.trackedAt=Date.now();t.status='running';}MineView.reset();save();renderTimer();MoleChat.onGameEvent(t?'session_resumed':'session_started');FriendsClient.notify();});
 $('#taskInput').value=state.lastTask;$('#taskInput').addEventListener('input',()=>{state.lastTask=cleanText($('#taskInput').value);save();});
 $('#plusTime').addEventListener('click',()=>{trackStudy();const s=state.session;if(s){if(s.demo||s.plannedSeconds>=7200)return;s.plannedSeconds+=300;if(s.status==='running')s.deadline+=300000;else s.remaining+=300;}else if(demoSelected){demoSelected=false;state.minutes=5;}else state.minutes=Math.min(120,state.minutes+5);save();renderTimer();});
 $('#minusTime').addEventListener('click',()=>{if(state.session)return;if(demoSelected)demoSelected=false;else state.minutes=Math.max(5,state.minutes-5);save();renderTimer();});
@@ -148,20 +257,20 @@ function requestStop(forDay=false){trackStudy();if(state.session&&remaining()===
 $('#stopButton').addEventListener('click',()=>requestStop());$('#continueButton').addEventListener('click',()=>{$('#stopDialog').close();finishDayPending=false;});
 $('#confirmStop').addEventListener('click',()=>{const day=finishDayPending;$('#stopDialog').close();finishDayPending=false;finishSession(remaining()===0?'complete':'stopped',false);if(day)showTodaySummary();});
 function finishSession(outcome='complete',showDialog=true){
- if(!state.session)return;trackStudy();const t=state.session,r=Journey.rewards(t),at=t.status==='running'?Math.min(Date.now(),t.deadline):Date.now();
+ if(!mayWriteProgress()||!state.session)return;trackStudy();const t=state.session,r=Journey.rewards(t),at=t.status==='running'?Math.min(Date.now(),t.deadline):Date.now();
  const golden=RareTreasures.settle(state,t,Journey.pickups(t));
  state.depth+=r.depth;state.balance+=r.stars;r.finds.forEach((n,i)=>state.inventory[i]+=n);if(focusSession(t)){state.eligibleSeconds+=t.elapsed;state.totalSeconds+=t.elapsed;}
  if(outcome==='complete')state.sessions++;
  const h={id:t.id,at,startedAt:t.startedAt,mode:t.mode,task:cleanText(t.task),note:'',seconds:t.elapsed,stars:r.stars,depth:r.depth,finds:r.finds,golden:golden.map(a=>a.id),collected:r.collected.map(e=>e.id),demo:!!t.demo,daySeconds:t.daySeconds||{},outcome};
  if(t.elapsed>0){state.history.unshift(h);lastFinishedId=h.id;}
  if(focusSession(t)&&outcome==='complete'){const key=dateKey(new Date(at)),day=state.reportDays[key]||(state.reportDays[key]={seconds:0,completed:0,workSeconds:0,workCompleted:0}),field=t.mode==='work'?'workCompleted':'completed';day[field]=(day[field]||0)+1;}
- state.session=null;state.idleAt=Date.now();demoSelected=false;ensureDigDay();save();renderTimer();renderStats();if(!$('#reports').hidden)renderReports();MoleChat.onGameEvent('session_finished',{seconds:t.elapsed,demo:!!t.demo,mode:t.mode,outcome});FriendsClient.notify();
+ state.session=null;state.idleAt=Date.now();demoSelected=false;ensureDigDay();save();releaseIdleOwner();renderTimer();renderStats();if(!$('#reports').hidden)renderReports();MoleChat.onGameEvent('session_finished',{seconds:t.elapsed,demo:!!t.demo,mode:t.mode,outcome});FriendsClient.notify();
  $('#goldenFinishCopy').hidden=!golden.length;$('#goldenFinishCopy').textContent=golden.map(a=>'✦ GOLDEN FIND · '+RareTreasures.get(a.id).name).join(' · ');if(golden.length)toast('Golden find! '+golden.map(a=>RareTreasures.get(a.id).name).join(' · '));
  $('#finishHeading').textContent=t.demo?'DEVELOPER DEMO':outcome==='complete'?'SESSION COMPLETE':'SESSION SAVED';$('#finishStars').textContent=`+${r.stars} ✦`;$('#finishCopy').textContent=`${duration(t.elapsed,true)} · ${Math.floor(r.depth)} m dug · ${Math.floor(state.depth)} m total`;
  $('#discoveryCopy').textContent=r.finds.some(Boolean)?r.finds.map((n,i)=>n?`${discoveries[i].name} × ${n}`:'').filter(Boolean).join(' · '):'No finds this time';$('#outcomeInput').value='';$('#stopDialog').close();if(showDialog&&!$('#finishDialog').open)$('#finishDialog').showModal();
 }
 function complete(){finishSession('complete');}
-function saveOutcome(){const h=state.history.find(h=>h.id===lastFinishedId);if(h){h.note=cleanText($('#outcomeInput').value,160);save();if(!$('#reports').hidden)renderReports();}}
+function saveOutcome(){if(!mayWriteProgress())return;const h=state.history.find(h=>h.id===lastFinishedId);if(h){h.note=cleanText($('#outcomeInput').value,160);save();if(!$('#reports').hidden)renderReports();}}
 $('#finishDialog').addEventListener('close',saveOutcome);$('#claimButton').addEventListener('click',()=>{saveOutcome();$('#finishDialog').close();});$('#finishHome').addEventListener('click',()=>{saveOutcome();$('#finishDialog').close();});
 
 $('#outfitGrid').addEventListener('click',e=>{const switcher=e.target.closest('[data-closet-switch]');if(switcher){setFilter(switcher.dataset.closetSwitch);return;}
@@ -206,7 +315,7 @@ function renderCalendar(){const year=calendarView.getFullYear(),month=calendarVi
 function dayEntries(key){return state.history.filter(h=>focusSession(h)&&(h.daySeconds&&Object.keys(h.daySeconds).length?h.daySeconds[key]>0:dateKey(new Date(h.at))===key));}
 function logEntry(h,key,active=false){const seconds=h.daySeconds?.[key]??h.seconds??0;return `<div class="log-entry ${active?'active-log':''}"><div><span ${h.task?'data-no-translate':''}>${escapeHTML(h.task||modes[h.mode])}</span><small>${modes[h.mode]} · ${active?(h.status==='running'?'In progress':'Paused'):h.outcome==='stopped'?'Ended early':'Completed'}</small>${h.note?`<small class="outcome-note">${escapeHTML(h.note)}</small>`:''}</div><strong>${duration(seconds,true)}</strong></div>`;}
 function renderDayLog(){const key=selectedDay;$('#logDate').textContent=parseDay(key).toLocaleDateString(EumoI18n.locale(),{month:'short',day:'numeric'});$('#logTotal').textContent=duration(reportSeconds(key),true);let html='';if(focusSession(state.session)&&(state.session.daySeconds?.[key]||0)>0)html+=logEntry(state.session,key,true);html+=dayEntries(key).map(h=>logEntry(h,key)).join('');if(!html&&reportSeconds(key)>0)html='<div class="log-entry"><div>Focus<small>Time recorded on this date</small></div><strong>'+duration(reportSeconds(key),true)+'</strong></div>';$('#logEntries').innerHTML=html||'<div class="log-empty">No focus sessions.</div>';}
-function finishTodaySummary(){if(!daySummaryPending)return;daySummaryPending=false;state.surfaceDepth=state.depth;state.digDay=todayKey();state.idleAt=Date.now();state.simpleView=false;homeEditing=false;clearPet();MineView.reset();save();renderSimpleView();navigateTo('focus');renderTimer();PixelArt.refreshFocus();MoleChat.onGameEvent('day_finished');FriendsClient.notify();}
+function finishTodaySummary(){if(!daySummaryPending)return;if(!mayWriteProgress()){daySummaryPending=false;return;}daySummaryPending=false;state.surfaceDepth=state.depth;state.digDay=todayKey();state.idleAt=Date.now();state.simpleView=false;homeEditing=false;clearPet();MineView.reset();save();renderSimpleView();navigateTo('focus');renderTimer();PixelArt.refreshFocus();MoleChat.onGameEvent('day_finished');FriendsClient.notify();}
 function showTodaySummary(){daySummaryPending=true;const key=todayKey(),seconds=reportSeconds(key),entries=dayEntries(key);$('#todaySummaryTime').textContent=duration(seconds,true)+' of focus';$('#moleTodayCopy').textContent=`${state.profile.name}: You logged ${duration(seconds,true)} of focus today.`;$('#todaySummaryTasks').innerHTML=entries.map(h=>logEntry(h,key)).join('')||'<p>No focus sessions today.</p>';const rewards=state.history.filter(focusSession).reduce((r,h)=>{const onDay=dateKey(new Date(h.at))===key;if(onDay){r.stars+=h.stars||0;r.finds+=(h.finds||[]).reduce((a,n)=>a+n,0);}return r;},{stars:0,finds:0});$('#todaySummaryRewards').textContent=`${rewards.stars} stars · ${rewards.finds} finds · demos excluded`;if(!$('#todayDialog').open)$('#todayDialog').showModal();renderReports();}
 $('#finishTodayButton').addEventListener('click',()=>{if(state.session)requestStop(true);else showTodaySummary();});$('#closeTodayButton').addEventListener('click',()=>{finishTodaySummary();$('#todayDialog').close();});$('#todayDialog').addEventListener('close',finishTodaySummary);
 
@@ -215,8 +324,8 @@ function renderReports(){renderReportStats();renderTrend();renderCalendar();rend
 $$('[data-range]').forEach(b=>b.addEventListener('click',()=>{trendRange=Number(b.dataset.range);$$('[data-range]').forEach(x=>x.classList.toggle('active',x===b));renderTrend();}));
 $('#trendChart').addEventListener('mouseover',e=>{const p=e.target.closest('[data-date]');if(p)$('#chartTooltip').textContent=`${parseDay(p.dataset.date).toLocaleDateString(EumoI18n.locale(),{month:'short',day:'numeric'})} · ${duration(Number(p.dataset.minutes)*60,true)}`;});$('#trendChart').addEventListener('focusin',e=>{const p=e.target.closest('[data-date]');if(p)$('#chartTooltip').textContent=`${parseDay(p.dataset.date).toLocaleDateString(EumoI18n.locale(),{month:'short',day:'numeric'})} · ${duration(Number(p.dataset.minutes)*60,true)}`;});
 $('#calendarGrid').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(!b)return;selectedDay=b.dataset.day;renderCalendar();renderDayLog();});$('#previousMonth').addEventListener('click',()=>{calendarView=new Date(calendarView.getFullYear(),calendarView.getMonth()-1,1);renderCalendar();});$('#nextMonth').addEventListener('click',()=>{const now=new Date();if(calendarView>=new Date(now.getFullYear(),now.getMonth(),1))return;calendarView=new Date(calendarView.getFullYear(),calendarView.getMonth()+1,1);renderCalendar();});$('#currentMonth').addEventListener('click',()=>{const now=new Date();calendarView=new Date(now.getFullYear(),now.getMonth(),1);selectedDay=todayKey();renderCalendar();renderDayLog();});
-function tick(){if(ensureDigDay())save();syncClock();trackStudy();if(state.session?.status==='running'&&remaining()===0)complete();else renderTimer();if(!$('#reports').hidden&&state.session)renderDayLog();if(state.session&&Date.now()-lastSave>=1000)save();}
-setInterval(tick,250);document.addEventListener('visibilitychange',()=>{tick();save();});window.addEventListener('pagehide',()=>{trackStudy();save();});window.addEventListener('focus',tick);
+function tick(){const writable=mayWriteProgress();if(writable&&ensureDigDay())save();syncClock();trackStudy();if(writable&&state.session?.status==='running'&&remaining()===0)complete();else renderTimer();if(!$('#reports').hidden&&state.session)renderDayLog();if(writable&&state.session&&Date.now()-lastSave>=1000)save();}
+setInterval(tick,250);document.addEventListener('visibilitychange',()=>{tick();save();});window.addEventListener('pagehide',()=>{trackStudy();save();releaseIdleOwner(true);});window.addEventListener('focus',tick);
 function renderHeldState(){const held=discoveries.find(i=>i.id===state.heldItem);$('#heldItemBar').hidden=!held;$('#heldItemLabel').textContent=held?`${state.session?'Stored':'On head'}: ${held.name}`:'';$('#putBackButton').disabled=!!state.session;}
 function renderChest(){
  if(!discoveries.some(d=>d.id===selectedChestItem)&&!RareTreasures.get(selectedChestItem))selectedChestItem=discoveries.find((d,i)=>state.inventory[i]>0)?.id||discoveries[0].id;
@@ -242,7 +351,7 @@ function renderHome(){const h=state.home;$('#homeBalance').textContent=state.bal
  $('#homeItemGrid').innerHTML='<h3>Owned furniture · drag into your home</h3>'+owned.map(i=>card(i,true)).join('')+'<h3>Collected finds</h3>'+HomeCatalog.spareMaterials(state).filter(m=>m.total>0).map(m=>`<article class="home-item"><div class="home-item-art">${PixelArt.iconSVG(m.id)}</div><div><strong>${m.name}</strong><small>${m.available} spare</small></div><button data-home-item="find:${m.id}" data-home-drag="find:${m.id}" ${m.available?'':'disabled'}>Drag / place</button></article>`).join('')+'<h3>Furniture shop</h3>'+shop.map(i=>card(i,false)).join('');
  $('#homeThemeGrid').innerHTML=HomeCatalog.themes.map(t=>{const owned=h.ownedThemes.includes(t.id),selected=h.theme===t.id;return `<button data-theme="${t.id}" data-rarity="${t.rarity.toLowerCase()}" class="home-theme ${selected?'selected':''}" style="--swatch:${t.wall}" ${selected||(!owned&&state.balance<t.cost)?'disabled':''}><i></i><span>${t.name}<small>${t.rarity} · ${selected?'Selected':owned?'Owned':'✦ '+t.cost}</small>${t.motion?'<small class="home-theme-motion">'+t.motion+'</small>':''}</span></button>`;}).join('');if($('#chestDialog').open)renderChest();if($('#craftingDialog').open)renderCrafting();}
 $('#visitFriendsButton').addEventListener('click',()=>FriendsClient.openHomes());
-$('#editHomeButton').addEventListener('click',()=>{if(!homeEditing&&state.session?.status==='running')pauseSession();homeEditing=!homeEditing;if(homeEditing)HomeWalk.stop();renderHome();});
+$('#editHomeButton').addEventListener('click',async()=>{if(!await acquireSaveOwner('editing'))return;const entering=!homeEditing;homeEditing=entering;if(entering&&state.session?.status==='running')pauseSession();if(homeEditing)HomeWalk.stop();else releaseIdleOwner();renderHome();});
 $$('[data-slot]').forEach(b=>b.addEventListener('click',()=>{selectedSlot=b.dataset.slot;renderHome();}));$('#clearHomeSlot').addEventListener('click',()=>{if(!homeEditing)return;HomeCatalog.putAway(state,selectedSlot);save();renderHome();FriendsClient.notify();});
 $('#homeItemGrid').addEventListener('click',e=>{const b=e.target.closest('[data-home-item]');if(!b||!homeEditing||state.session?.status==='running'||HomeEditor.consumeClick())return;const id=b.dataset.homeItem,f=HomeCatalog.items.find(i=>i.id===id),h=state.home;
  if(f&&!h.owned.includes(id)){if(f.recipe){openCrafting(id);return;}if(state.balance<f.cost)return;state.balance-=f.cost;h.owned.push(id);save();renderStats();}
@@ -271,9 +380,10 @@ function openCrafting(id){
  if(id){const card=$(`[data-recipe="${id}"]`);card?.scrollIntoView({block:'center'});card?.querySelector('button')?.focus({preventScroll:true});}
 }
 for(const id of ['openCraftingButton','chestCraftButton'])$('#'+id).addEventListener('click',()=>openCrafting());
-$('#craftRecipeGrid').addEventListener('click',e=>{
+$('#craftRecipeGrid').addEventListener('click',async e=>{
  const place=e.target.closest('[data-place-crafted]');if(place){
-  const item=HomeCatalog.items.find(i=>i.id===place.dataset.placeCrafted);if(!item||!state.home.owned.includes(item.id)||state.session?.status==='running')return;
+  if(!await acquireSaveOwner('editing'))return;
+  const item=HomeCatalog.items.find(i=>i.id===place.dataset.placeCrafted);if(!item||!state.home.owned.includes(item.id)||state.session?.status==='running'){releaseIdleOwner();return;}
   $('#craftingDialog').close();homeEditing=true;renderHome();
   const target=$(`[data-home-item="${item.id}"]`);target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true});HomeEditor.choose(item.id);return;
  }
@@ -352,12 +462,25 @@ if(retiredClothingRefund){save();toast(EumoI18n.language==='zh'?`已下架衣服
 
 window.addEventListener('eumo-appearance',()=>{lastClockStamp='';syncClock();PixelArt.refreshFocus();});
 
-SaveTransfer.init({read:()=>state,flush:()=>{trackStudy();save();},beforeReload:()=>{canSave=false;FloatingMole.close();}});
+async function flushProgress(){
+ if(!await acquireSaveOwner('backup'))return false;
+ trackStudy();const written=save();releaseIdleOwner();return written;
+}
+SaveTransfer.init({
+ read:()=>state,
+ flush:async()=>{if(!await flushProgress())throw Error('BROWSER_STORAGE_CONFLICT');},
+ beginImport:async()=>{
+  if(!await acquireSaveOwner('import'))throw Error('BROWSER_STORAGE_CONFLICT');
+  if(deviceControl||state.session?.status==='running'){releaseIdleOwner();throw Error('END_BROWSER_SESSION_FIRST');}
+ },
+ cancelImport:()=>releaseIdleOwner(),
+ beforeReload:()=>{canSave=false;FloatingMole.close();}
+});
 
 // Called only by the native updater after the user confirms restarting.
-window.EumoPrepareUpdate=()=>{if(!canSave)return false;window.EumoVoice?.cancel();if(state.session?.status==='running')pauseSession();else{trackStudy();save();}return canSave;};
+window.EumoPrepareUpdate=async()=>{if(!canSave)return false;window.EumoVoice?.cancel();if(state.session?.status==='running')pauseSession();return await flushProgress();};
 DesktopUpdates.init();
 
-HomeEditor.init({read:()=>state,editing:()=>homeEditing,selected:()=>selectedSlot,select:key=>{selectedSlot=key;$('#clearHomeSlot').disabled=!state.home.slots[key];},commit:()=>{save();renderStats();FriendsClient.notify();},message:toast});
+HomeEditor.init({read:()=>state,editing:()=>homeEditing&&mayWriteProgress(),selected:()=>selectedSlot,select:key=>{selectedSlot=key;$('#clearHomeSlot').disabled=!state.home.slots[key];},commit:()=>{save();renderStats();FriendsClient.notify();},message:toast});
 
 HomeWalk.init({read:()=>state,editing:()=>homeEditing,activity:()=>{clearPet();state.idleAt=Date.now();}});

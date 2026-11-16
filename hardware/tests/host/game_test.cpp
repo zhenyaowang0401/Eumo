@@ -7,7 +7,7 @@ void init(Game &g){g.defaults();deserializeJson(g.catalog,CATALOG_JSON);g.mounte
 void advance(Game &g,uint32_t ms){testMillis+=ms;testEpoch+=ms;g.tick(testMillis);}
 int main(){
  std::cerr.precision(17);
- _putenv_s("TZ","UTC0");_tzset();FFat.begin();
+ setTestTimezone();FFat.begin();
  Game g;init(g);g.start();advance(g,300000);assert(g.state["session"]["elapsed"]==300);assert(g.liveDepth()==10);g.finish();assert(g.state["balance"]==1);assert(g.state["depth"]==10);assert(g.state["eligibleSeconds"]==300);
  g.finish();assert(g.state["balance"]==1);assert(g.state["history"].size()==1);
  g.start();assert(g.state["session"]["rewardVersion"]==2);g.state["session"]["rewardVersion"]=1;advance(g,300000);g.finish();assert(g.state["balance"]==2);int finds=0;for(auto x:g.state["inventory"].as<JsonArray>())finds+=x.as<int>();assert(finds==1);
@@ -36,9 +36,30 @@ int main(){
   int gold=0;for(JsonPair p:actual.state["rareInventory"].as<JsonObject>())gold+=p.value().as<int>();assert(gold==int(row["golden"].size()));
   for(auto id:row["golden"].as<JsonArray>())assert(actual.state["rareInventory"][id.as<String>()].as<int>()>0);cases++;
  }
- Game sync;init(sync);sync.state["rareSeed"]="seed0";sync.start();advance(sync,600000);sync.finish();JsonDocument payload;fillDigSnapshot(sync,payload.to<JsonObject>());
+ Game sync;init(sync);sync.state["rareSeed"]="seed0";sync.start();advance(sync,600000);sync.finish();JsonDocument payload;assert(fillDigSnapshot(sync,payload.to<JsonObject>()));
  assert(payload["version"]==3);assert(payload["status"]=="idle");assert(payload["depth"]==20);assert(payload["seconds"]==600);assert(payload["records"].size()==1);assert(payload["earned"]["stars"]==2);assert(payload["earned"]["sessions"]==0);assert(payload["records"][0]["daySeconds"].size()>0);
  std::ofstream protocol("device-snapshot.json");serializeJson(payload,protocol);protocol.close();
- sync.start();advance(sync,30000);fillDigSnapshot(sync,payload.to<JsonObject>());assert(payload["depth"]==21&&payload["seconds"]==630&&payload["status"]=="digging");
- std::cout<<"PASS: "<<cases<<" original-JavaScript reward fixtures; settlement once, demo exclusion, pause, rollover, midnight, purchases, craft reservations, slots, sale reservations, import rollback, reboot checkpoint, actual device protocol snapshot\n";
+ String settledBackup=sync.exportSave(),originalId=sync.state["history"][0]["id"].as<String>();
+ Game deviceImport;init(deviceImport);assert(deviceImport.importSave(settledBackup));
+ assert(fillDigSnapshot(deviceImport,payload.to<JsonObject>()));assert(payload["records"][0]["id"]==originalId);assert(payload["depth"]==20&&payload["seconds"]==600);
+ const String sourceDevice="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+ deviceImport.state["history"][0]["id"]="device:"+sourceDevice+":"+originalId;deviceImport.state["history"][0]["sourceDevice"]=sourceDevice;
+ // Old browser imports had the wrapper only; new imports also retain the ID.
+ assert(fillDigSnapshot(deviceImport,payload.to<JsonObject>()));assert(payload["records"][0]["id"]==originalId);
+ deviceImport.state["history"][0]["sourceSessionId"]=originalId;
+ assert(fillDigSnapshot(deviceImport,payload.to<JsonObject>()));assert(payload["earned"]["stars"]==2);
+ // Keep the original local history and recognize an identical backup copy.
+ deviceImport.state["history"].as<JsonArray>().add(sync.state["history"][0]);
+ assert(fillDigSnapshot(deviceImport,payload.to<JsonObject>()));assert(payload["records"].size()==1);assert(deviceImport.state["history"].size()==2);
+ String syncError;deviceImport.state["history"][1]["stars"]=99;
+ assert(!fillDigSnapshot(deviceImport,payload.to<JsonObject>(),&syncError));assert(syncError=="Backup history conflicts; sync paused");assert(deviceImport.state["balance"]==2);
+ deviceImport.state["history"].as<JsonArray>().remove(1);deviceImport.state["depth"]=30;
+ assert(!fillDigSnapshot(deviceImport,payload.to<JsonObject>(),&syncError));assert(syncError=="Backup history incomplete; sync paused");assert(deviceImport.state["depth"]==30);
+ deviceImport.state["depth"]=20;deviceImport.start();advance(deviceImport,30000);deviceImport.finish();
+ assert(fillDigSnapshot(deviceImport,payload.to<JsonObject>()));assert(payload["records"].size()==2);assert(payload["depth"]==21&&payload["seconds"]==630);
+ Game completion;init(completion);completion.state["minutes"]=5;completion.start();advance(completion,300000);
+ String completedDay=Game::day(testEpoch/1000);assert(completion.state["history"][0]["completedDay"]==completedDay);assert(completion.state["reportDays"][completedDay]["completed"]==1);
+ assert(fillDigSnapshot(completion,payload.to<JsonObject>()));assert(payload["records"][0]["completedDay"]==completedDay);
+ sync.start();advance(sync,30000);assert(fillDigSnapshot(sync,payload.to<JsonObject>()));assert(payload["depth"]==21&&payload["seconds"]==630&&payload["status"]=="digging");
+ std::cout<<"PASS: "<<cases<<" original-JavaScript reward fixtures; settlement once, demo exclusion, pause, rollover, midnight, purchases, craft reservations, slots, sale reservations, import rollback, reboot checkpoint, original-ID backup round trips, ambiguous-history sync guard, completed-day provenance, actual device protocol snapshot\n";
 }

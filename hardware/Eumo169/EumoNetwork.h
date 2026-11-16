@@ -102,7 +102,7 @@ public:
  bool publishProgress(){
   if(syncSequence>=syncLimit){syncLimit=syncSequence+1024;if(prefs.putULong64("syncSeq",syncLimit)!=8){syncError="Cannot save sync counter";return false;}}
   JsonDocument req;req["action"]="publish";req["viewerToken"]=syncViewer;req["sequence"]=++syncSequence;
-  fillDigSnapshot(*game,req["snapshot"].to<JsonObject>());
+  if(!fillDigSnapshot(*game,req["snapshot"].to<JsonObject>(),&syncError)){lastPublish=millis();return false;}
   lastPublish=millis();if(game->state["reportDays"].size()>366||req["snapshot"]["records"].size()>2000||req.overflowed()||measureJson(req)>900000){syncError="Sync history exceeds size limit";return false;}
   return send("/api/dig-sync",req);
  }

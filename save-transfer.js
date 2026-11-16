@@ -18,13 +18,13 @@
   function open(){document.getElementById('infoDialog')?.close();status.textContent='';dialog.showModal();}
   document.getElementById('openSaveTransfer').onclick=open;window.EumoDesktop?.onBackup(open);
   function available(){if(bridge.read().session?.status==='running'){status.textContent=t('Pause your session before moving progress.');return false;}return true;}
-  document.getElementById('exportProgress').onclick=()=>{
-   if(!available())return;try{bridge.flush();const blob=new Blob([encode(localStorage)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Eumo-progress-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);status.textContent=t('Backup downloaded. Keep it somewhere safe.');}catch{status.textContent=t('Could not save the backup.');}
+  document.getElementById('exportProgress').onclick=async()=>{
+   if(!available())return;try{await bridge.flush();const blob=new Blob([encode(localStorage)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Eumo-progress-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);status.textContent=t('Backup downloaded. Keep it somewhere safe.');}catch{status.textContent=t('Could not save the backup.');}
   };
   document.getElementById('importProgress').onclick=()=>{if(available()){file.value='';file.click();}};
   file.onchange=async()=>{
    if(!file.files[0]||!available())return;
-   try{if(file.files[0].size>8000000)throw Error();const values=parse(await file.files[0].text());if(!available()||!confirm(t('Replace the progress on this device with this backup? Export your current progress first if you want to keep it.')))return;apply(localStorage,values);bridge.beforeReload();location.reload();}catch{status.textContent=t('This backup could not be imported. Your current game is still here.');}
+   try{if(file.files[0].size>8000000)throw Error();const values=parse(await file.files[0].text());if(!available()||!confirm(t('Replace the progress on this device with this backup? Export your current progress first if you want to keep it.')))return;await bridge.beginImport?.();apply(localStorage,values);bridge.beforeReload();location.reload();}catch{bridge.cancelImport?.();status.textContent=t('This backup could not be imported. Your current game is still here.');}
   };
  }
  return {parse,encode,apply,init};
