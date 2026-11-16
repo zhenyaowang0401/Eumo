@@ -1,7 +1,7 @@
 'use strict';
 const path=require('node:path');
 const {APP_ORIGIN,API_PATHS}=require('./config.cjs');
-const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.mp3':'audio/mpeg','.wav':'audio/wav','.ogg':'audio/ogg','.json':'application/json'};
+const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.ttf':'font/ttf','.otf':'font/otf','.woff':'font/woff','.mp3':'audio/mpeg','.wav':'audio/wav','.ogg':'audio/ogg','.json':'application/json'};
 // Only the packaged manifest is readable, never arbitrary paths or server-side files.
 function assetFor(url,manifest){
  let u;try{u=new URL(url);}catch{return null;}
@@ -16,7 +16,7 @@ function createHandler({root,manifest,readFile,upstream}){
   if(API_PATHS.has(url.pathname)){
    if(request.method!=='POST')return new Response('Method not allowed',{status:405});
    try{
-    const body=await request.arrayBuffer();if(body.byteLength>48000)return new Response('Request too large',{status:413});
+    const body=await request.arrayBuffer();if(body.byteLength>(url.pathname==='/api/transcribe'?2000000:48000))return new Response('Request too large',{status:413});
     const headers={'Content-Type':'application/json',Origin:APP_ORIGIN};
     if(['/api/dig-sync','/api/dig-pair'].includes(url.pathname)){const auth=request.headers.get('authorization');if(/^Bearer [a-f0-9]{64}$/.test(auth||''))headers.Authorization=auth;}
     const response=await upstream(APP_ORIGIN+url.pathname,{method:'POST',headers,body,credentials:'include',redirect:'error',signal:AbortSignal.timeout(60000),bypassCustomProtocolHandlers:true});

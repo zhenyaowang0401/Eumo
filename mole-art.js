@@ -39,10 +39,38 @@ window.MoleArt=(()=>{
   hand(0,18-arm);hand(20,18+arm);
   return true;
  }
+ // Side and rear silhouettes share the front sprite's 27px foot/equipment anchors.
+ function paintTravel(c,{color='#a9b4c6',phase=0,climbing=false}={}){
+  const ink='#28214c',light=tint(color,.20),shadow=tint(color,-.18),paw='#ffb5a8';
+  const r=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(x,y,w,h);},stride=[-1,0,1,0][phase%4];
+  function limb(x,y,w=6){r(x+1,y,w-2,1,ink);r(x,y+1,w,3,ink);r(x+1,y+1,w-2,2,paw);r(x+1,y+1,2,1,'#ffd1bd');r(x+w-3,y+2,2,1,'#df9291');}
+  // Rounded, connected silhouettes keep the same foot and hat anchors as idle.
+  // The widest part is the tummy/haunches, rather than a tall rectangular torso.
+  const rows=climbing?
+   [[9,18],[6,21],[5,22],[4,23],[4,23],[3,24],[3,24],[3,24],[3,24],[3,24],[3,24],[3,24],[3,24],[4,23],[4,23],[5,22],[6,21],[7,20],[9,18]]:
+   [[10,19],[8,21],[6,22],[5,23],[5,23],[4,24],[4,24],[4,24],[3,24],[3,24],[3,24],[3,24],[3,24],[4,24],[4,23],[5,23],[6,22],[7,21],[8,20]];
+  if(!climbing){r(4,21,6,2,ink);r(2,23,8,2,ink);r(0,24,10,2,ink);r(2,24,7,1,shadow);limb(8-stride,23);}
+  const inside=(x,y)=>rows[y-5]&&x>=rows[y-5][0]&&x<rows[y-5][1];
+  for(let y=5;y<24;y++)for(let x=rows[y-5][0];x<rows[y-5][1];x++){
+   const edge=!inside(x-1,y)||!inside(x+1,y)||!inside(x,y-1)||!inside(x,y+1),lit=x<rows[y-5][0]+4&&y<19,shade=x>=rows[y-5][1]-3||y>=21;
+   r(x,y,1,1,edge?ink:shade?shadow:lit?light:color);
+  }
+  if(climbing){
+   r(8,9,2,3,light);r(10,8,3,1,light);r(9,18,2,1,light);
+   r(12,21,3,4,ink);r(13,21,1,3,shadow);
+   // Visible paws reach around the round shoulders, alternating on the rungs.
+   limb(4,10-stride*2);limb(18,10+stride*2);
+   limb(6,23-stride);limb(16,23+stride);
+  }else{
+   r(20,12,4,5,ink);r(21,13,3,3,light);r(24,14,2,2,'#e7473f');r(20,11,2,2,ink);
+   r(18,16,5,5,'#fff1c8');r(16,18,6,5,'#fff1c8');r(17,19,3,3,'#fff8df');r(15,21,5,2,'#fff1c8');
+   limb(15+stride,23);limb(11-stride,17+stride);
+  }
+ }
  function drawAvatar(canvas,color){
   const c=canvas.getContext('2d'),scale=Math.min(canvas.width/27,canvas.height/24);
   c.clearRect(0,0,canvas.width,canvas.height);c.save();c.imageSmoothingEnabled=false;
   c.translate((canvas.width-27*scale)/2,(canvas.height-22*scale)/2-5*scale);c.scale(scale,scale);paint(c,{color});c.restore();return true;
  }
- return {paint,drawAvatar,ready:true,landmarks:{left:9,right:18,eyeY:12,headY:5}};
+ return {paint,paintTravel,drawAvatar,ready:true,landmarks:{left:9,right:18,eyeY:12,headY:5}};
 })();

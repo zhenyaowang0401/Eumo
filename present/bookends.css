@@ -1,0 +1,22 @@
+/* The application's own floral backdrop and startup SVG frame the case study. */
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.chapter.bookend{background:#dce6d5;justify-content:center;overflow:hidden;padding-top:40px;padding-bottom:94px}
+.chapter.bookend::before{content:"";position:absolute;inset:0;z-index:-1;background:url('../assets/backgrounds/flower-meadow.png') center/cover no-repeat;opacity:.36;image-rendering:pixelated;pointer-events:none}
+.bookend-center{width:100%;display:flex;align-items:center;justify-content:center;text-align:center}
+svg.cover-mark{width:min(640px,88vw);height:auto;max-height:calc(100svh - 280px);overflow:visible;fill:none;stroke:none;stroke-width:0;shape-rendering:crispEdges}
+.cover.is-introduced .cover-mark{animation:presentation-mark-in 200ms steps(5,end) both}
+.bookend-credit{position:absolute;right:var(--pad);bottom:30px;margin:0;display:flex;align-items:baseline;justify-content:flex-end;gap:18px;flex-wrap:wrap;color:#304b3d;font-size:16px;line-height:1.4}
+.bookend-credit>span{font-size:12px;font-weight:500;letter-spacing:.025em}
+.bookend-credit strong{font-weight:650}
+.thankyou #thankyou-title{font-family:Pixelify,monospace;font-size:clamp(68px,10.5vw,150px);font-weight:700;line-height:1.05;letter-spacing:-.04em;margin:0;color:#354e3c}
+.persona-character img{max-width:300px}
+@keyframes presentation-mark-in{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:650px){
+  .chapter.bookend{padding-bottom:106px}
+  svg.cover-mark{width:100%;max-height:calc(100svh - 270px)}
+  .bookend-credit{right:20px;left:20px;bottom:27px;gap:6px 15px;font-size:13px;text-align:right}
+  .cover .bookend-credit>span{flex-basis:100%;font-size:11px}
+  .thankyou #thankyou-title{font-size:clamp(48px,13vw,84px);white-space:nowrap}
+  .persona-character img{max-width:280px}
+}
+@media(prefers-reduced-motion:reduce){.cover.is-introduced .cover-mark{animation:none}}

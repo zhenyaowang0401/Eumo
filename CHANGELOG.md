@@ -2,6 +2,86 @@
 
 These entries describe implementation milestones. Historical milestone names do not necessarily correspond to a published GitHub Release or a live deployment.
 
+## Eumo 3.6.1 — Separate Shop and Owned wardrobes
+
+- Replaced the mixed All/Owned filter with two clear Shop/Owned views. Shop lists only unowned items; Owned contains equipment actions for items already collected.
+- Category counts follow the active view, All types includes tools, and buying/redemption immediately removes the piece from Shop. Empty and bought-out categories link to the corresponding collection.
+- Updated the heading, selected state and accessible labels together. Verified purchases, material redemption, equipment, saved ownership, tools, mobile Chinese UI and native offline views.
+
+## Eumo 3.6.0 — Material outfit sets and rounder movement sprites
+
+- Added nine material-exclusive wearables: mushroom, spiral fossil and crystal spectacles, scarves, and brooches/pendant. Recipes use 24/28/18 of the matching material and reserve displayed copies; focus drop rates are unchanged.
+- Unified all material wearables, including existing hats, under the amber Relic tier with an exchange label. Existing hat ownership and recipes remain intact.
+- Redrew walking and climbing bodies with broad, round silhouettes, shaded haunches and alternating paws. Every glasses style now has a dedicated one-lens profile and temple; scarves have a fitted rear band.
+- Verified exact material spending, category replacement and reload persistence, single-lens profiles, silhouette clearance along every home route, mobile controls and native offline walking.
+
+## Eumo 3.5.0 — Walk around your home and visit friends
+
+- Added single-click/tap destinations, automatic room-and-ladder routes, mid-walk retargeting, side-facing walk cycles and rear-facing climbing. The ladder now reaches the lower floor, with passages sized for the moving mole.
+- Friend visits show the host and the player's equipped mole together, with a You label. Visitors explore locally without editing the host's home; friend refreshes preserve their current route.
+- Kept petting, furniture dragging, mobile panning, focus timers and reward accounting separate from walking. Reduced motion removes limb/bob animation while retaining navigation.
+- Verified route continuity and room reachability, mouse/touch interaction, native packaged offline movement, and independent visits through the real local friends API and PostgreSQL fixture.
+
+## Eumo 3.4.1 — Fitted hats and living wallpapers
+
+- Redrew the four material hats with compact, centred silhouettes, fitted bands, fabric shading, gemstone facets, and small decorative details. Existing ownership and recipes are retained.
+- Added pixel fireflies/leaves, rainfall, snow, and twinkling stars/meteors to the four rare backgrounds, including friend visits. Effects stay behind furniture and respect reduced motion.
+- Reduced background prices to 60/100/160/240 stars; existing owners receive their price difference once.
+- Dragging a placed item outside the home frame now puts it away without deleting the item or spending materials. The drag preview explains the action; mouse and touch are supported.
+
+## Eumo 3.4.0 — Direct decorating and material collections
+
+- Added mouse/touch furniture dragging with room-boundary validation, move-in-place, keyboard nudging, removal, and saved/shared coordinates. Legacy placements remain valid.
+- Added four tiered pixel mural backgrounds, a television, three material furniture recipes, and four material-exclusive hats.
+- Versioned new-session material drops at 40% per ten-minute checkpoint, independently of 3% golden rolls. Existing inventory, star earnings, and active legacy sessions are preserved; new demos no longer grant materials.
+- Tested drag/move/cancel, mobile touch, save reload, background purchases, shared coordinates, exact material redemption, reserved items, reward distribution, split-session equivalence, and legacy rewards.
+
+## Eumo 3.3.0 — Built-in desktop updates
+
+- Added periodic update discovery, a desktop-only update notice, Help controls, and a native Check for updates menu.
+- Added explicit Windows download and restart/install actions using electron-updater, with saved progress, paused timers, retries, checksum verification, and downgrade prevention.
+- Added architecture-specific Mac feeds with a DMG download fallback while releases remain ad-hoc signed.
+- Published verified, version-pinned update metadata alongside installers, keeping each release a draft until all assets are uploaded.
+- Tested real updater downloads against local fixtures, corrupt-file rejection, downgrade rejection, trusted IPC, UI states, and saving before restart.
+
+## Eumo 3.2.0 — Voice input for chat
+
+- Added microphone controls to the inline and expanded chat composers, with editable transcripts and explicit sending.
+- Shared bounded recording and WAV conversion across browsers and Electron, with permission/error feedback and microphone cleanup on cancellation or navigation.
+- Added a server-only, rate-limited transcription endpoint using the existing AI provider settings or optional voice-specific overrides.
+- Added audio-only native desktop permission handling and the macOS microphone usage description.
+- Tested recording with synthetic microphone input in Chromium and Electron, API validation and permission boundaries, chat regression, and responsive layouts. Live provider recognition quality requires production credentials.
+
+## Eumo 3.1.5 — Countdown alignment
+
+- Raised the countdown by six pixels on desktop layouts at least 801 pixels tall, balancing the whitespace above and below the digits.
+- Kept the duration buttons, surrounding sections, compact windows, and mobile layouts in place.
+
+## Eumo 3.1.4 — More comfortable focus-panel spacing
+
+- Spread spare sidebar height across small, bounded gaps between the timer, statistics, progress, and music sections.
+- Reduced the empty area below the music card while keeping compact windows and mobile layouts unchanged.
+- Verified 13 desktop viewport/DPI combinations in idle, running, and paused states, plus mobile layout checks.
+
+## Eumo 3.1.3 — Consistent music card on web and desktop
+
+- Restored the Music controls above the current-track card and removed viewport rules that hid the card in shorter windows.
+- Kept the card's vinyl animation tied to actual playback and pause state.
+- Adjusted compact desktop spacing so the track card and animation toggle remain visible without overlapping.
+
+## Eumo 3.1.2 — Playback icons and spinning vinyl
+
+- Added familiar repeat-one and sequential-play icons, with localized hover and screen-reader labels.
+- Replaced the main Music label and speaker with a vinyl record, sharing the artwork with the music room.
+- Tied rotation to actual audio playback, retaining the current angle on pause or buffering and honoring reduced-motion settings.
+- Preserved playback order, saved mode, keyboard controls, and responsive layouts across web and desktop builds.
+
+## Eumo 3.1.1 — Downward digging tools
+
+- Corrected the spoon to scoop downward and both drills to point into the ground, using the shared character and shop artwork.
+- Kept downward tool tips clear of floating-window controls at different sizes.
+- Rebuilt standalone web downloads and desktop installers with the corrected artwork.
+
 ## Eumo 3.1.0 — Windows and macOS desktop apps
 
 - Published installers for Windows x64, Mac Apple silicon, and Mac Intel, built and tested through GitHub Actions.

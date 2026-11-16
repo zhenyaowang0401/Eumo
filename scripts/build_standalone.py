@@ -8,7 +8,7 @@ import mimetypes
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ('locale.js', 'world.js', 'journey.js', 'home.js', 'wardrobe.js', 'wardrobe-art.js', 'terrain.js', 'music-catalog.js', 'audio.js', 'treasures.js', 'mine-view.js', 'mole-art.js', 'home-scenery.js', 'pixel-art.js', 'chat.js', 'music.js', 'friends.js', 'focus-icons.js', 'appearance.js', 'floating-mole.js', 'onboarding.js', 'save-transfer.js', 'app.js')
+SCRIPTS = ('presentation.js', 'locale.js', 'world.js', 'journey.js', 'home.js', 'home-editor.js', 'wardrobe.js', 'wardrobe-art.js', 'terrain.js', 'music-catalog.js', 'audio.js', 'treasures.js', 'mine-view.js', 'mole-art.js', 'home-navigation.js', 'home-scenery.js', 'home-walk.js', 'pixel-art.js', 'voice-input.js', 'chat.js', 'music.js', 'friends.js', 'focus-icons.js', 'appearance.js', 'floating-mole.js', 'onboarding.js', 'save-transfer.js', 'desktop-updates.js', 'app.js')
 
 
 def embed_music() -> tuple[str, str]:
@@ -58,14 +58,18 @@ def build(output: Path) -> Path:
         raise ValueError('Expected exactly one woodland.css stylesheet tag')
     css += '\n' + (ROOT / 'woodland.css').read_text(encoding='utf-8')
     page = page.replace(woodland_tag, '')
-    font_path = 'assets/fonts/pixelify-sans.ttf'
-    font_url = f'url("{font_path}")'
-    if css.count(font_url) != 1:
-        raise ValueError('Expected one local Pixelify Sans font source')
-    font_data = base64.b64encode((ROOT / font_path).read_bytes()).decode('ascii')
-    css = css.replace(font_url, f'url("data:font/ttf;base64,{font_data}")')
-    # Preserve the font's redistribution license inside the downloadable file.
-    css = '/*\n' + (ROOT / 'assets/fonts/OFL.txt').read_text(encoding='utf-8') + '\n*/\n' + css
+    for font_path, mime in [('assets/fonts/pixelify-sans.ttf', 'font/ttf'),
+                            ('assets/fonts/silver.woff', 'font/woff'),
+                            ('assets/fonts/silver-complement.woff', 'font/woff')]:
+        font_url = f'url("{font_path}")'
+        if css.count(font_url) != 1:
+            raise ValueError('Expected one local font source: ' + font_path)
+        font_data = base64.b64encode((ROOT / font_path).read_bytes()).decode('ascii')
+        css = css.replace(font_url, f'url("data:{mime};base64,{font_data}")')
+    # Preserve each bundled font's notices in the standalone download.
+    notices = [ROOT / 'assets/fonts/README.md', ROOT / 'assets/fonts/OFL.txt']
+    notices += sorted((ROOT / 'assets/fonts/licenses').glob('*.txt'))
+    css = ''.join('/*\n' + p.read_text(encoding='utf-8').replace('*/', '* /') + '\n*/\n' for p in notices) + css
     page = page.replace(style_tag, '<style>\n' + css + '\n</style>')
     for background_path in ['assets/backgrounds/flower-meadow.png', 'assets/backgrounds/flower-night.png']:
         background_data = base64.b64encode((ROOT / background_path).read_bytes()).decode('ascii')
