@@ -1,4 +1,4 @@
-"""Browser regression checks for Eumo's ten-chapter presentation.
+"""Browser regression checks for Eumo's twelve-chapter presentation.
 
 Runs the repository server on an ephemeral port. Writes screenshots and a JSON
 report outside the app. The game save is never created or changed by this test.
@@ -9,13 +9,14 @@ from pathlib import Path
 import shutil
 import subprocess
 from playwright.sync_api import sync_playwright
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v3-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v5-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
-CHAPTERS = ['overview', 'inspiration', 'research', 'persona', 'landscape',
-            'demo', 'testing', 'roadmap', 'extensions', 'business']
+CHAPTERS = ['cover', 'overview', 'inspiration', 'research', 'persona', 'landscape',
+            'demo', 'testing', 'roadmap', 'extensions', 'business', 'thankyou']
 
 
 def need(condition, message='Assertion failed'):
@@ -50,13 +51,29 @@ try:
         page.goto(url)
         page.evaluate('document.fonts.ready')
         page.wait_for_timeout(150)
-        check('Ten chapters in approved order', lambda: need(
+        check('Twelve chapters in approved order', lambda: need(
             page.locator('.chapter').evaluate_all('els => els.map(e => e.id)') == CHAPTERS))
+
+        check('Default entry opens cover',lambda:(need(page.evaluate('location.hash')=='#cover'),need(page.locator('#chapterNumber').inner_text()=='01'),need(page.locator('#chapterTotal').inner_text()=='12')))
+        check('Chapter index includes all 12 screens',lambda:need(page.locator('#chapterLinks button').count()==12))
+        check('Presentation timing totals 13 minutes',lambda:need(page.locator('.chapter').evaluate_all('els=>els.reduce((sum,e)=>{const [m,s]=e.dataset.time.split(":").map(Number);return sum+m*60+s},0)')==780))
+        check('Chapter dialog timing label',lambda:need('13:00' in page.locator('.dialog-note').inner_text()))
+        for end in ['cover','thankyou']:
+            check(end+' credits',lambda end=end:(need(page.locator('#'+end+' .bookend-credit strong').all_inner_texts()==['Zhenyao Wang','Yun Ye'])))
+            check(end+' floral backdrop',lambda end=end:need(page.locator('#'+end).evaluate('e=>getComputedStyle(e,"::before").backgroundImage.includes("flower-meadow.png")')))
+        check('Cover designer credit',lambda:need(page.locator('#cover .bookend-credit>span').inner_text()=='design by'))
+        check('Closing heading',lambda:need(page.locator('#thankyou-title').inner_text()=='Thank you.'))
+        check('All cover SVG use references resolve',lambda:need(page.locator('.cover-mark use').evaluate_all('els=>els.every(e=>document.getElementById(e.getAttribute("href").slice(1)))')))
+        original=page.evaluate('''async()=>{const source=new DOMParser().parseFromString(await(await fetch('../index.html')).text(),'text/html');const a=source.querySelector('.startup-mark'),b=document.querySelector('.cover-mark');const shape=e=>e?[...e.querySelectorAll('path')].map(p=>[p.getAttribute('d'),p.getAttribute('fill')]):null;return {found:!!a,same:JSON.stringify(shape(a))===JSON.stringify(shape(b))}}''')
+        check('Cover retains original app startup artwork',lambda:need(original['found'] and original['same'],str(original)))
+        check('Reduced motion cover animation disabled',lambda:need(page.locator('.cover-mark').evaluate('e=>getComputedStyle(e).animationName')=='none'))
+        page.wait_for_timeout(2100)
+        check('Reduced motion cover persists beyond startup duration',lambda:(need(page.evaluate('location.hash')=='#cover'),need(page.locator('.cover-mark').is_visible()),need(page.locator('.cover-mark').evaluate('e=>getComputedStyle(e).opacity')=='1')))
 
         check('Body uses local DM Sans at weight 400', lambda: need(page.evaluate('''()=>{const s=getComputedStyle(document.body);return s.fontFamily.includes('DM Sans')&&s.fontWeight==='400'&&document.fonts.check('400 18px "DM Sans"')}''')))
         check('Section heading DM Sans at weight 650', lambda: need(page.locator('#inspiration-title').evaluate('''e=>{const s=getComputedStyle(e);return s.fontFamily.includes('DM Sans')&&s.fontWeight==='650'&&document.fonts.check('650 36px "DM Sans"')}''')))
         check('DM Sans font fetched locally', lambda:need(page.evaluate('performance.getEntriesByType("resource").some(e=>e.name.includes("/present/assets/fonts/dm-sans.ttf"))')))
-        decoded = page.evaluate('''async()=>{const paths=['assets/co-study-pixels.png','assets/digital-pet-illustration.png','assets/competitor-reference-illustrations.png','../docs/images/eumo-friends-live.png'];return await Promise.all(paths.map(async src=>{const i=new Image();i.src=src;try{await i.decode();return {src,width:i.naturalWidth,height:i.naturalHeight,ok:true}}catch{return{src,ok:false}}}))}''')
+        decoded = page.evaluate('''async()=>{const paths=['assets/co-study-pixels.png','assets/digital-pet-illustration.png','assets/competitor-reference-illustrations.png','../docs/images/eumo-friends-live.png','assets/persona-avatar.png'];return await Promise.all(paths.map(async src=>{const i=new Image();i.src=src;try{await i.decode();return {src,width:i.naturalWidth,height:i.naturalHeight,ok:true}}catch{return{src,ok:false}}}))}''')
         REPORT['independent_assets']=decoded
         check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
         check('Reference illustration status visible',lambda:need(page.locator('.reference-caption').all_inner_texts().count('Reference illustration')==2))
@@ -86,6 +103,9 @@ try:
                     storyOverflow:story.scrollWidth>story.clientWidth,
                     footerBottom:document.querySelector('footer').getBoundingClientRect().bottom};
                 }''', chapter)
+                if chapter in ['cover','thankyou']:
+                    bookend=page.evaluate('''id=>{const root=document.getElementById(id),credit=root.querySelector('.bookend-credit').getBoundingClientRect(),main=root.querySelector(id==='cover'?'.cover-mark':'h2').getBoundingClientRect();return {overlap:Math.min(credit.right,main.right)>Math.max(credit.left,main.left)&&Math.min(credit.bottom,main.bottom)>Math.max(credit.top,main.top),creditBottom:credit.bottom,chapterBottom:root.getBoundingClientRect().bottom}}''',chapter)
+                    check(f'Bookend credits clear {width}x{height} {chapter}',lambda data=bookend:need(not data['overlap'] and data['creditBottom']<=data['chapterBottom'],str(data)))
                 REPORT['viewports'].append(bounds)
                 check(f'Layout {width}x{height} {chapter}', lambda b=bounds: (
                     need(not b['horizontal'], str(b['horizontal'])),
@@ -96,21 +116,22 @@ try:
                 if width>=1000:
                     check(f'Fits desktop {width}x{height} {chapter}', lambda b=bounds: need(
                         b['chapterHeight']<=b['storyHeight']+2, str(b)))
-                if width==1366 or (width==390 and chapter in ['overview','extensions','demo','persona']) or bounds['horizontal'] or bounds['bottom']:
+                if width==1366 or (width==390 and chapter in ['cover','overview','extensions','demo','persona','thankyou']) or bounds['horizontal'] or bounds['bottom']:
                     page.screenshot(path=str(OUTPUT/f'{width}x{height}-{chapter}.png'))
 
         (OUTPUT/'initial-layout-report.json').write_text(json.dumps(REPORT,indent=2))
 
         page.set_viewport_size({'width':1366,'height':768})
         page.wait_for_timeout(150)
-        goto('overview')
+        goto('cover')
         page.locator('#story').focus()
         page.keyboard.press('ArrowRight');page.wait_for_timeout(120)
         check('Next chapter keyboard', lambda: need(page.locator('#chapterNumber').inner_text()=='02'))
         page.keyboard.press('End');page.wait_for_timeout(120)
-        check('End jumps to business', lambda: need(page.locator('#chapterNumber').inner_text()=='10'))
+        check('End jumps to thank you', lambda: need(page.locator('#chapterNumber').inner_text()=='12'))
+        check('Final chapter disables next', lambda:need(page.locator('#nextChapter').is_disabled()))
         page.keyboard.press('Home');page.wait_for_timeout(120)
-        check('Home jumps to overview', lambda: need(page.locator('#chapterNumber').inner_text()=='01'))
+        check('Home jumps to cover', lambda: need(page.locator('#chapterNumber').inner_text()=='01'))
         check('First chapter disables previous', lambda: need(page.locator('#prevChapter').is_disabled()))
         page.locator('#nextChapter').click();page.wait_for_timeout(120)
         check('Next button', lambda: need(page.locator('#chapterNumber').inner_text()=='02'))
@@ -127,8 +148,8 @@ try:
         page.keyboard.press('Escape')
         check('Chapter dialog restores focus', lambda: need(page.evaluate('document.activeElement.id')=='contentsButton'))
         page.locator('#contentsButton').click()
-        page.locator('#chapterLinks button').nth(8).click();page.wait_for_timeout(120)
-        check('Chapter index jumps to extensions', lambda: need(page.locator('#chapterNumber').inner_text()=='09'))
+        page.locator('#chapterLinks button').nth(CHAPTERS.index('extensions')).click();page.wait_for_timeout(120)
+        check('Chapter index jumps to extensions', lambda: need(page.locator('#chapterNumber').inner_text()=='10'))
 
         keys=page.locator('[data-detail]').evaluate_all('els=>[...new Set(els.map(e=>e.dataset.detail))]')
         for key in keys:
@@ -154,7 +175,7 @@ try:
         check('Research End tab', lambda: need(page.locator('#research-companion').get_attribute('aria-selected')=='true'))
         page.keyboard.press('Home')
         check('Research Home tab', lambda: need(page.locator('#research-presence').get_attribute('aria-selected')=='true'))
-        check('Tab keys do not navigate chapter', lambda: need(page.locator('#chapterNumber').inner_text()=='03'))
+        check('Tab keys do not navigate chapter', lambda: need(page.locator('#chapterNumber').inner_text()=='04'))
 
         goto('demo')
         for name in ['focus','discover','home','friends','music','review','setup']:
@@ -213,7 +234,7 @@ try:
         goto('extensions');page.locator('#family-keychain').click()
 
         goto('extensions')
-        check('Orange default',lambda:(need(page.locator('#colorName').inner_text()=='Orange'),need(page.locator('[data-color="5"]').get_attribute('aria-pressed')=='true'),need('100% 50%' in page.locator('#keychainSprite').get_attribute('style'))))
+        check('Orange default',lambda:(need(page.locator('#colorName').inner_text()=='Orange'),need(page.locator('[data-color="5"]').get_attribute('aria-pressed')=='true'),need(page.locator('#keychainSprite').get_attribute('data-variant')=='5')))
         sprites=[]
         for i,name in enumerate(['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange']):
             page.locator(f'[data-color="{i}"]').click()
@@ -227,6 +248,28 @@ try:
         check('Six distinct color sprite cells',lambda:need(len(set(map(str,sprites)))==6,str(sprites)))
         check('Two new colors use extra sprite',lambda:need(all('keychains-extra.png' in s[0] for s in sprites[4:])))
         check('Four original colors use original sprite',lambda:need(all('keychains.png' in s[0] for s in sprites[:4])))
+        sources=[]
+        for index in range(6):
+            path=ROOT/'present/assets'/('keychains.png' if index<4 else 'keychains-extra.png')
+            sheet=Image.open(path).convert('RGBA');cell=627 if index<4 else 887
+            col=index%2 if index<4 else index-4;row=index//2 if index<4 else 0
+            alpha=sheet.crop((col*cell,row*cell,(col+1)*cell,(row+1)*cell)).getchannel('A')
+            bounds=alpha.point(lambda a:255 if a>64 else 0).getbbox()
+            sources.append({'sheet':sheet.size,'bounds':(bounds[0]+col*cell,bounds[1]+row*cell,bounds[2]+col*cell,bounds[3]+row*cell)})
+        REPORT['keychain_bounds']=[]
+        for width,height in [(1440,900),(1366,768),(1280,720),(768,1024),(390,844),(320,568)]:
+            page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(160);goto('extensions')
+            for index in range(6):
+                page.locator(f'[data-color="{index}"]').click()
+                style=page.locator('#keychainSprite').evaluate('''e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{w:r.width,h:r.height,size:s.backgroundSize.split(' ').map(parseFloat),pos:s.backgroundPosition.split(' ').map(parseFloat),variant:e.dataset.variant}}''')
+                src=sources[index];bw=style['w']*style['size'][0]/100;bh=style['h']*style['size'][1]/100
+                sx=bw/src['sheet'][0];sy=bh/src['sheet'][1];ox=(style['w']-bw)*style['pos'][0]/100;oy=(style['h']-bh)*style['pos'][1]/100
+                x1,y1,x2,y2=src['bounds'];box={'left':ox+x1*sx,'right':ox+x2*sx,'top':oy+y1*sy,'bottom':oy+y2*sy}
+                box.update({'visibleHeight':box['bottom']-box['top'],'width':width,'height':height,'variant':index,'spriteWidth':style['w'],'spriteHeight':style['h']});REPORT['keychain_bounds'].append(box)
+                check(f'Keychain visible bounds {width}x{height} color {index}',lambda box=box,style=style,index=index,sx=sx,sy=sy:(need(style['variant']==str(index)),need(abs(style['w']-style['h'])<1),need(abs(sx-sy)<.001),need(box['left']>=-1 and box['top']>=-1 and box['right']<=style['w']+1 and box['bottom']<=style['h']+1,str(box)),need(abs(box['visibleHeight']/style['w']-833/887)<.005,str(box)),need(abs((box['left']+box['right'])/2-style['w']/2)<1.5,str(box))))
+            if width in [1366,390]:page.screenshot(path=str(OUTPUT/f'{width}x{height}-normalized-orange.png'))
+        page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160);goto('extensions')
+
         page.locator('#family-keychain').focus();page.keyboard.press('ArrowRight')
         check('Handheld tab and scope',lambda:(need(page.locator('#handheldRender').is_visible()),need(not page.locator('#keychainSprite').is_visible()),need(not page.locator('#colorPicker').is_visible()),need(page.locator('#familyTitle').inner_text()=='Timer + digging.')))
         page.keyboard.press('ArrowLeft')
@@ -241,11 +284,11 @@ try:
         page.locator('#resetDemoClock').click()
         check('Demo clock resets',lambda:(need(page.locator('#demoTimer').inner_text()=='00:00'),need(page.locator('#startDemoClock').get_attribute('aria-pressed')=='false')))
 
-        for old,new in [('thankyou','business'),('beyond','extensions'),('hello','overview'),('loop','demo'),('people','persona'),('iterations','testing'),('next','roadmap')]:
+        for old,new in [('thankyou','thankyou'),('beyond','extensions'),('hello','overview'),('loop','demo'),('people','persona'),('iterations','testing'),('next','roadmap')]:
             page.evaluate('hash=>location.hash=hash',old);page.wait_for_timeout(150)
             check('Legacy hash '+old,lambda new=new:need(page.evaluate('location.hash')=='#'+new))
         page.goto(url+'#extensions');page.evaluate('document.fonts.ready');page.wait_for_timeout(180)
-        check('Direct deep link',lambda:need(page.locator('#chapterNumber').inner_text()=='09'))
+        check('Direct deep link',lambda:need(page.locator('#chapterNumber').inner_text()=='10'))
         page.locator('#fullscreenButton').click();page.wait_for_timeout(150)
         check('Enter fullscreen',lambda:need(page.evaluate('!!document.fullscreenElement')))
         page.locator('#fullscreenButton').click();page.wait_for_timeout(150)
@@ -270,9 +313,15 @@ try:
         np.locator('#family-handheld').click();np.locator('#family-keychain').click();np.wait_for_timeout(750)
         check('Rapid family switches settle',lambda:(need(np.locator('#keychainSprite').is_visible()),need(not np.locator('#handheldRender').is_visible()),need(np.locator('[data-pixel-wipe]').count()==0)))
         np.locator('#nextChapter').click();np.wait_for_timeout(1000)
-        check('Smooth navigation settles',lambda:need(np.locator('#chapterNumber').inner_text()=='10'))
-        np.goto(url);np.evaluate('document.fonts.ready');np.wait_for_timeout(850)
+        check('Smooth navigation settles',lambda:need(np.locator('#chapterNumber').inner_text()=='11'))
+        np.goto(url+'#overview');np.evaluate('document.fonts.ready');np.wait_for_timeout(850)
         check('Hero entrance restores visibility',lambda:need(np.locator('[data-enter-item]').evaluate_all('els=>els.every(e=>getComputedStyle(e).opacity==="1"&&getComputedStyle(e).visibility!=="hidden")')))
+        np.goto(url);np.evaluate('document.fonts.ready');np.wait_for_timeout(2100)
+        check('Animated cover persists after two seconds',lambda:(need(np.evaluate('location.hash')=='#cover'),need(np.locator('.cover-mark').is_visible()),need(np.locator('.cover-mark').evaluate('e=>getComputedStyle(e).opacity')=='1')))
+        np.locator('#nextChapter').click();np.wait_for_timeout(1000)
+        check('Opening advances to product overview',lambda:need(np.evaluate('location.hash')=='#overview'))
+        np.locator('#story').focus();np.keyboard.press('End');np.wait_for_timeout(1000)
+        check('End reaches real thank-you chapter',lambda:(need(np.evaluate('location.hash')=='#thankyou'),need(np.locator('#chapterNumber').inner_text()=='12'),need(np.locator('#nextChapter').is_disabled())))
         check('Normal motion no JS errors',lambda:need(not normal_errors,str(normal_errors)))
         normal.close();context.close();browser.close()
 finally:

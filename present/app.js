@@ -7,7 +7,7 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const contents = $('#contentsDialog');
   const details = $('#detailDialog');
-  const aliases = {hello:'overview',why:'inspiration',people:'persona',loop:'demo',iterations:'testing',validation:'testing',beyond:'extensions',next:'roadmap',thankyou:'business'};
+  const aliases = {hello:'overview',why:'inspiration',people:'persona',loop:'demo',iterations:'testing',validation:'testing',beyond:'extensions',next:'roadmap'};
   let current = 0;
   let settlingTarget = null;
   let settleTimer = 0;
@@ -17,6 +17,7 @@
 
   function paintNavigation(index, writeHash = true) {
     current = index;
+    if (chapters[index].id === 'cover') chapters[index].classList.add('is-introduced');
     $('#chapterNumber').textContent = String(index + 1).padStart(2, '0');
     $('#chapterTotal').textContent = String(chapters.length).padStart(2, '0');
     $('#chapterLabel').textContent = chapters[index].dataset.title;
@@ -35,12 +36,15 @@
   }
   function goTo(index, instant = false) {
     index = Math.max(0, Math.min(chapters.length - 1, index));
+    // Distant chapter jumps should not scroll through the whole presentation.
+    // Native long-distance scrolling can outlast the adjacent-slide settle time.
+    const immediate = instant || reduced.matches || Math.abs(index - current) > 1;
     settlingTarget = index;
     paintNavigation(index);
     const top = chapters[index].getBoundingClientRect().top - story.getBoundingClientRect().top + story.scrollTop;
-    story.scrollTo({top, behavior: instant || reduced.matches ? 'instant' : 'smooth'});
+    story.scrollTo({top, behavior: immediate ? 'instant' : 'smooth'});
     clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {settlingTarget = null;paintNavigation(chapterAtScroll());}, instant || reduced.matches ? 40 : 850);
+    settleTimer = setTimeout(() => {settlingTarget = null;paintNavigation(chapterAtScroll());}, immediate ? 40 : 850);
   }
   let scrollPending = false;
   story.addEventListener('scroll', () => {
@@ -102,7 +106,7 @@
   window.addEventListener('resize', () => {clearTimeout(resizeTimer);resizeTimer = setTimeout(() => goTo(current,true),120);});
   document.fonts.ready.then(() => {
     ready = true;hashNavigate();
-    if (current === 0 && window.EumoMotion) EumoMotion.enterOverview($('#overview'));
+    if (chapters[current].id === 'overview' && window.EumoMotion) EumoMotion.enterOverview($('#overview'));
   });
 
   function tabs(selector, panel, select) {
@@ -176,6 +180,7 @@
     const keychain = family === 'keychain';
     $('#keychainSprite').hidden = !keychain;$('#handheldRender').hidden=keychain;
     $('#keychainSprite').classList.toggle('extra',color>=4);
+    $('#keychainSprite').dataset.variant=String(color);
     $('#keychainSprite').style.backgroundPosition=color<4 ? `${color%2*100}% ${Math.floor(color/2)*100}%` : `${(color-4)*100}% 50%`;
     $('#keychainSprite').setAttribute('aria-label',`${colors[color]} Eumo keychain visualization`);
   }

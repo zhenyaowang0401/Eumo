@@ -1,13 +1,14 @@
-# Eumo product case study — v3
+# Eumo product case study — v5
 
-An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels. V3 uses local DM Sans for readable text and a clear weight/size hierarchy, retaining the pixel Eumo mark and artwork. Terracotta emphasizes the key idea in each title.
+An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels. The page uses local DM Sans for readable text and a clear weight/size hierarchy, retaining the pixel Eumo mark and artwork. Terracotta emphasizes the key idea in each title.
 
-**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html#overview)
+**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html#cover)
 
 ## Presentation structure
 
 | Chapter | Time |
 | --- | --- |
+| Opening | 0:10 |
 | Product Overview | 0:30 |
 | Project Inspiration | 0:40 |
 | Research Insights | 0:50 |
@@ -18,17 +19,19 @@ An English presentation for a product-management final. The main screens use sho
 | Next Steps | 0:45 |
 | Product Extensions | 0:50 |
 | Business Model | 0:35 |
+| Thank You | 0:10 |
 
-Total: **12:40**, including a six-minute live demonstration. No speaker script is included yet.
+Total: **13:00**, including a six-minute live demonstration. No speaker script is included yet.
 
-- Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. Older deep links such as `#thankyou`, `#beyond` and `#hello` still work.
+- Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. The new `#cover` and `#thankyou` links target the opening and closing pages. Older aliases such as `#beyond` and `#hello` still work.
 - Research themes, four feedback examples, three development workstreams and walkthrough steps change manually. Arrow keys move within tab groups; vertical groups use up/down.
 - Inspiration connects illustrated pixel co-study with traditional electronic pets. Competitive Landscape gives each approach a visual reference and one short mechanism statement.
-- Persona pairs an illustrated human student, Alex (20), with study context, goals, pain points, product needs and a concise job to be done. The profile remains explicitly a proto-persona to validate.
+- Persona pairs an illustrated head-and-shoulders avatar of Alex (20), with study context, goals, pain points, product needs and a concise job to be done. The profile remains explicitly a proto-persona to validate.
 - Feedback pairs reported themes with implemented responses: apparel, desktop access, friend visibility and simpler interactions. Reward timing and idle farming remain an open design question.
 - Next Steps covers **UI optimization**, **reward-mechanism refinement** and **physical-product optimization**, each with an evaluation criterion.
 - Details open in native dialogs. Escape closes a dialog and restores trigger focus.
-- **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The handheld has its own tab.
+- The opening reuses the application’s actual EUMO startup SVG and short pixel entrance over its floral background. It stays visible as a presentation cover. The final Thank You page uses the same background; both carry Zhenyao Wang and Yun Ye’s names.
+- **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The handheld has its own tab. Six keychain images have their visible bounds normalized to the Blue & Orange reference, preserving each source’s aspect ratio.
 - Open Eumo launches the actual application in another tab. The optional demo clock tracks presentation time only.
 - A brief entrance plays once; physical-product swaps use a GSAP pixel transition adapted from React Bits. Reduced motion uses immediate changes. There are no timed carousels, autoplay music or scroll-triggered reveals.
 

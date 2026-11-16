@@ -1,4 +1,16 @@
-# Presentation v3 verification
+# Presentation verification
+
+## V5: opening, closing, avatar and consistent keychain sizes
+
+Checked November 16, 2026. The presentation now has **12 pages / 13:00**, including a new opening and Thank You page. The opening retains the application's original 16 SVG paths and stepped mark entrance, stays visible afterward, and uses the existing floral background. Both end pages carry the requested names. Persona uses a head-and-shoulders avatar. All six keychain colorways are normalized to the Blue & Orange reference's visible height without altering source images or their proportions.
+
+The full browser suite ran **363 checks: 362 passed initially**. The one failure exposed a real navigation race: a long animated End jump outlasted the settling timer, briefly showing the preceding chapter number. Distant chapter jumps now move directly to their destination; neighboring pages retain smooth scrolling.
+
+**17/17 targeted navigation checks passed** after that correction. Desktop and mobile End, Home and distant chapter-menu jumps remained on the intended destination during one second of sampling; adjacent Next / Previous still moved smoothly and settled correctly. All 363 regression cases have passing results across the full run and targeted verification, not a second full-suite run.
+
+Coverage includes all 12 pages at six viewport sizes, designer credits, the persistent cover in both motion modes, original SVG references, avatar decoding, six keychains' visible bounds and equal heights, dialogs, navigation, swap races and existing interactions. No JavaScript errors or failed local resources were recorded. Reports and screenshots: `/workspace/scratch/presentation-v5-qa/`, with separate six-color visual review in `/workspace/scratch/keychain-size-qa/`.
+
+## V3 regression history
 
 Checked November 16, 2026 in local Chromium. V3 is a ten-chapter PM case study with a six-minute live demo. It adds a readable text hierarchy, co-study and electronic-pet illustrations, competitor reference images, explicit feedback responses and three refinement workstreams. The checks use isolated browser contexts and illustrative screenshots; no owner's save is accessed or changed.
 

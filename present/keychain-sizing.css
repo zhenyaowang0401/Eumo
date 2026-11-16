@@ -1,0 +1,41 @@
+/*
+ * Match every colorway to the Blue & Orange reference's visible height.
+ * The source sheets have different transparent margins. Their visible bounds
+ * (alpha > 64) are normalized in CSS without changing the source images.
+ * Keep the sprite element square and inside its stage; scale only its image.
+ * The position override replaces the legacy inline 0/100% cell selection.
+ */
+#keychainSprite[data-variant] {
+  background-size: var(--keychain-sheet-size);
+  background-position: var(--keychain-sheet-position) !important;
+}
+
+#keychainSprite[data-variant="0"] {
+  --keychain-sheet-size: 229.116201% 229.116201%;
+  --keychain-sheet-position: 6.132870% 2.486818%;
+}
+
+#keychainSprite[data-variant="1"] {
+  --keychain-sheet-size: 229.116201% 229.116201%;
+  --keychain-sheet-position: 91.320006% 2.486818%;
+}
+
+#keychainSprite[data-variant="2"] {
+  --keychain-sheet-size: 229.562821% 229.562821%;
+  --keychain-sheet-position: 6.269517% 90.937340%;
+}
+
+#keychainSprite[data-variant="3"] {
+  --keychain-sheet-size: 230.461306% 230.461306%;
+  --keychain-sheet-position: 91.556674% 90.954720%;
+}
+
+#keychainSprite[data-variant="4"] {
+  --keychain-sheet-size: 200% 100%;
+  --keychain-sheet-position: 1.972943% 50%;
+}
+
+#keychainSprite[data-variant="5"] {
+  --keychain-sheet-size: 200.965018% 100.482509%;
+  --keychain-sheet-position: 97.685337% 96.730552%;
+}
