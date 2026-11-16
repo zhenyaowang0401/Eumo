@@ -1,0 +1,120 @@
+{
+  "updated": "2026-11-16",
+  "status": "verification-pending",
+  "notice": "Research references are queued for verification. External article and competitor pages could not be retrieved in the research environment. No numerical effectiveness or market claims are presented.",
+  "feedbackNotice": "Early qualitative feedback supplied by the founder; participant count and study protocol were not provided.",
+  "themes": [
+    {
+      "id": "sound",
+      "label": "Sound",
+      "headline": "Build your own focus atmosphere.",
+      "summary": "Music, nature sounds or silence: the right atmosphere is a choice.",
+      "design": "Optional audio, volume control and no automatic playback.",
+      "question": "Which sound, if any, helps this person with this task?",
+      "limit": "Preference is not measured performance. White-noise findings in specific populations cannot establish a benefit for everyone, and nature recordings are not laboratory white noise.",
+      "sourceIds": ["kampfe2011", "lesiuk2005"]
+    },
+    {
+      "id": "accountability",
+      "label": "Accountability",
+      "headline": "A quiet sense of studying alongside someone.",
+      "summary": "Shared presence can be a prompt to begin; it should remain optional.",
+      "design": "Friend presence and focus-time summaries without requiring a video call.",
+      "question": "Does visibility help people start and return, or add comparison pressure?",
+      "limit": "Goal monitoring, live co-study and social presence are different mechanisms. None proves that elapsed time was spent learning.",
+      "sourceIds": ["harkin2016"]
+    },
+    {
+      "id": "motivation",
+      "label": "Motivation",
+      "headline": "Turn time into something personal.",
+      "summary": "Discoveries become a wardrobe and a home worth returning to.",
+      "design": "Cosmetic choice, visible progress and the freedom to pause.",
+      "question": "Are people moving their chosen task forward, or collecting with an idle timer?",
+      "limit": "Rewards do not universally outperform punishment. Pomodoro itself is a time-structuring technique. Current Eumo sessions retain earned rewards when ended early.",
+      "sourceIds": ["deci1999", "cerasoli2014"]
+    },
+    {
+      "id": "companionship",
+      "label": "Companionship",
+      "headline": "A companion that works and rests with you.",
+      "summary": "The mole is always part of the experience. AI conversation is optional.",
+      "design": "A persistent character plus optional planning and conversation support.",
+      "question": "Does companionship make starting easier and remain helpful after the novelty fades?",
+      "limit": "Loneliness, demand for AI, sustained benefit and willingness to pay are separate questions. Eumo does not claim to replace human relationships or provide treatment.",
+      "sourceIds": ["ta2020", "ai-companions2024"]
+    }
+  ],
+  "sources": [
+    {
+      "id": "kampfe2011",
+      "citation": "Kämpfe, J., Sedlmeier, P., & Renkewitz, F. (2011). The impact of background music on adult listeners: A meta-analysis. Psychology of Music.",
+      "url": "https://scholar.google.com/scholar?q=The+impact+of+background+music+on+adult+listeners+A+meta-analysis",
+      "status": "Reading pending",
+      "scope": "Background music in adult listeners; task and outcome differences must be checked."
+    },
+    {
+      "id": "lesiuk2005",
+      "citation": "Lesiuk, T. (2005). The effect of music on work performance. Psychology of Music.",
+      "url": "https://scholar.google.com/scholar?q=Lesiuk+The+effect+of+music+on+work+performance+2005",
+      "status": "Reading pending",
+      "scope": "Work context; population, design and limits require verification before generalization."
+    },
+    {
+      "id": "harkin2016",
+      "citation": "Harkin, B., et al. (2016). Does monitoring goal progress promote goal attainment? A meta-analysis of the experimental evidence. Psychological Bulletin.",
+      "url": "https://doi.org/10.1037/bul0000025",
+      "status": "Reading pending",
+      "scope": "Goal progress monitoring; not direct evidence for Eumo, Discord co-study or body doubling."
+    },
+    {
+      "id": "deci1999",
+      "citation": "Deci, E. L., Koestner, R., & Ryan, R. M. (1999). A meta-analytic review of experiments examining the effects of extrinsic rewards on intrinsic motivation. Psychological Bulletin.",
+      "url": "https://doi.org/10.1037/0033-2909.125.6.627",
+      "status": "Reading pending",
+      "scope": "Extrinsic rewards and intrinsic motivation; reward type and contingency need careful interpretation."
+    },
+    {
+      "id": "cerasoli2014",
+      "citation": "Cerasoli, C. P., Nicklin, J. M., & Ford, M. T. (2014). Intrinsic motivation and extrinsic incentives jointly predict performance: A 40-year meta-analysis. Psychological Bulletin.",
+      "url": "https://doi.org/10.1037/a0035661",
+      "status": "Reading pending",
+      "scope": "Intrinsic motivation, incentives and performance; not a blanket endorsement of game rewards."
+    },
+    {
+      "id": "ta2020",
+      "citation": "Ta, V., et al. (2020). User Experiences of Social Support From Companion Chatbots in Everyday Contexts: Thematic Analysis. Journal of Medical Internet Research.",
+      "url": "https://www.jmir.org/2020/3/e16235/",
+      "status": "Reading pending",
+      "scope": "Qualitative reported experiences; not population prevalence, causal efficacy or purchase demand."
+    },
+    {
+      "id": "ai-companions2024",
+      "citation": "AI Companions Reduce Loneliness (2024 research lead; bibliographic details and current version pending verification).",
+      "url": "https://arxiv.org/abs/2407.19096",
+      "status": "Reading pending",
+      "scope": "Check participants, duration, comparators and outcomes; do not extrapolate to learning or long-term well-being."
+    }
+  ],
+  "competitors": [
+    {"name": "Pomodoro", "lens": "Time structure", "url": "https://www.pomodorotechnique.com/", "status": "Official page verification pending"},
+    {"name": "Forest", "lens": "Visible focus progress", "url": "https://www.forestapp.cc/", "status": "Official page verification pending"},
+    {"name": "Focusmate", "lens": "Human accountability", "url": "https://www.focusmate.com/", "status": "Official page verification pending"},
+    {"name": "Finch", "lens": "Companion-led self-care", "url": "https://finchcare.com/", "status": "Official page verification pending"},
+    {"name": "Spirit City: Lofi Sessions", "lens": "Desktop atmosphere", "url": "https://store.steampowered.com/app/2113850/Spirit_City_Lofi_Sessions/", "status": "Official page verification pending"},
+    {"name": "Tamagotchi", "lens": "A portable character relationship", "url": "https://tamagotchi-official.com/", "status": "Official page verification pending"}
+  ],
+  "market": {
+    "beachhead": "Young-adult students and early-career desk workers who prefer a gentle focus ritual.",
+    "status": "Proposed initial segment; market size and willingness to pay remain unvalidated.",
+    "children": "A separate future discovery workstream, not the initial target.",
+    "business": "Subscriptions, cosmetic skins and physical extensions are revenue hypotheses."
+  },
+  "validation": [
+    "Observe first-session and decorating tasks; record actual participants and methods.",
+    "Measure time to start and task success, with no invented baseline or improvement percentage.",
+    "Follow repeat use, chosen-task progress, collecting distraction and comparison pressure.",
+    "Test sound and friend visibility as optional conditions.",
+    "Evaluate willingness to pay after use; distinguish stated interest from purchases."
+  ]
+}

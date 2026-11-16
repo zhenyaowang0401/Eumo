@@ -4,6 +4,8 @@ A retro pixel focus companion. Study or work while your mole digs, collect treas
 
 **[Play on the web →](https://1111-phi-ten.vercel.app/#focus)** · **[Download for Windows or Mac →](https://github.com/zhenyaowang0401/1111/releases/latest)**
 
+**[Explore the Eumo product story →](https://1111-phi-ten.vercel.app/present/index.html)** — an interactive presentation of the problem, design decisions, product ecosystem and next validation steps.
+
 ![Create your Eumo companion](docs/images/setup.png)
 
 ## Downloads
