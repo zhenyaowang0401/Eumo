@@ -1,6 +1,6 @@
-# Eumo product case study — v2
+# Eumo product case study — v3
 
-An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels.
+An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels. V3 uses local DM Sans for readable text and a clear weight/size hierarchy, retaining the pixel Eumo mark and artwork. Terracotta emphasizes the key idea in each title.
 
 **Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html#overview)
 
@@ -15,14 +15,17 @@ An English presentation for a product-management final. The main screens use sho
 | Competitive Landscape | 0:50 |
 | Product Walkthrough | 6:00 |
 | User Testing & Iteration | 1:00 |
-| Product Roadmap | 0:45 |
+| Next Steps | 0:45 |
 | Product Extensions | 0:50 |
 | Business Model | 0:35 |
 
 Total: **12:40**, including a six-minute live demonstration. No speaker script is included yet.
 
 - Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. Older deep links such as `#thankyou`, `#beyond` and `#hello` still work.
-- Research themes, feedback examples, roadmap stages and walkthrough steps change manually. Arrow keys move within tab groups; vertical groups use up/down.
+- Research themes, four feedback examples, three development workstreams and walkthrough steps change manually. Arrow keys move within tab groups; vertical groups use up/down.
+- Inspiration connects illustrated pixel co-study with traditional electronic pets. Competitive Landscape gives each approach a visual reference and one short mechanism statement.
+- Feedback pairs reported themes with implemented responses: apparel, desktop access, friend visibility and simpler interactions. Reward timing and idle farming remain an open design question.
+- Next Steps covers **UI optimization**, **reward-mechanism refinement** and **physical-product optimization**, each with an evaluation criterion.
 - Details open in native dialogs. Escape closes a dialog and restores trigger focus.
 - **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The handheld has its own tab.
 - Open Eumo launches the actual application in another tab. The optional demo clock tracks presentation time only.
@@ -46,7 +49,9 @@ Run browser checks with `python3 tests/presentation_site_check.py`. See [QA note
 
 ## Assets and isolation
 
-Product screenshots come from the current code in an isolated illustrative context, not participant data. Mole PNGs and material SVGs come from the game's renderer. Shared fonts and floral backgrounds are under `../assets/`.
+Most product screenshots come from the current code in an isolated illustrative context, not participant data. The Friends feedback example reuses an earlier development capture with sample profiles; its caption explicitly states this. Mole PNGs and material SVGs come from the game's renderer. Shared fonts and floral backgrounds are under `../assets/`; the new licensed DM Sans font is in `assets/fonts/`.
+
+The co-study scene and Tamagotchi-style device are generated illustrations. Competitor visuals are reference illustrations recreated from the presenter's supplied images, not original app screenshots; this is disclosed in the page and detail notes. See [asset provenance](THIRD_PARTY.md).
 
 `handheld.png`, `keychains.png` and `keychains-extra.png` are generated visualizations based on the supplied physical references. Original photographs are not bundled. The handheld screen is blank, avoiding an invented device interface.
 

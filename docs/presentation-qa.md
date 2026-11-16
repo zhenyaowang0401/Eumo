@@ -1,6 +1,6 @@
-# Presentation v2 verification
+# Presentation v3 verification
 
-Checked November 16, 2026 in local Chromium. V2 is a ten-chapter PM case study with a six-minute live demo. The checks use isolated browser contexts and illustrative screenshots; no owner's save is accessed or changed.
+Checked November 16, 2026 in local Chromium. V3 is a ten-chapter PM case study with a six-minute live demo. It adds a readable text hierarchy, co-study and electronic-pet illustrations, competitor reference images, explicit feedback responses and three refinement workstreams. The checks use isolated browser contexts and illustrative screenshots; no owner's save is accessed or changed.
 
 ## Entry and coverage
 
@@ -8,7 +8,9 @@ Run `python3 tests/presentation_site_check.py` from the repository root. It star
 
 - Ten chapters at 1440×900, 1366×768, 1280×720, 768×1024, 390×844 and 320×568.
 - Horizontal overflow, chapter boundaries, desktop fit and footer reachability. Mobile chapters may scroll vertically.
-- Research, walkthrough, feedback, roadmap and physical-product tabs; active state, keyboard navigation and panel labels.
+- Research, walkthrough, four feedback examples, three development workstreams and physical-product tabs; active state, keyboard navigation and panel labels.
+- Local DM Sans loading, body weight 400 and section-heading weight 650; independent decoding of the three new illustration files and the earlier Friends development capture.
+- Both inspiration sources, visible competitor illustration labels, and every feedback/workstream tab state at all six viewport sizes.
 - All seven walkthrough selections at three desktop sizes, including longer cues and differently sized screenshots.
 - Orange default; six distinct labeled color selections; square sprite proportions; keychain/handheld selection.
 - Latest rapid color selection wins, overlay cleanup, reduced-motion immediate updates, one-time entrance and library-failure fallbacks.
@@ -19,20 +21,21 @@ Run `python3 tests/presentation_site_check.py` from the repository root. It star
 
 ## Results
 
-The final full suite ran **200 checks: 194 passed**. Six cases were the same short-desktop walkthrough issue: longer selected-step cues wrapped and increased the section height by 21.9px at 1280×720. The cues were shortened to clearer key points, and all seven selections were rechecked at both affected/adjacent laptop sizes: **14/14 targeted checks passed**.
+The V3 full suite ran **279 checks: 262 passed initially**. Seventeen cases detected small vertical overflows: the walkthrough at 1440×900, Competitive Landscape at 1280×720, and Feedback states at 1366×768 / 1280×720. Image-height caps were reduced for the affected layouts. Feedback text was also enlarged for readability.
 
-All **200 regression cases therefore have passing results across the full run and targeted verification**. This is not claimed as a second full 200-check run.
+The affected states and adjacent sizes were rechecked: **48/48 targeted checks passed**. This covered all seven walkthrough steps, Competitive Landscape and all four feedback selections at three desktop sizes, plus all four feedback selections at tablet and both phone sizes.
 
-Earlier corrections included the SVG namespace needed for externally loaded mushroom/material icons, small-phone Persona overflow, and screenshot/render sizing that previously hid the bottom controls. Those fixes were included in the full run.
+All **279 regression cases therefore have passing results across the full run and targeted verification**. This is not claimed as a second full 279-check run. No JavaScript errors or failed local resources were recorded; all new images decoded and the local font loaded.
 
-| Final targeted fit | Chapter height | Available area |
+| Targeted desktop fit | Result | Available area |
 | --- | --- | --- |
-| Every demo step, 1280×720 | 614px | 614px |
-| Every demo step, 1366×768 | 662px | 662px |
+| Demo, comparison and all feedback states, 1440×900 | Fits | 786px |
+| Demo, comparison and all feedback states, 1366×768 | Fits | 662px |
+| Demo, comparison and all feedback states, 1280×720 | Fits | 614px |
 
-No JavaScript errors or failed local resources were recorded. All images decoded. Visual review covered the initial setup screen, actual Focus/Home/Wardrobe/Music screens, orange and blue/orange colorways, the handheld, and mobile layout. Contrast was improved for small status text on sage panels and for selected handheld-tab hover.
+Visual review covered the revised overview, pixel-student call, electronic-pet reference, competitor references, feedback table and open question, refinement workstreams, orange keychain, and short-desktop demo/feedback states. Competitor images are explicitly reference illustrations. The Friends example is explicitly an earlier development capture with sample profiles.
 
-Reports and screenshots remain outside the deliverable at `/workspace/scratch/presentation-v2-qa/` and `/workspace/scratch/present-v2-visual/`.
+Reports and screenshots remain outside the deliverable at `/workspace/scratch/presentation-v3-qa/` (`report.json`, `targeted-recheck.json`, `fixed-*` captures) and `/workspace/scratch/presentation-v3-visual/`. The previous V2 results remain in their original scratch directories.
 
 ## Requested skill checks
 

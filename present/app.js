@@ -148,19 +148,25 @@
     $('#demoShot').src=`assets/screenshots/${shot}.png`;$('#demoShot').alt=`Eumo ${shot} screen`;
     $('#demoScreenLabel').textContent='EUMO / '+label;$('#demoCue').textContent=cue;$('#demoStepTime').textContent=time;
   }));
-  const feedback = {outfits:['wardrobe','WARDROBE'],desktop:['focus','FOCUS'],friction:['home','HOME']};
+  const feedback = {
+    outfits:['assets/screenshots/wardrobe.png','WARDROBE','Discoveries can be exchanged for apparel.'],
+    desktop:['assets/screenshots/focus.png','FOCUS','The same focus workflow is available on web and desktop.'],
+    social:['../docs/images/eumo-friends-live.png','FRIENDS / DEVELOPMENT CAPTURE','Earlier development UI · sample profiles, not live users.'],
+    friction:['assets/screenshots/home.png','HOME','Shorter labels, Shop / Owned and direct furniture placement.']
+  };
   tabs('[data-feedback]','#feedbackPanel', button => stageChange($('#feedbackPanel'), () => {
-    const [shot,label] = feedback[button.dataset.feedback];
-    $('#feedbackShot').src=`assets/screenshots/${shot}.png`;$('#feedbackShot').alt=`Current Eumo ${shot} interface`;$('#feedbackLabel').textContent='EUMO / '+label;
+    const [shot,label,caption] = feedback[button.dataset.feedback];
+    $('#feedbackShot').src=shot;$('#feedbackShot').alt=`Eumo ${label.toLowerCase()} interface; illustrative development context`;
+    $('#feedbackLabel').textContent='EUMO / '+label;$('#feedbackCaption').textContent=caption;
   }));
   const road = {
-    now:['CURRENT SCOPE','Working product + prototypes',['Web & desktop experience','NFC link opening','Handheld timer & digging']],
-    next:['NEXT VALIDATION','Usability & reward-loop clarity',['Observed task sessions','Task progress vs. collecting','Short repeat-use diary']],
-    december:['DEVELOPMENT PRIORITIES','Reliability, access & retention',['Cross-platform reliability','Accessibility & recovery','Voluntary return after novelty']]
+    ui:['SUCCESS CRITERION','Complete core tasks without help.','Observe task success, errors and recovery.'],
+    rewards:['SUCCESS CRITERION','Make rewards support the chosen task.','Evaluate balance, reward timing and idle-timer behavior.'],
+    physical:['SUCCESS CRITERION','Make the physical products easier to use.','Test NFC access, controls, comfort, charging and battery life.']
   };
   tabs('[data-roadmap]','#roadmapPanel', button => stageChange($('#roadmapPanel'), () => {
-    const [status,title,items] = road[button.dataset.roadmap];$('#roadmapStatus').textContent=status;$('#roadmapTitle').textContent=title;
-    $('#roadmapItems').replaceChildren(...items.map(text => {const li=document.createElement('li');li.textContent=text;return li;}));
+    const [status,title,measure] = road[button.dataset.roadmap];
+    $('#roadmapStatus').textContent=status;$('#roadmapTitle').textContent=title;$('#roadmapMeasure').textContent=measure;
   }));
 
   const colors=['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange'];

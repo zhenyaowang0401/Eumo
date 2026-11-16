@@ -19,3 +19,18 @@ Downloaded November 16, 2026 to `/workspace/skill-repos/` without installing exe
 The user's explicit requirements take priority over generic commercial-site defaults: keep Eumo's existing pixel/floral palette, ten academic chapters, fewer words and truthful labels such as Proto-persona, Planned and Visualization. Random palette/layout selection, a marketing funnel and the kit's 60–80-word target were not applied. The page uses working custom interactions rather than dummy kit annotations.
 
 Unmodified Taste copy lint: no failures; warnings for numbered steps and eyebrow labels. The full gate could not launch Chromium in this environment and returned **ERROR**, so it was stopped without waivers or retries. Independent Playwright Chromium checks use the environment's supported launch configuration; results are recorded separately in [QA notes](../docs/presentation-qa.md).
+
+## V3 typography
+
+`assets/fonts/dm-sans.ttf` is the variable DM Sans font downloaded from the [Google Fonts repository](https://github.com/google/fonts/tree/main/ofl/dmsans) on November 16, 2026. The unmodified SIL Open Font License is bundled as `assets/fonts/dm-sans-OFL.txt`. It is served locally; the presentation makes no Google Fonts API request. Pixelify remains the existing Eumo brand font.
+
+## V3 illustration provenance
+
+| Asset | Origin and use |
+| --- | --- |
+| `assets/co-study-pixels.png` | Generated pixel illustration of four human students in a co-study call. It illustrates the founder's inspiration; it is not a participant photograph, a Zoom screenshot or study evidence. |
+| `assets/digital-pet-illustration.png` | Generated Tamagotchi-style electronic-pet illustration. It is not an authentic Bandai product photograph or a representation of the Eumo handheld. |
+| `assets/competitor-reference-illustrations.png` | Generated reference sheet based on the presenter's supplied Cat On Chair promotional picture and red tomato timer icon. The original inline image bytes were unavailable in the workspace. These are visibly labeled **Reference illustration**, not represented as original or verified current app screenshots. |
+| `../docs/images/eumo-friends-live.png` | Existing repository development capture containing sample friend profiles. The Feedback panel identifies it as an earlier development UI with sample profiles, not live users. |
+
+The supplied references identify the comparison; they do not establish efficacy, current feature parity or permission to imply endorsement. The three new illustrations were produced with the image-generation tool. Existing keychain/handheld visualizations remain unchanged.

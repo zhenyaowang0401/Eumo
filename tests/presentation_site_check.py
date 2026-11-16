@@ -11,7 +11,7 @@ import subprocess
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v2-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v3-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
 CHAPTERS = ['overview', 'inspiration', 'research', 'persona', 'landscape',
@@ -53,6 +53,15 @@ try:
         check('Ten chapters in approved order', lambda: need(
             page.locator('.chapter').evaluate_all('els => els.map(e => e.id)') == CHAPTERS))
 
+        check('Body uses local DM Sans at weight 400', lambda: need(page.evaluate('''()=>{const s=getComputedStyle(document.body);return s.fontFamily.includes('DM Sans')&&s.fontWeight==='400'&&document.fonts.check('400 18px "DM Sans"')}''')))
+        check('Section heading DM Sans at weight 650', lambda: need(page.locator('#inspiration-title').evaluate('''e=>{const s=getComputedStyle(e);return s.fontFamily.includes('DM Sans')&&s.fontWeight==='650'&&document.fonts.check('650 36px "DM Sans"')}''')))
+        check('DM Sans font fetched locally', lambda:need(page.evaluate('performance.getEntriesByType("resource").some(e=>e.name.includes("/present/assets/fonts/dm-sans.ttf"))')))
+        decoded = page.evaluate('''async()=>{const paths=['assets/co-study-pixels.png','assets/digital-pet-illustration.png','assets/competitor-reference-illustrations.png','../docs/images/eumo-friends-live.png'];return await Promise.all(paths.map(async src=>{const i=new Image();i.src=src;try{await i.decode();return {src,width:i.naturalWidth,height:i.naturalHeight,ok:true}}catch{return{src,ok:false}}}))}''')
+        REPORT['independent_assets']=decoded
+        check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
+        check('Reference illustration status visible',lambda:need(page.locator('.reference-caption').all_inner_texts().count('Reference illustration')==2))
+        check('Inspiration has both co-study and digital pet', lambda:need(page.locator('.inspiration-source').count()==2))
+
         def goto(chapter):
             page.evaluate('(id) => { location.hash = id; }', chapter)
             page.wait_for_timeout(120)
@@ -89,6 +98,8 @@ try:
                         b['chapterHeight']<=b['storyHeight']+2, str(b)))
                 if width==1366 or (width==390 and chapter in ['overview','extensions','demo','persona']) or bounds['horizontal'] or bounds['bottom']:
                     page.screenshot(path=str(OUTPUT/f'{width}x{height}-{chapter}.png'))
+
+        (OUTPUT/'initial-layout-report.json').write_text(json.dumps(REPORT,indent=2))
 
         page.set_viewport_size({'width':1366,'height':768})
         page.wait_for_timeout(150)
@@ -170,18 +181,36 @@ try:
         page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160)
 
         goto('testing')
-        for name, expected in [('desktop','focus.png'),('friction','home.png'),('outfits','wardrobe.png')]:
+        for name, expected in [('desktop','focus.png'),('social','eumo-friends-live.png'),('friction','home.png'),('outfits','wardrobe.png')]:
             page.locator(f'[data-feedback="{name}"]').click()
+            page.wait_for_function('document.querySelector("#feedbackShot").complete && document.querySelector("#feedbackShot").naturalWidth>0')
             check('Feedback '+name,lambda expected=expected:need(expected in page.locator('#feedbackShot').get_attribute('src')))
         page.locator('#feedback-outfits').focus();page.keyboard.press('ArrowDown')
         check('Feedback keyboard',lambda:need(page.locator('#feedback-desktop').get_attribute('aria-selected')=='true'))
 
-        goto('roadmap');page.locator('#road-now').focus();page.keyboard.press('ArrowRight')
-        check('Roadmap horizontal keyboard',lambda:(need(page.locator('#road-next').get_attribute('aria-selected')=='true'),need('Usability' in page.locator('#roadmapTitle').inner_text())))
+        goto('roadmap');page.locator('#road-ui').focus();page.keyboard.press('ArrowRight')
+        check('Roadmap horizontal keyboard',lambda:(need(page.locator('#road-rewards').get_attribute('aria-selected')=='true'),need('rewards support' in page.locator('#roadmapTitle').inner_text())))
         page.keyboard.press('ArrowRight')
-        check('Roadmap December',lambda:need('Reliability' in page.locator('#roadmapTitle').inner_text()))
+        check('Physical roadmap workstream',lambda:need('physical products' in page.locator('#roadmapTitle').inner_text()))
         page.keyboard.press('ArrowRight')
-        check('Roadmap wraps keyboard',lambda:need(page.locator('#road-now').get_attribute('aria-selected')=='true'))
+        check('Roadmap wraps keyboard',lambda:need(page.locator('#road-ui').get_attribute('aria-selected')=='true'))
+
+        # Revised content panels must fit after every selection, not only defaults.
+        states=[('research','[data-research]'),('testing','[data-feedback]'),('roadmap','[data-roadmap]'),('extensions','[data-family]')]
+        for width,height in [(1440,900),(1366,768),(1280,720),(768,1024),(390,844),(320,568)]:
+            page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(160)
+            for chapter,selector in states:
+                goto(chapter)
+                for button in page.locator(selector).all():
+                    button.click()
+                    page.wait_for_function('Array.from(document.querySelectorAll("img")).every(e=>e.complete&&e.naturalWidth>0)')
+                    data=page.evaluate('''id=>{const c=document.getElementById(id),cr=c.getBoundingClientRect(),story=document.querySelector('#story');const horizontal=[...c.querySelectorAll('*')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>({id:e.id,tag:e.tagName,text:e.textContent.slice(0,50),left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right})).filter(e=>e.left < -2||e.right>innerWidth+2);return {chapter:cr.height,available:story.clientHeight,horizontal,storyOverflow:story.scrollWidth>story.clientWidth}}''',chapter)
+                    title=button.get_attribute('id')
+                    check(f'Selected panel layout {width}x{height} {title}',lambda data=data,width=width:(need(not data['horizontal'],str(data)),need(not data['storyOverflow'],str(data)),need(width<1000 or data['chapter']<=data['available']+2,str(data))))
+                    if data['horizontal'] or data['storyOverflow'] or width>=1000 and data['chapter']>data['available']+2:
+                        page.screenshot(path=str(OUTPUT/f'{width}x{height}-{title}-overflow.png'))
+        page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160)
+        goto('extensions');page.locator('#family-keychain').click()
 
         goto('extensions')
         check('Orange default',lambda:(need(page.locator('#colorName').inner_text()=='Orange'),need(page.locator('[data-color="5"]').get_attribute('aria-pressed')=='true'),need('100% 50%' in page.locator('#keychainSprite').get_attribute('style'))))
