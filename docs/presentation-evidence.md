@@ -1,109 +1,130 @@
-# Eumo presentation: evidence, claims and research gaps
+# Eumo presentation: evidence and source ledger
 
-Prepared 16 November 2026. This document supports an English PM presentation. It is **not a completed literature review**.
+Updated **17 November 2026**. Selected sources were retrieved and checked for the revised English presentation. This replaces the 16 November access-blocked reading list for the sources below; it is a focused evidence review, not a systematic literature review or an evaluation of Eumo.
 
-## Verification status
+## Main-stage findings
 
-The research environment returned `Tunnel connection failed: 403 Forbidden` for every attempted external source below. Source titles are research candidates identified from prior knowledge; abstracts, methods, results, current versions and competitor pages were **not retrieved in this session**. The presentation must not display numerical research results or label these sources “verified.” No article is treated as proof of Eumo's effectiveness. Links are supplied for follow-up reading, not as a claim that the linked contents have been checked.
-
-The project owner supplied qualitative feedback about rewards, clothing, desktop use, social features and UI. Sample size, recruitment, ages and study protocol were not supplied. Those observations may be called **early qualitative feedback**; they are not a market survey or controlled experiment. The local `Eumo_User_Test_Plan` is a plan, not completed test results.
-
-## Presentation-ready claims
-
-| Theme | Safe main-stage wording | Product decision | What remains to test |
+| Slide / theme | Verified finding | Study context | Product connection |
 | --- | --- | --- | --- |
-| Sound | **Build your own focus atmosphere.** | Music and nature sounds are optional; silence is a valid choice. | Which sound, if any, helps each person and task? Preference and measured task performance are different outcomes. |
-| Accountability | **A quiet sense of studying alongside someone.** | Friends can choose to share presence and focus-time summaries. | Does visibility help people start and return, or create pressure and comparison? |
-| Motivation | **Turn time into something personal.** | Earn discoveries, outfits and a home while retaining the ability to pause. | Are users progressing on chosen tasks, or leaving the timer running to collect? |
-| Companionship | **A companion that works and rests with you.** | A persistent mole and optional AI conversation provide different kinds of companionship. | Does this make starting feel easier? How do comfort, sustained use and willingness to pay differ? |
+| Overview | **30%** reported distraction from using digital devices in most or every mathematics lesson. | PISA 2022; 15-year-old students; OECD average; self-report. | Frame distraction as a concrete study-context problem. |
+| Community & accountability | **138 randomized studies**, N = 19,951; progress monitoring improved goal attainment, **d = 0.40**. Effects were larger when progress was reported or made public. | Harkin et al., 2016; goal-monitoring interventions across contexts. | Optional friend visibility and study records. |
+| AI learning support | **More than twice the median learning gains** with a purpose-built AI tutor versus in-class active learning. | Kestin et al., 2025; 194 undergraduate physics students; two-lesson counterbalanced randomized trial. | Explore structured questions, task breakdown and feedback in AI chat. |
+| AI companionship | Users described companionship and emotional support. | Ta et al., 2020; 1,854 Replika reviews plus a separate qualitative study of 66 users. | Optional conversation and a persistent character. |
+| Rewards & motivation | **Hedges’ g = 0.36** for motivational outcomes. | Sailer & Homner, 2020; 16 studies, 2,246 participants; learning gamification. | Make effort visible through discoveries and personalization. |
 
-These are product intentions and hypotheses, not quantified scientific claims.
+These findings concern other interventions. They do not establish Eumo’s effectiveness. The target **learners aged 8–35** is the project’s requested product direction; the research populations do not validate benefits across that entire range.
 
-## Candidate literature and the boundaries of each claim
+## 1. Digital distraction: OECD
 
-### 1. Background audio
+**Citation:** OECD (2023), *PISA 2022 Results (Volume II): Learning During – and From – Disruption*. DOI [10.1787/a97db61c-en](https://doi.org/10.1787/a97db61c-en).
 
-- **Kämpfe, J., Sedlmeier, P., & Renkewitz, F. (2011).** *The impact of background music on adult listeners: A meta-analysis.* Psychology of Music. [Title search](https://scholar.google.com/scholar?q=The+impact+of+background+music+on+adult+listeners+A+meta-analysis).
-- **Lesiuk, T. (2005).** *The effect of music on work performance.* Psychology of Music. [Title search](https://scholar.google.com/scholar?q=Lesiuk+The+effect+of+music+on+work+performance+2005).
-- **Additional population-specific lead:** *Do White Noise and Pink Noise Help With Attention in Attention-Deficit/Hyperactivity Disorder? A Systematic Review and Meta-Analysis* (2024; exact bibliographic details require checking). [PubMed search](https://pubmed.ncbi.nlm.nih.gov/?term=white+noise+pink+noise+attention+2024+meta+analysis).
+**Verified official sources:**
 
-**Verification:** pending. Do not quote sample counts, effect sizes or study outcomes before reading the sources.
+- [Publication](https://www.oecd.org/en/publications/pisa-2022-results-volume-ii_a97db61c-en.html)
+- [Executive summary](https://www.oecd.org/en/publications/pisa-2022-results-volume-ii_a97db61c-en/full-report/component-5.html)
+- [Official PDF](https://www.oecd.org/content/dam/oecd/en/publications/reports/2023/12/pisa-2022-results-volume-ii_222a5ef6/a97db61c-en.pdf)
 
-**Questions for reading:** What tasks and populations were included? Was the outcome subjective mood, speed, accuracy or sustained attention? Was audio chosen by the participant? Do lyrics or task difficulty alter results? ADHD-specific findings cannot be generalized to all young adults or used to claim treatment. Nature recordings in Eumo are not interchangeable with laboratory white or pink noise.
+> Some 30% of students, on average across OECD countries, reported that, in most or every mathematics lesson, they get distracted using digital devices; 25% of students reported that they get distracted by other students using these devices in class.
 
-**Eumo implication:** offer choice and volume control; avoid “scientifically proven to improve focus.” A future within-person test can compare silence, preferred instrumental music and nature sounds on the same chosen task, without presenting preference as performance.
+PISA assesses 15-year-olds. Keep the age group, OECD average and mathematics-lesson context visible beside the headline number. The result is self-reported distraction, not a causal experiment, a clinical diagnosis or a prevalence estimate across all Eumo users.
 
-### 2. Goal monitoring and peer study
+**Local extracts:** `oecd_5_retry.clean`, `oecd_volume.clean`, `oecd-pisa2022.pdf`, `oecd-pisa2022.txt`.
 
-- **Harkin, B., et al. (2016).** *Does monitoring goal progress promote goal attainment? A meta-analysis of the experimental evidence.* Psychological Bulletin. [DOI](https://doi.org/10.1037/bul0000025).
-- **Supplementary theoretical distinction:** Bond, C. F., & Titus, L. J. (1983). *Social facilitation: A meta-analysis of 241 studies.* Psychological Bulletin. [Title search](https://scholar.google.com/scholar?q=Bond+Titus+Social+facilitation+A+meta-analysis+of+241+studies).
+## 2. Social accountability: Harkin et al.
 
-**Verification:** pending. Harkin's methods/results and public-reporting moderators have not been checked here.
+**Citation:** Harkin, B., Webb, T. L., Chang, B. P. I., Prestwich, A., Conner, M., Kellar, I., Benn, Y., & Sheeran, P. (2016). *Does monitoring goal progress promote goal attainment? A meta-analysis of the experimental evidence.* Psychological Bulletin, 142(2), 198–229. DOI [10.1037/bul0000025](https://doi.org/10.1037/bul0000025).
 
-**Boundaries:** monitoring progress is not identical to being observed. General social facilitation does not establish that Discord, Zoom or “body doubling” improves learning. A video co-study room, a scheduled accountability partner and Eumo's asynchronous friend status are different interventions. Session time is not task completion.
+**Verified:** the primary-publication abstract indexed in [Europe PMC](https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&resultType=core&query=EXT_ID:26479070%20AND%20SRC:MED), PMID [26479070](https://pubmed.ncbi.nlm.nih.gov/26479070/), with [Crossref metadata](https://api.crossref.org/works/10.1037/bul0000025). This verification used the abstract, not the full article.
 
-**Eumo implication:** optional friend presence and time summaries, with private solo use remaining complete. Validate whether this improves starting or returning without increasing comparison pressure. Describe Discord/Zoom as **familiar co-study formats**, not as scientifically established benchmarks.
+- 138 studies randomly allocated participants to a goal-progress-monitoring intervention or control; total N = 19,951.
+- Goal attainment: d+ = 0.40, 95% CI [0.32, 0.48].
+- Moderator analyses found larger effects when outcomes were reported or made public and when information was physically recorded.
 
-### 3. Rewards and autonomous motivation
+Public reporting is a moderator of goal monitoring, not a stand-alone randomized test of online friends, Zoom co-study or body doubling. Use the study to motivate visible progress and accountability, not to promise that community alone causes the reported effect. **d = 0.40 does not mean 40% improvement.**
 
-- **Deci, E. L., Koestner, R., & Ryan, R. M. (1999).** *A meta-analytic review of experiments examining the effects of extrinsic rewards on intrinsic motivation.* Psychological Bulletin. [DOI](https://doi.org/10.1037/0033-2909.125.6.627).
-- **Cerasoli, C. P., Nicklin, J. M., & Ford, M. T. (2014).** *Intrinsic motivation and extrinsic incentives jointly predict performance: A 40-year meta-analysis.* Psychological Bulletin. [DOI](https://doi.org/10.1037/a0035661).
+**Local extracts:** `harkin-epmc.json`, `harkin_crossref.txt`. The unrelated `harkin_white.clean` result is not evidence and was not used.
 
-**Verification:** pending. Do not quote pooled effects or claim a universal comparison between rewards and punishment.
+## 3. AI learning: Kestin et al.
 
-**Boundaries:** reward type, expectation, contingency and task quality/quantity matter. A preference for cosmetics is not evidence of sustained learning. Pomodoro is a time-structuring technique; it is not inherently punitive. Some implementations introduce loss or blocking, but this must be checked at product/mode level.
+**Citation:** Kestin, G., Miller, K., Klales, A., Milbourne, T., & Ponti, G. (2025). *AI tutoring outperforms in-class active learning: an RCT introducing a novel research-based design in an authentic educational setting.* Scientific Reports, 15, 17458. [Publisher full text](https://www.nature.com/articles/s41598-025-97652-6); DOI [10.1038/s41598-025-97652-6](https://doi.org/10.1038/s41598-025-97652-6).
 
-**Eumo implication:** position the experience as gentle and customizable. Let users pause and rest. Track whether they return to a self-chosen task, not just time spent in the wardrobe. A timer cannot verify attention.
+The randomized, counterbalanced two-week study involved **194 Harvard undergraduate physics students**. A tailored tutor used established instructional practices; the comparator was in-class active learning. Students switched conditions for a second lesson.
 
-**Current mechanism, verified separately in code:** active timer time accrues earnings; ending early retains recorded time and rewards. Completion-only rewards are **not** the current implementation. Any stricter completion gate or reward-free evaluation build must be labeled a proposal, not an existing anti-cheat guarantee.
+The paper reports that median gains relative to the pre-test baseline were **over double** in the AI condition. Post-test score medians were 4.5 and 3.5. The 142 AI and 174 classroom post-test observations cover two lessons; they are not additional unique participants.
 
-### 4. AI companionship and demand
+This supports investigating structured educational assistance. It does not establish the same benefit from generic chat, Eumo, every subject or the full 8–35 target. Median AI time was 49 minutes against an assumed 60-minute classroom learning period: **do not claim “half the time.”**
 
-- **Ta, V., et al. (2020).** *User Experiences of Social Support From Companion Chatbots in Everyday Contexts: Thematic Analysis.* Journal of Medical Internet Research. [Article](https://www.jmir.org/2020/3/e16235/).
-- **AI Companions Reduce Loneliness** (2024 arXiv research lead; authors, version and publication status require verification). [arXiv record](https://arxiv.org/abs/2407.19096).
+**Local extracts:** `kestin.html`, `kestin.txt`.
 
-**Verification:** pending. No outcomes, prevalence numbers or market-size figures have been extracted.
+## 4. AI companionship: Ta et al.
 
-**Boundaries:** qualitative reports cannot establish population prevalence or causal improvement. A short-term loneliness outcome does not prove sustained well-being, better studying, retention or willingness to pay. Teen survey data cannot estimate demand among adult students and young workers. A visual game companion is also different from conversational AI.
+**Citation:** Ta, V., Griffith, C., Boatfield, C., Wang, X., Civitello, M., Bader, H., DeCero, E., & Loggarakis, A. (2020). *User Experiences of Social Support From Companion Chatbots in Everyday Contexts: Thematic Analysis.* Journal of Medical Internet Research, 22(3), e16235. [Publisher full text](https://www.jmir.org/2020/3/e16235/); DOI [10.2196/16235](https://doi.org/10.2196/16235).
 
-**Eumo implication:** AI is optional support for planning or conversation. The core focus loop works without chat. Avoid medical claims and promises of replacing human relationships. Validate adult users' actual choices and recurring use, including users who do not want AI.
+Study 1 analyzed **1,854 public Replika reviews**; Study 2 analyzed open-ended responses from **66 Replika users**. Thematic analysis identified companionship and emotional, informational and appraisal support.
 
-## Competitor framework
+The two datasets must remain distinct. They do not represent 1,920 interviewed participants. These self-selected reported experiences establish neither an efficacy percentage nor population demand, academic improvement or durable emotional benefit.
 
-Current official feature/price verification is **blocked**. The following are comparison lenses to verify, not audited current feature tables.
+**Local extracts:** `ta.html`, `ta.txt`.
 
-| Reference | Comparison lens | Question for Eumo | Official reference |
-| --- | --- | --- | --- |
-| Pomodoro technique | Time structure | Does a user need a fixed cycle or flexible focus duration? | [Pomodoro Technique](https://www.pomodorotechnique.com/) |
-| Forest | A visible object that grows with focus | How should users retain a sense of progress when interrupted? | [Forest](https://www.forestapp.cc/) |
-| Focusmate | Human accountability | What is gained and lost with live appointments versus optional presence? | [Focusmate](https://www.focusmate.com/) |
-| Finch | Companion-led self-care and rewards | Can a gentle relationship encourage return without adding another obligation? | [Finch](https://finchcare.com/) |
-| Spirit City: Lofi Sessions | Desktop atmosphere and collectible companion world | How can Eumo stay playful while requiring little attention during work? | [Steam](https://store.steampowered.com/app/2113850/Spirit_City_Lofi_Sessions/) |
-| Tamagotchi | Attachment to a small persistent physical character | What makes carrying the character meaningful beyond launching a link? | [Tamagotchi](https://tamagotchi-official.com/) |
+## 5. Gamification and motivation: Sailer & Homner
 
-Do not say these competitors “failed,” assign unsupported prices/downloads, or call Eumo the only desktop focus companion.
+**Citation:** Sailer, M., & Homner, L. (2020). *The Gamification of Learning: a Meta-analysis.* Educational Psychology Review, 32, 77–112. [Publisher full text](https://link.springer.com/article/10.1007/s10648-019-09498-w); DOI [10.1007/s10648-019-09498-w](https://doi.org/10.1007/s10648-019-09498-w). First online in 2019; journal issue year 2020.
 
-## Market and validation plan
+| Outcome | Hedges’ g | 95% CI | Studies | Participants |
+| --- | --- | --- | --- | --- |
+| Cognitive learning | 0.49 | [0.30, 0.69] | 19 | 1,686 |
+| Motivational | **0.36** | **[0.18, 0.54]** | **16** | **2,246** |
+| Behavioral learning | 0.25 | [0.04, 0.46] | 9 | 951 |
 
-**Initial segment:** young-adult students and early-career desk workers who already spend long periods at a computer and prefer a gentle focus ritual. This is a proposed beachhead, not a measured market share. Children require a separate discovery and privacy/safety workstream.
+The presentation uses the motivational result. **g = 0.36 is a standardized effect size, not a 36% improvement.** Gamification combines elements; this does not isolate collectible rewards, prove rewards are always better than punishment or make addiction a product objective. Motivational and behavioral effects were less stable in a subset of more rigorous studies.
 
-**Demand signals supplied by the owner:** users expressed interest in outfits/rewards; some preferred computer use because leaving a phone running felt inconvenient or battery-intensive; social visibility and simpler interactions were requested. These are qualitative signals without a known denominator. No measured battery advantage is claimed.
+**Local extracts:** `sailer.html`, `sailer.txt`.
 
-**Next research:** recruit from the initial segment, document actual participant count and ages, observe first-session and decorating tasks, then run a repeat-use pilot. Capture chosen task, time-to-start, interruptions, self-reported task progress, return behavior, perceived pressure and distraction from collecting. Test sound and friend visibility as optional conditions. Ask about subscription/cosmetic value after use; stated interest is not purchasing evidence. A pilot sample is exploratory, not population-representative.
+## Additional problem framing
 
-**Business:** subscriptions, cosmetics and physical products are revenue hypotheses. Report no fabricated TAM, conversion or revenue. Estimate a bottom-up reachable market only after identifying actual channels and testing activation, return use and willingness to pay.
+Steel, P. (2007), *The nature of procrastination: a meta-analytic and theoretical review of quintessential self-regulatory failure*, Psychological Bulletin, 133(1), 65–94. DOI [10.1037/0033-2909.133.1.65](https://doi.org/10.1037/0033-2909.133.1.65); primary abstract retrieved through [Europe PMC](https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&resultType=core&query=EXT_ID:17201571%20AND%20SRC:MED), PMID 17201571.
 
-## Access log
+The review covers 691 correlations and identifies task aversiveness, task delay, self-efficacy, impulsiveness and related self-regulation factors among consistent predictors. This supports framing the problem beyond simply studying alone. No frequently repeated student-procrastination prevalence figure is used because it was not verified in the retrieved abstract.
 
-Attempt date: 16 November 2026. All returned proxy tunnel 403, before article/page content was obtained:
+**Local extracts:** `steel-epmc.json`, `steel_crossref.txt`.
 
-- PubMed search and NCBI PMC / E-utilities
-- Europe PMC search
-- Crossref Works API
-- DOI resolver for Harkin et al.
-- arXiv abstract and export API
-- JMIR article
-- Publisher link for background music (candidate URL)
-- Forest, Focusmate, Finch, Moonloop, Steam and Pomodoro official pages
+## Competitor descriptions checked
 
-Tool discovery found no independent web-search or browser connector. Do not remove this limitation unless later verification is actually completed.
+| Reference | Official description | Comparison boundary |
+| --- | --- | --- |
+| [Pomodoro technique](https://www.pomodorotechnique.com/) | Work/break structure, planning and reflection; the site calls it a gentler way to work with time. | The technique itself is not a punishment system. |
+| [Forest](https://www.forestapp.cc/) | During strict sessions, leaving the app or using blocked apps may cause the tree to wither. | A documented product-specific penalty; Forest also offers group focus, so not all timer apps lack peers. |
+| [Cat On Chair](https://apps.apple.com/us/app/cat-on-chair-pomodoro-timer/id6746562271) | Both Pomodoro and count-up timers, cat companionship, gifts, rewards, room decoration, app blocking and iCloud synchronization. Failed sessions may produce trash. | No live human peer-presence feature is listed. Absence from a listing is not proof of absence everywhere. |
+
+The Cat On Chair publisher description was retrieved through [Apple’s public software API](https://itunes.apple.com/search?term=cat%20on%20chair&entity=software&limit=5), exact track ID **6746562271**. Describing it as “only a cat” or “no rewards” would be incorrect.
+
+Eumo’s comparison statement is **AI chat + friends online + rewards**. This describes a feature combination, not unique market ownership or a measured superiority claim. The displayed competitor images remain reference illustrations based on presenter-supplied images.
+
+**Local extracts:** `pomodoro.clean`, `forest.clean`, `cat_search.txt`.
+
+## Feedback, persona and current product status
+
+The project owner supplied qualitative feedback about clothing/rewards, computer use, friend visibility and simpler UI. Participant count, recruitment, ages and a formal protocol were not supplied. These are feedback themes rather than controlled outcome data. In particular, no measured battery advantage is claimed.
+
+**Alex, 20:** illustrative profile informed by project feedback, not an interviewed participant.
+
+**Current reward rule:** active Study / Work time earns progress. Pause and Break do not. Ending early preserves earned rewards. Timer activity cannot verify attention; a completion-only gate is not the current implementation.
+
+**Canele:** four-digit cloud pairing and device-to-web settled-progress import are deployed, with explicit device confirmation. Updated firmware and a live physical pairing / synchronization test remain to be completed on the connected computer. This is not general account-based synchronization of independent browser saves.
+
+## Commercial direction and next work
+
+Next priorities are app UI, enclosure design, device UI, and commercial preparation: pricing tests, paid offerings and app-store submissions. No arbitrary release date or store approval is implied.
+
+The proposed model retains a free core and considers optional subscriptions, digital collections and physical-product sales. Study communities, storefronts and direct sales are candidate acquisition channels. AI usage, hosting, original artwork, production, delivery and support are cost drivers. Pricing, conversion, margins and market size remain to be established.
+
+## Retrieval record
+
+The source files and two concise research reports are retained outside the distributable repository at:
+
+`/workspace/scratch/presentation-v6-research/`
+
+- `social.md`: source URLs, exact quotes and scope for OECD, Harkin, Steel and competitors.
+- `ai-rewards.md`: source URLs, exact results and scope for Kestin, Ta and Sailer.
+
+Verification date: **17 November 2026**. Publisher full text was available for Kestin, Ta and Sailer; the OECD executive summary/report and official competitor descriptions were available. Harkin and Steel used indexed primary-publication abstracts plus metadata. Other earlier reading candidates, including background-music claims, are not used as numerical evidence in this revision. Full source files remain research artifacts rather than bundled copyrighted article copies.

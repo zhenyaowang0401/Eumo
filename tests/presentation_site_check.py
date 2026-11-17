@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v5-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v6-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
 CHAPTERS = ['cover', 'overview', 'inspiration', 'research', 'persona', 'landscape',
@@ -76,7 +76,31 @@ try:
         decoded = page.evaluate('''async()=>{const paths=['assets/co-study-pixels.png','assets/digital-pet-illustration.png','assets/competitor-reference-illustrations.png','../docs/images/eumo-friends-live.png','assets/persona-avatar.png'];return await Promise.all(paths.map(async src=>{const i=new Image();i.src=src;try{await i.decode();return {src,width:i.naturalWidth,height:i.naturalHeight,ok:true}}catch{return{src,ok:false}}}))}''')
         REPORT['independent_assets']=decoded
         check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
-        check('Reference illustration status visible',lambda:need(page.locator('.reference-caption').all_inner_texts().count('Reference illustration')==2))
+        check('MADE project masthead', lambda: need(page.locator('.masthead-label').inner_text()=='MADE PROJECT'))
+        check('Overview has concrete audience and cited context', lambda: (
+            need('8–35' in page.locator('.product-facts').inner_text()),
+            need(page.locator('#overview .hero-frame').count()==0),
+            need('30' in page.locator('.overview-stat>strong').inner_text()),
+            need('oecd.org' in page.locator('.overview-stat>a').get_attribute('href')),
+            need('15-year-olds' in page.locator('.overview-stat>a').inner_text())))
+        check('Persona identity stays concise', lambda: (
+            need(page.locator('.persona-profile h2').inner_text()=='Alex, 20'),
+            need(page.locator('.persona-profile img').count()==1),
+            need(page.locator('.persona-profile .status,.profile-context,.persona-job').count()==0),
+            need('Proto-persona' not in page.locator('#persona').inner_text())))
+        check('Competitors show functions and distinct limitations', lambda: (
+            need(page.locator('.comparison-v6 article').count()==3),
+            need(page.locator('.competitor-limit').count()==2),
+            need('AI chat' in page.locator('.competitor-edge').inner_text()),
+            need(page.locator('.competitor-limit').first.evaluate('e=>getComputedStyle(e).fontFamily.includes("Georgia")')),
+            need(page.locator('.reference-caption').count()==0)))
+        check('Removed feedback and roadmap banners', lambda: need(page.locator('.open-question,.feedback-method,.workstream-detail,.roadmap-scope').count()==0))
+        check('Roadmap has four concrete priorities', lambda: need(page.locator('.next-grid h3').all_inner_texts()==['App UI','Enclosure design','Device interface','Commercial launch']))
+        check('Business model exposes commercial structure', lambda: (
+            need(page.locator('.revenue-grid article').count()==3),
+            need(page.locator('.business-operations h4').all_inner_texts()==['Acquisition','Distribution','Cost structure']),
+            need(page.locator('#business img,#business .closing').count()==0),
+            need('flower-meadow.png' in page.locator('#business').evaluate('e=>getComputedStyle(e,"::before").backgroundImage'))))
         check('Inspiration has both co-study and digital pet', lambda:need(page.locator('.inspiration-source').count()==2))
 
         def goto(chapter):
@@ -101,7 +125,9 @@ try:
                     bottom:els.filter(e=>e.getBoundingClientRect().bottom>cr.bottom+2).map(data),
                     documentOverflow:document.documentElement.scrollWidth>innerWidth,
                     storyOverflow:story.scrollWidth>story.clientWidth,
-                    footerBottom:document.querySelector('footer').getBoundingClientRect().bottom};
+                    footerBottom:document.querySelector('footer').getBoundingClientRect().bottom,
+                    chromeClipped:['header','.wordmark','.masthead nav','footer'].filter(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return r.top < -1 || r.bottom > innerHeight+1}),
+                    windowScrollY:window.scrollY};
                 }''', chapter)
                 if chapter in ['cover','thankyou']:
                     bookend=page.evaluate('''id=>{const root=document.getElementById(id),credit=root.querySelector('.bookend-credit').getBoundingClientRect(),main=root.querySelector(id==='cover'?'.cover-mark':'h2').getBoundingClientRect();return {overlap:Math.min(credit.right,main.right)>Math.max(credit.left,main.left)&&Math.min(credit.bottom,main.bottom)>Math.max(credit.top,main.top),creditBottom:credit.bottom,chapterBottom:root.getBoundingClientRect().bottom}}''',chapter)
@@ -112,11 +138,13 @@ try:
                     need(not b['bottom'], str(b['bottom'])),
                     need(not b['documentOverflow'], 'Document horizontally overflows'),
                     need(not b['storyOverflow'], 'Story horizontally overflows'),
-                    need(b['footerBottom']<=height+1, 'Footer outside viewport')))
+                    need(b['footerBottom']<=height+1, 'Footer outside viewport'),
+                    need(not b['chromeClipped'], 'Clipped presentation chrome: '+str(b['chromeClipped'])),
+                    need(abs(b['windowScrollY'])<1, 'Outer page scrolled')))
                 if width>=1000:
                     check(f'Fits desktop {width}x{height} {chapter}', lambda b=bounds: need(
                         b['chapterHeight']<=b['storyHeight']+2, str(b)))
-                if width==1366 or (width==390 and chapter in ['cover','overview','extensions','demo','persona','thankyou']) or bounds['horizontal'] or bounds['bottom']:
+                if width==1366 or (width==390) or bounds['horizontal'] or bounds['bottom']:
                     page.screenshot(path=str(OUTPUT/f'{width}x{height}-{chapter}.png'))
 
         (OUTPUT/'initial-layout-report.json').write_text(json.dumps(REPORT,indent=2))
@@ -163,19 +191,28 @@ try:
             page.keyboard.press('Escape')
             check('Detail focus restores '+key, lambda button=button: need(button.evaluate('e=>document.activeElement===e')))
         page.locator('#sourcesButton').click()
-        check('Research notes disclose status', lambda: need('pending' in page.locator('#detailBody').inner_text().lower()))
+        check('Research notes contain cited sources', lambda: need(all(name in page.locator('#detailBody').inner_text() for name in ['Harkin','Kestin','Ta','Sailer'])))
         page.keyboard.press('Escape')
 
         goto('research');page.locator('#research-presence').focus();page.keyboard.press('ArrowDown')
         check('Vertical research keyboard tab', lambda: (
-            need(page.locator('#research-motivation').get_attribute('aria-selected')=='true'),
-            need('personalize' in page.locator('#researchResponse').inner_text()),
-            need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-motivation')))
+            need(page.locator('#research-learning').get_attribute('aria-selected')=='true'),
+            need(page.locator('#researchMetric').inner_text()=='>2×'),
+            need('nature.com' in page.locator('#researchSource').get_attribute('href')),
+            need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-learning')))
         page.keyboard.press('End')
-        check('Research End tab', lambda: need(page.locator('#research-companion').get_attribute('aria-selected')=='true'))
+        check('Research End tab', lambda: need(page.locator('#research-motivation').get_attribute('aria-selected')=='true'))
         page.keyboard.press('Home')
         check('Research Home tab', lambda: need(page.locator('#research-presence').get_attribute('aria-selected')=='true'))
         check('Tab keys do not navigate chapter', lambda: need(page.locator('#chapterNumber').inner_text()=='04'))
+        for name, metric, source in [('presence','138','doi.org'),('learning','>2×','nature.com'),('companion','66','jmir.org'),('motivation','g = 0.36','springer.com')]:
+            page.locator(f'[data-research="{name}"]').click()
+            check('Research evidence '+name, lambda name=name,metric=metric,source=source: (
+                need(page.locator('#researchMetric').inner_text()==metric),
+                need(source in page.locator('#researchSource').get_attribute('href')),
+                need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-'+name),
+                need(bool(page.locator('#researchFinding').inner_text())),
+                need(bool(page.locator('#researchApplication').inner_text()))))
 
         goto('demo')
         for name in ['focus','discover','home','friends','music','review','setup']:
@@ -209,15 +246,8 @@ try:
         page.locator('#feedback-outfits').focus();page.keyboard.press('ArrowDown')
         check('Feedback keyboard',lambda:need(page.locator('#feedback-desktop').get_attribute('aria-selected')=='true'))
 
-        goto('roadmap');page.locator('#road-ui').focus();page.keyboard.press('ArrowRight')
-        check('Roadmap horizontal keyboard',lambda:(need(page.locator('#road-rewards').get_attribute('aria-selected')=='true'),need('rewards support' in page.locator('#roadmapTitle').inner_text())))
-        page.keyboard.press('ArrowRight')
-        check('Physical roadmap workstream',lambda:need('physical products' in page.locator('#roadmapTitle').inner_text()))
-        page.keyboard.press('ArrowRight')
-        check('Roadmap wraps keyboard',lambda:need(page.locator('#road-ui').get_attribute('aria-selected')=='true'))
-
         # Revised content panels must fit after every selection, not only defaults.
-        states=[('research','[data-research]'),('testing','[data-feedback]'),('roadmap','[data-roadmap]'),('extensions','[data-family]')]
+        states=[('research','[data-research]'),('testing','[data-feedback]'),('extensions','[data-family]')]
         for width,height in [(1440,900),(1366,768),(1280,720),(768,1024),(390,844),(320,568)]:
             page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(160)
             for chapter,selector in states:
@@ -228,6 +258,8 @@ try:
                     data=page.evaluate('''id=>{const c=document.getElementById(id),cr=c.getBoundingClientRect(),story=document.querySelector('#story');const horizontal=[...c.querySelectorAll('*')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden').map(e=>({id:e.id,tag:e.tagName,text:e.textContent.slice(0,50),left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right})).filter(e=>e.left < -2||e.right>innerWidth+2);return {chapter:cr.height,available:story.clientHeight,horizontal,storyOverflow:story.scrollWidth>story.clientWidth}}''',chapter)
                     title=button.get_attribute('id')
                     check(f'Selected panel layout {width}x{height} {title}',lambda data=data,width=width:(need(not data['horizontal'],str(data)),need(not data['storyOverflow'],str(data)),need(width<1000 or data['chapter']<=data['available']+2,str(data))))
+                    if width in [1366,390] and chapter=='research':
+                        page.screenshot(path=str(OUTPUT/f'{width}x{height}-{title}.png'))
                     if data['horizontal'] or data['storyOverflow'] or width>=1000 and data['chapter']>data['available']+2:
                         page.screenshot(path=str(OUTPUT/f'{width}x{height}-{title}-overflow.png'))
         page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160)

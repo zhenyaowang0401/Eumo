@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#edf0df">
-<meta name="description" content="Eumo: a product case study of a focus companion, from research hypotheses to working software and physical prototypes.">
-<title>Eumo — Product Case Study</title><link rel="icon" href="assets/mushroom.svg" type="image/svg+xml">
+<meta name="description" content="Eumo: a product case study of a focus companion, research, product development and physical prototypes.">
+<title>Eumo — MADE Project</title><link rel="icon" href="assets/mushroom.svg" type="image/svg+xml">
 <link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=5"><link rel="stylesheet" href="bookends.css?v=5"><link rel="stylesheet" href="keychain-sizing.css?v=5"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=5"></script><script defer src="app.js?v=5"></script>
+<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=5"><link rel="stylesheet" href="bookends.css?v=5"><link rel="stylesheet" href="keychain-sizing.css?v=5"><link rel="stylesheet" href="revision.css?v=6"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=6"></script><script defer src="app.js?v=6"></script>
 </head><body>
 <a class="skip" href="#story">Skip to presentation</a>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -16,10 +16,10 @@
 <symbol id="i-screen" viewBox="0 0 48 48"><path d="M4 6h40v29H4Zm20 29v8m-12 0h24M12 16h15m-15 7h23"/></symbol>
 <symbol id="i-book" viewBox="0 0 48 48"><path d="M24 11C18 6 12 5 4 7v31c8-2 14-1 20 4 6-5 12-6 20-4V7c-8-2-14-1-20 4Zm0 0v31M11 15h6m-6 7h6m14-7h6m-6 7h6"/></symbol>
 </defs></svg>
-<header class="masthead"><a class="wordmark" href="#overview" aria-label="Eumo product overview">Eu<span>mo</span><img src="assets/mushroom.svg" alt=""></a><span class="masthead-label">PRODUCT CASE STUDY</span><nav aria-label="Presentation controls"><button id="sourcesButton" data-detail="research">Evidence</button><button id="contentsButton">Chapters <span class="menu-lines" aria-hidden="true">☷</span></button><button id="fullscreenButton" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-full"/></svg></button></nav></header>
+<header class="masthead"><a class="wordmark" href="#overview" aria-label="Eumo product overview">Eu<span>mo</span><img src="assets/mushroom.svg" alt=""></a><span class="masthead-label">MADE PROJECT</span><nav aria-label="Presentation controls"><button id="sourcesButton" data-detail="research">Evidence</button><button id="contentsButton">Chapters <span class="menu-lines" aria-hidden="true">☷</span></button><button id="fullscreenButton" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-full"/></svg></button></nav></header>
 <main id="story" tabindex="-1" aria-label="Eumo product presentation">
 <section id="cover" class="chapter bookend cover" data-title="Opening" data-time="0:10" aria-labelledby="cover-title">
-<div class="bookend-center"><h1 id="cover-title" class="visually-hidden">Eumo — Product Case Study</h1><svg class="cover-mark" aria-hidden="true" viewBox="0 0 420 205" focusable="false">
+<div class="bookend-center"><h1 id="cover-title" class="visually-hidden">Eumo — MADE Project</h1><svg class="cover-mark" aria-hidden="true" viewBox="0 0 420 205" focusable="false">
   <defs>
    <g id="cover-flower"><path fill="#647d52" d="M11 15h3v17h-3zM4 21h7v5H7v-2H4zm10-4h8v3h-3v3h-5z"/><path fill="#c36752" d="M8 0h9v5h5v9h-5v5H8v-5H3V5h5z"/><path fill="#e6b56f" d="M9 6h7v7H9z"/><path fill="#fff2cf" d="M10 6h4v2h-4z"/></g>
    <g id="cover-mushroom"><path fill="#526348" d="M8 0h14v3h5v5h4v6h3v8H22v10h3v4H9v-4h3V22H0v-8h3V8h5z"/><path fill="#b55343" d="M8 3h14v3h5v8h4v5H3v-5h3V8h2z"/><path fill="#d68a68" d="M8 3h14v3H8zM6 8h4v4H6z"/><path fill="#fff1ce" d="M9 10h5v5H9zm11-3h5v5h-5zm2 8h6v3h-6zM14 22h6v10h-6z"/><path fill="#d7b887" d="M3 19h28v2H3zm15 3h2v10h-2zM11 32h12v2H11z"/></g>
@@ -52,8 +52,22 @@
 <p class="bookend-credit"><span>design by</span><strong>Zhenyao Wang</strong><strong>Yun Ye</strong></p>
 </section>
 <section id="overview" class="chapter overview" data-title="Product Overview" data-time="0:30" aria-labelledby="overview-title">
-<div class="chapter-heading" data-enter-item><span class="eyebrow">02 / PRODUCT OVERVIEW</span><span class="status">Web · Windows · macOS</span></div>
-<div class="overview-layout"><div class="overview-copy" data-enter-item><h1 id="overview-title">Eumo<span class="title-dot">.</span></h1><p class="lead"><strong>A focus companion.</strong><span>A timer, a virtual pet, and a world you make your own.</span></p><dl class="product-facts"><div><dt>WHO</dt><dd><strong>Young adults</strong> studying independently</dd></div><div><dt>PROBLEM</dt><dd><strong>Starting and sustaining</strong> a task alone</dd></div><div><dt>HOW</dt><dd class="focus-path"><strong>Focus</strong><span>→</span> Explore <span>→</span> Personalize</dd></div></dl><button class="text-button" data-detail="scope">Product scope ↗</button></div><figure class="product-frame hero-frame" data-enter-item><div class="window-bar"><span>EUMO / FOCUS</span><i aria-hidden="true"></i></div><img src="assets/screenshots/focus.png" alt="Eumo Focus interface: a mole digs beside the task timer, with chat and music controls." fetchpriority="high"><figcaption><span>Current product</span><img src="assets/mole-default.png" alt="Default Eumo mole wearing glasses"></figcaption></figure></div>
+<div class="chapter-heading"><span class="eyebrow">02 / PRODUCT OVERVIEW</span><span class="status">Web · Windows · macOS</span></div>
+<div class="overview-layout overview-editorial">
+ <div class="overview-copy" data-enter-item>
+  <h1 id="overview-title">Eumo<span class="title-dot">.</span></h1>
+  <p class="overview-intro">A study companion for <em>starting, staying,<br>and returning.</em></p>
+  <dl class="product-facts">
+   <div><dt>WHO</dt><dd>Learners aged <strong>8–35</strong> who study or work independently and want more structure and company.</dd></div>
+   <div><dt>PROBLEM</dt><dd>Distractions, isolation and delayed progress make it difficult to start a task, sustain effort and return after interruptions.</dd></div>
+   <div><dt>HOW</dt><dd>Eumo combines a flexible timer, <strong>AI chat, online friends and earned rewards</strong> to make independent work feel supported.</dd></div>
+  </dl>
+ </div>
+ <aside class="overview-evidence" aria-label="Research context" data-enter-item>
+  <svg class="overview-mark" aria-hidden="true" viewBox="25 35 370 120"><use href="#cover-letters"/></svg>
+  <div class="overview-stat"><strong>30<span>%</span></strong><p>of students reported distraction while using digital devices in most or every mathematics lesson.</p><a href="https://www.oecd.org/en/publications/pisa-2022-results-volume-ii_a97db61c-en.html" target="_blank" rel="noopener">PISA 2022 · 15-year-olds across OECD countries ↗</a></div>
+ </aside>
+</div>
 </section>
 <section id="inspiration" class="chapter" data-title="Project Inspiration" data-time="0:40" aria-labelledby="inspiration-title">
 <div class="chapter-heading"><span class="eyebrow">03 / PROJECT INSPIRATION</span><button class="text-button" data-detail="inspiration">Origin notes ↗</button></div><h2 id="inspiration-title">Two sources of <em>inspiration.</em></h2>
@@ -62,57 +76,79 @@
 <div class="section-bottom synthesis"><span class="eyebrow">DESIGN DIRECTION</span><strong>A study companion with optional human connection.</strong><img src="assets/mole-default.png" alt="Eumo mole"></div>
 </section>
 <section id="research" class="chapter" data-title="Research Insights" data-time="0:50" aria-labelledby="research-title">
-<div class="chapter-heading"><span class="eyebrow">04 / RESEARCH INSIGHTS</span><button class="text-button" data-detail="research">Method & sources ↗</button></div><h2 id="research-title">Research into <em>design.</em></h2>
-<div class="research-layout"><div class="research-select" role="tablist" aria-label="Research themes" aria-orientation="vertical"><button id="research-presence" role="tab" aria-selected="true" aria-controls="researchPanel" data-research="presence"><span class="item-number">01</span><span>Co-presence</span><svg><use href="#i-arrow"/></svg></button><button id="research-motivation" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="motivation"><span class="item-number">02</span><span>Motivation</span><svg><use href="#i-arrow"/></svg></button><button id="research-companion" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="companion"><span class="item-number">03</span><span>Companionship</span><svg><use href="#i-arrow"/></svg></button></div><div id="researchPanel" class="research-panel" role="tabpanel" aria-labelledby="research-presence" tabindex="0"><div class="research-visual" aria-hidden="true"><img class="research-mole" src="assets/mole-default.png" alt=""><span class="connection-line"></span><svg id="researchIcon"><use href="#i-screen"/></svg></div><span class="eyebrow">PRODUCT RESPONSE</span><h3 id="researchResponse">Optional friend visibility</h3><p id="researchQuestion">Does shared presence help people start?</p></div></div><div class="section-bottom"><span><strong>Evaluation:</strong> real task progress</span><span class="muted">Literature verification pending</span></div>
+<div class="chapter-heading"><span class="eyebrow">04 / RESEARCH INSIGHTS</span><button class="text-button" data-detail="research">Sources ↗</button></div><h2 id="research-title">Research <em>Insights</em></h2>
+<div class="research-layout evidence-layout">
+ <div class="research-select" role="tablist" aria-label="Research themes" aria-orientation="vertical">
+  <button id="research-presence" role="tab" aria-selected="true" aria-controls="researchPanel" data-research="presence"><span class="item-number">01</span><span>Community &amp; accountability</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-learning" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="learning"><span class="item-number">02</span><span>AI-assisted learning</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-companion" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="companion"><span class="item-number">03</span><span>AI companionship</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-motivation" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="motivation"><span class="item-number">04</span><span>Reward mechanisms</span><svg><use href="#i-arrow"/></svg></button>
+ </div>
+ <div id="researchPanel" class="research-panel evidence-panel" role="tabpanel" aria-labelledby="research-presence" tabindex="0">
+  <div class="evidence-stat"><strong id="researchMetric">138</strong><span id="researchMetricLabel">randomized studies · 19,951 participants</span></div>
+  <h3 id="researchResponse">Shared progress supports follow-through.</h3>
+  <p id="researchFinding">Goal monitoring improved attainment (d = 0.40); effects were larger when progress was reported or made public.</p>
+  <p class="evidence-application" id="researchApplication">Eumo: optional friend visibility and shared study time.</p>
+  <a id="researchSource" class="source-link" href="https://doi.org/10.1037/bul0000025" target="_blank" rel="noopener">Harkin et al. · 2016 · Psychological Bulletin ↗</a>
+ </div>
+</div>
 </section>
 <section id="persona" class="chapter" data-title="Persona" data-time="0:40" aria-labelledby="persona-title">
-<div class="chapter-heading"><span class="eyebrow">05 / PERSONA</span><button class="text-button" data-detail="persona">Persona basis ↗</button></div>
+<div class="chapter-heading"><span class="eyebrow">05 / PERSONA</span><button class="text-button" data-detail="persona">Profile notes ↗</button></div>
 <div class="persona-layout persona-with-character">
   <div class="persona-profile">
-    <span class="status">Proto-persona</span>
     <h2 id="persona-title">Alex<span>, 20</span></h2>
-    <p>Undergraduate student</p>
     <figure class="persona-character"><img src="assets/persona-avatar.png" alt="Pixel avatar of Alex, a young adult with glasses and a terracotta sweater"></figure>
-    <span class="profile-context">Independent study · Laptop</span>
   </div>
   <div class="persona-details persona-expanded">
-    <span class="eyebrow">USER PROFILE</span>
-    <h3>Independent study.<br><em>A sense of company.</em></h3>
+    <h3>Study <em>profile</em></h3>
     <div class="persona-facts">
-      <div><h4>Study context</h4><p>Studies on a laptop at home or in the library. Moves between readings, notes and coursework.</p></div>
+      <div><h4>Study context</h4><p>An undergraduate studying on a laptop at home or in the library, moving between readings, notes and coursework.</p></div>
       <div><h4>Goals</h4><p>Start a manageable session and <strong>complete a concrete task</strong>, with company and control over the pace.</p></div>
       <div><h4>Pain points</h4><p>Starting alone feels difficult. Interruptions break momentum; phone-based tools occupy the phone and use its battery.</p></div>
       <div><h4>Product needs</h4><p>A persistent companion, flexible pauses and optional friend visibility. <strong>Rewards that support task progress.</strong></p></div>
     </div>
-    <div class="persona-job"><span class="eyebrow">JOBS TO BE DONE</span><p>Begin a focused session, make progress, and return after interruptions.</p></div>
   </div>
 </div>
 </section>
-<section id="landscape" class="chapter" data-title="Competitive Landscape" data-time="0:50" aria-labelledby="landscape-title">
-<div class="chapter-heading"><span class="eyebrow">06 / COMPETITIVE LANDSCAPE</span><button class="text-button" data-detail="landscape">Comparison basis ↗</button></div><h2 id="landscape-title">Three approaches to <em>focus.</em></h2>
-<div class="comparison visual-comparison"><article><div class="competitor-art"><div class="reference-sprite tomato" role="img" aria-label="Reference illustration based on the supplied red tomato timer icon"></div><span class="reference-caption">Reference illustration</span></div><span class="eyebrow">TIME STRUCTURE</span><h3>Pomodoro tools</h3><p>Work / break intervals</p></article>
-<article><div class="competitor-art"><div class="reference-sprite cat" role="img" aria-label="Reference illustration recreated from the supplied Cat On Chair promotional image"></div><span class="reference-caption">Reference illustration</span></div><span class="eyebrow">CHARACTER PRESENCE</span><h3>Cat On Chair</h3><p>Companion-led focus</p></article>
-<article class="eumo-comparison"><div class="competitor-art"><img class="landscape-eumo" src="assets/mole-starhat.png" alt="Eumo mole with a collectible outfit"><span class="reference-caption">Current Eumo artwork</span></div><span class="eyebrow">PERSISTENT PERSONALIZATION</span><h3>Eumo</h3><p>Focus → collection → home</p></article></div><div class="section-bottom"><span class="eyebrow">POSITIONING</span><strong>Flexible focus. A persistent personal world.</strong></div>
+<section id="landscape" class="chapter" data-title="Competitive Analysis" data-time="0:50" aria-labelledby="landscape-title">
+<div class="chapter-heading"><span class="eyebrow">06 / FOCUS TOOLS</span><button class="text-button" data-detail="landscape">Sources ↗</button></div><h2 id="landscape-title">Competitive <em>Analysis</em></h2>
+<div class="comparison visual-comparison comparison-v6">
+ <article><div class="competitor-art"><div class="reference-sprite tomato" role="img" aria-label="Illustrated tomato timer reference"></div></div><h3>Pomodoro apps</h3><p>Timed focus blocks with scheduled breaks.</p><p class="competitor-limit">Fixed intervals; penalty rules in some apps.</p></article>
+ <article><div class="competitor-art"><div class="reference-sprite cat" role="img" aria-label="Illustrated Cat On Chair reference"></div></div><h3>Cat On Chair</h3><p>A focus timer with a cat, gifts and room decoration.</p><p class="competitor-limit">No live peer study presence listed.</p></article>
+ <article class="eumo-comparison"><div class="competitor-art"><img class="landscape-eumo" src="assets/mole-starhat.png" alt="Eumo companion wearing a collectible outfit"></div><h3>Eumo</h3><p>A flexible timer with a persistent study companion.</p><p class="competitor-edge">AI chat + online friends + earned rewards</p></article>
+</div>
 </section>
 <section id="demo" class="chapter demo" data-title="Product Walkthrough" data-time="6:00" aria-labelledby="demo-title">
 <div class="chapter-heading"><span class="eyebrow">07 / PRODUCT WALKTHROUGH</span><button class="text-button" data-detail="demo">Demo route & reward rules ↗</button></div><div class="demo-heading"><h2 id="demo-title">The product <em>in use.</em></h2><a class="primary" href="../index.html" target="_blank" rel="noopener">Open Eumo ↗</a></div>
 <div class="walkthrough-layout"><figure class="product-frame demo-frame"><div class="window-bar"><span id="demoScreenLabel">EUMO / SETUP</span><i aria-hidden="true"></i></div><img id="demoShot" src="assets/screenshots/setup.png" alt="Eumo setup screen with mole name and color selection"></figure><div class="demo-route"><div id="demoTabs" role="tablist" aria-label="Walkthrough steps" aria-orientation="vertical"><button role="tab" id="demo-setup" data-demo="setup" aria-selected="true" aria-controls="demoPanel"><span>01</span>Setup</button><button role="tab" id="demo-focus" data-demo="focus" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>02</span>Focus</button><button role="tab" id="demo-discover" data-demo="discover" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>03</span>Discover & equip</button><button role="tab" id="demo-home" data-demo="home" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>04</span>Home</button><button role="tab" id="demo-friends" data-demo="friends" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>05</span>Friends</button><button role="tab" id="demo-music" data-demo="music" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>06</span>Music & floating</button><button role="tab" id="demo-review" data-demo="review" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>07</span>Review & AI</button></div><div id="demoPanel" role="tabpanel" tabindex="0" aria-labelledby="demo-setup"><p id="demoCue">Name & color</p><span id="demoStepTime">0:00–0:30</span></div></div></div><div class="section-bottom demo-bottom"><span>Live demonstration · 6 minutes</span><div class="demo-clock"><output id="demoTimer" aria-label="Demo elapsed time">00:00</output><button id="startDemoClock" aria-pressed="false">Start clock</button><button id="resetDemoClock" aria-label="Reset demo clock">↺</button></div></div>
 </section>
 <section id="testing" class="chapter" data-title="User Feedback & Iteration" data-time="1:00" aria-labelledby="testing-title">
-<div class="chapter-heading"><span class="eyebrow">08 / USER FEEDBACK & ITERATION</span><button class="text-button" data-detail="testing">Study status ↗</button></div><h2 id="testing-title">What we heard. <em>What changed.</em></h2>
+<div class="chapter-heading"><span class="eyebrow">08 / USER FEEDBACK & ITERATION</span><button class="text-button" data-detail="testing">Feedback notes ↗</button></div><h2 id="testing-title">User Feedback <em>&amp; Iteration</em></h2>
 <div class="feedback-layout clear-feedback"><div class="feedback-table-wrap"><div class="feedback-column-head" aria-hidden="true"><span>USER FEEDBACK</span><span>IMPLEMENTED RESPONSE</span></div><div class="feedback-list" role="tablist" aria-label="Reported feedback and implemented responses" aria-orientation="vertical"><button id="feedback-outfits" role="tab" data-feedback="outfits" aria-selected="true" aria-controls="feedbackPanel"><span>Outfits motivate use</span><strong>Material-based apparel <i>↗</i></strong></button><button id="feedback-desktop" role="tab" data-feedback="desktop" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Phone sessions drain battery</span><strong>Web + desktop access <i>↗</i></strong></button><button id="feedback-social" role="tab" data-feedback="social" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Want to see friends studying</span><strong>Online status + study time <i>↗</i></strong></button><button id="feedback-friction" role="tab" data-feedback="friction" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Too much text; unclear controls</span><strong>Less copy · Shop / Owned · drag <i>↗</i></strong></button></div></div><figure id="feedbackPanel" role="tabpanel" aria-labelledby="feedback-outfits" tabindex="0" class="product-frame feedback-frame"><div class="window-bar"><span id="feedbackLabel">EUMO / WARDROBE</span><i aria-hidden="true"></i></div><img id="feedbackShot" src="assets/screenshots/wardrobe.png" alt="Eumo wardrobe, with material-based equipment"><figcaption id="feedbackCaption">Discoveries can be exchanged for apparel.</figcaption></figure></div>
-<div class="open-question"><span class="status-open">OPEN QUESTION</span><p><strong>Studying for outfits—or progressing on the task?</strong><span>Review reward timing and idle-farming risks.</span></p></div><p class="feedback-method">Qualitative themes reported by the founder · No formal outcome data yet</p>
+
 </section>
 <section id="roadmap" class="chapter" data-title="Next Steps" data-time="0:45" aria-labelledby="roadmap-title">
-<div class="chapter-heading"><span class="eyebrow">09 / NEXT STEPS</span><button class="text-button" data-detail="roadmap">Workstream details ↗</button></div><h2 id="roadmap-title">Next phase: <em>refinement.</em></h2><div class="roadmap-scope"><span class="status">THROUGH DECEMBER</span><span>Three development workstreams</span></div>
-<div class="workstream-tabs" role="tablist" aria-label="Next development workstreams"><button id="road-ui" role="tab" data-roadmap="ui" aria-selected="true" aria-controls="roadmapPanel"><span class="workstream-number">01</span><svg aria-hidden="true"><use href="#i-screen"/></svg><h3>UI optimization</h3><p>Hierarchy · Responsiveness · Simpler actions</p></button><button id="road-rewards" role="tab" data-roadmap="rewards" aria-selected="false" tabindex="-1" aria-controls="roadmapPanel"><span class="workstream-number">02</span><img src="assets/star.svg" alt="" aria-hidden="true"><h3>Reward mechanisms</h3><p>Balance · Timing · Idle-farming evaluation</p></button><button id="road-physical" role="tab" data-roadmap="physical" aria-selected="false" tabindex="-1" aria-controls="roadmapPanel"><span class="workstream-number">03</span><img src="assets/mole-default.png" alt="" aria-hidden="true"><h3>Physical products</h3><p>NFC usability · Ergonomics · Battery tests</p></button></div>
-<div id="roadmapPanel" class="workstream-detail" role="tabpanel" tabindex="0" aria-labelledby="road-ui"><span id="roadmapStatus" class="eyebrow">SUCCESS CRITERION</span><h3 id="roadmapTitle">Complete core tasks without help.</h3><p id="roadmapMeasure">Observe task success, errors and recovery.</p></div>
+<div class="chapter-heading"><span class="eyebrow">09 / DEVELOPMENT ROADMAP</span><button class="text-button" data-detail="roadmap">Development details ↗</button></div><h2 id="roadmap-title">Next <em>Steps</em></h2>
+<div class="next-grid">
+ <article><span class="next-number">01</span><svg aria-hidden="true"><use href="#i-screen"/></svg><h3>App UI</h3><p>Refine hierarchy, navigation and responsive layouts.</p></article>
+ <article><span class="next-number">02</span><svg aria-hidden="true" viewBox="0 0 48 48"><path d="m13 5-6 34q17 8 34 0L35 5ZM13 5q11-5 22 0M18 8l-3 30m9-28v31m6-33 3 30"/></svg><h3>Enclosure design</h3><p>Develop the shell, materials, grip and charging access.</p></article>
+ <article><span class="next-number">03</span><svg aria-hidden="true" viewBox="0 0 48 48"><rect x="10" y="3" width="28" height="42" rx="4"/><path d="M15 10h18v22H15Zm6 28h6"/></svg><h3>Device interface</h3><p>Simplify pairing, timer controls and reward feedback.</p></article>
+ <article><span class="next-number">04</span><svg aria-hidden="true" viewBox="0 0 48 48"><path d="M7 16h34v28H7Zm7 0V8h20v8M24 35V22m-6 6 6-6 6 6"/></svg><h3>Commercial launch</h3><p>Test paid offerings and pricing; prepare app-store submissions.</p></article>
+</div>
 </section>
 <section id="extensions" class="chapter extensions" data-title="Product Extensions" data-time="0:50" aria-labelledby="extensions-title">
 <div class="chapter-heading"><span class="eyebrow">10 / PRODUCT EXTENSIONS</span><button class="text-button" data-detail="extensions">Prototype scope ↗</button></div><div class="extensions-heading"><h2 id="extensions-title">Physical <em>product extensions.</em></h2><div class="segmented" role="tablist" aria-label="Physical product"><button id="family-keychain" data-family="keychain" role="tab" aria-selected="true" aria-controls="familyPanel">NFC keychain</button><button id="family-handheld" data-family="handheld" role="tab" aria-selected="false" tabindex="-1" aria-controls="familyPanel">Handheld</button></div></div><div id="familyPanel" class="extensions-layout" role="tabpanel" aria-labelledby="family-keychain" tabindex="0"><div class="render-wrap"><div id="renderStage" class="render-stage"><div id="keychainSprite" data-variant="5" class="keychain-sprite extra" role="img" aria-label="Orange Eumo keychain visualization" style="background-position:100% 50%"></div><img id="handheldRender" src="assets/handheld.png" alt="Terracotta handheld enclosure visualization with blank mint screen" hidden></div><span id="renderCaption" class="render-caption">Colorway visualization</span></div><div class="extensions-copy"><span class="status" id="familyStatus">WORKING NFC PROTOTYPE</span><h3 id="familyTitle">Tap to open a link.</h3><p id="familyDescription">A physical entry point to Eumo.</p><div id="colorPicker"><span class="eyebrow color-label">COLOR / <strong id="colorName">Orange</strong></span><div class="swatches" aria-label="Keychain colors"><button data-color="5" aria-pressed="true"><i style="--swatch:#e98f2d"></i>Orange</button><button data-color="4" aria-pressed="false"><i style="--swatch:linear-gradient(135deg,#91a7b7 50%,#ed9b3f 50%)"></i>Blue & Orange</button><button data-color="0" aria-pressed="false"><i style="--swatch:#ecc94c"></i>Sunflower</button><button data-color="1" aria-pressed="false"><i style="--swatch:#94bca0"></i>Mint</button><button data-color="2" aria-pressed="false"><i style="--swatch:#a89bc8"></i>Lavender</button><button data-color="3" aria-pressed="false"><i style="--swatch:#55534f"></i>Charcoal</button></div></div><div id="handheldFunctions" class="handheld-functions" hidden><span>Timer</span><span>Digging</span></div></div></div><div class="section-bottom"><span>Next validation</span><span>Everyday use · ergonomics · feasibility</span></div>
 </section>
-<section id="business" class="chapter business" data-title="Business Model" data-time="0:35" aria-labelledby="business-title">
-<div class="chapter-heading"><span class="eyebrow">11 / BUSINESS MODEL</span><button class="text-button" data-detail="business">Market & economics ↗</button></div><h2 id="business-title">Business model <em>hypotheses.</em></h2><div class="business-streams"><article><img src="assets/mole-default.png" alt="" aria-hidden="true"><span class="eyebrow">01</span><h3>Subscription</h3><p>Optional recurring value</p></article><article><img src="assets/mole-starhat.png" alt="" aria-hidden="true"><span class="eyebrow">02</span><h3>Cosmetics</h3><p>Skins & themed worlds</p></article><article><div class="mini-keychain" aria-hidden="true"></div><span class="eyebrow">03</span><h3>Physical products</h3><p>Keychains & handheld</p></article></div><div class="free-core"><span class="eyebrow">FREE CORE</span><span>Focus timer + companion</span><span class="core-line" aria-hidden="true"></span></div><div class="closing"><div><span class="eyebrow">NEXT MILESTONE</span><p>Validate repeat use and willingness to pay.</p></div><a href="../index.html" target="_blank" rel="noopener" class="primary">Open Eumo ↗</a></div>
+<section id="business" class="chapter business business-v6" data-title="Business Model" data-time="0:35" aria-labelledby="business-title">
+<div class="chapter-heading"><span class="eyebrow">11 / COMMERCIAL STRATEGY</span><button class="text-button" data-detail="business">Market &amp; economics ↗</button></div><h2 id="business-title">Business <em>Model</em></h2>
+<div class="business-intro"><p><strong>Free core. Optional paid layers.</strong><span>Timer and basic companion remain accessible.</span></p><span class="planned-label">Proposed model</span></div>
+<div class="revenue-grid">
+ <article><span class="revenue-number">01</span><span class="revenue-type">RECURRING REVENUE</span><h3>Premium membership</h3><p>Expanded AI support and premium personalization.</p><span class="revenue-unit">Monthly / annual subscription</span></article>
+ <article><span class="revenue-number">02</span><span class="revenue-type">DIGITAL SALES</span><h3>Digital collections</h3><p>Artist-designed outfits, interiors and seasonal worlds.</p><span class="revenue-unit">One-time content purchases</span></article>
+ <article><span class="revenue-number">03</span><span class="revenue-type">PRODUCT SALES</span><h3>Physical products</h3><p>NFC keychains and the canele focus device.</p><span class="revenue-unit">Direct sales / app bundles</span></article>
+</div>
+<div class="business-operations"><div><h4>Acquisition</h4><p>Study communities · campus creators · referrals</p></div><div><h4>Distribution</h4><p>Web &amp; desktop → app stores → direct product sales</p></div><div><h4>Cost structure</h4><p>AI &amp; hosting · art production · hardware &amp; fulfillment</p></div></div>
 </section>
 <section id="thankyou" class="chapter bookend thankyou" data-title="Thank You" data-time="0:10" aria-labelledby="thankyou-title">
 <div class="bookend-center"><h2 id="thankyou-title">Thank you.</h2></div>

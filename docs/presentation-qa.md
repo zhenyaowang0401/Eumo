@@ -1,5 +1,15 @@
 # Presentation verification
 
+## V6: concise content and verified evidence
+
+Checked 17 November 2026. The 12-page presentation now uses MADE PROJECT in the header, an editorial overview with the OECD distraction statistic, four cited research themes, a name-and-avatar persona, function/limitation competitor comparisons, four development priorities, and a commercial model with floral artwork. Removed explanatory badges and the feedback/roadmap/closing banners from the main slides.
+
+The updated browser suite passed **356/356 checks**, with no JavaScript errors or failed local resources. Coverage includes all 12 chapters at 1440×900, 1366×768, 1280×720, 768×1024, 390×844 and 320×568; desktop slide fit, horizontal overflow, all four evidence tabs and source links, dialogs, navigation, demo timer, six keychain colors, motion and reduced-motion behavior. Mobile content scrolls vertically within the presentation stage.
+
+Source verification checked OECD, Harkin, Kestin, Ta and Sailer/Homner, plus official competitor descriptions. Exact research populations and effect definitions remain in the visible copy and source panels; no study result is represented as an Eumo outcome.
+
+Reports and screenshots: `/workspace/scratch/presentation-v6-qa/`. After final wording and comparison-baseline adjustments, **55/55 targeted checks passed** in fresh browser contexts at three desktop sizes and 390px mobile. These also check the complete masthead and footer, chapter navigation and research-tab citations. An initial screenshot artifact after repeated viewport resizing was not reproduced in fresh-context screenshots; DOM geometry and normal navigation remained correct. The 356-check result describes the full run, not a second full-suite run.
+
 ## V5: opening, closing, avatar and consistent keychain sizes
 
 Checked November 16, 2026. The presentation now has **12 pages / 13:00**, including a new opening and Thank You page. The opening retains the application's original 16 SVG paths and stepped mark entrance, stays visible afterward, and uses the existing floral background. Both end pages carry the requested names. Persona uses a head-and-shoulders avatar. All six keychain colorways are normalized to the Blue & Orange reference's visible height without altering source images or their proportions.
@@ -61,4 +71,4 @@ The unmodified Taste copy checker returned **0 failures and 2 warnings** (number
 
 ## External limits
 
-Direct scholarly-source and Vercel requests are blocked by this environment's network proxy. Research candidates remain labeled pending verification, with no invented statistics. Local browser success and GitHub source publication do not establish production deployment status; Vercel must be verified separately from an accessible network.
+During V3–V5, direct scholarly-source and Vercel requests were blocked by the network proxy. Those earlier versions therefore kept research candidates pending. In V6, selected primary sources were retrieved and checked; see the evidence ledger. Production verification is recorded separately from local browser checks.

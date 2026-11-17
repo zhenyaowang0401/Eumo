@@ -130,13 +130,44 @@
     });
   }
   const research = {
-    presence:['Optional friend visibility','Does shared presence help people start?','#i-screen'],
-    motivation:['Progress users can personalize','Does collecting support the chosen task?','#i-clock'],
-    companion:['A persistent character','Does companionship help after the novelty fades?','#i-book']
+    presence: {
+      metric:'138', label:'randomized studies · 19,951 participants',
+      title:'Shared progress supports follow-through.',
+      finding:'Goal monitoring improved attainment (d = 0.40); effects were larger when progress was reported or made public.',
+      application:'Eumo: optional friend visibility and shared study time.',
+      source:'Harkin et al. · 2016 · Psychological Bulletin', url:'https://doi.org/10.1037/bul0000025'
+    },
+    learning: {
+      metric:'>2×', label:'median learning gains · 194 university students',
+      title:'Structured AI tutoring can support learning.',
+      finding:'A purpose-built AI tutor outperformed active classroom learning across two undergraduate physics lessons.',
+      application:'Eumo: explore task-focused AI support alongside the timer.',
+      source:'Kestin et al. · 2025 · Scientific Reports', url:'https://www.nature.com/articles/s41598-025-97652-6'
+    },
+    companion: {
+      metric:'66', label:'user responses + 1,854 app reviews',
+      title:'Users describe a sense of company.',
+      finding:'Companionship and emotional support emerged in a qualitative study of Replika users.',
+      application:'Eumo: optional conversation during independent study.',
+      source:'Ta et al. · 2020 · JMIR', url:'https://www.jmir.org/2020/3/e16235/'
+    },
+    motivation: {
+      metric:'g = 0.36', label:'motivational effect · 16 studies · 2,246 learners',
+      title:'Gamification can support motivation.',
+      finding:'A meta-analysis found a positive motivational effect, with results varying by study context and quality.',
+      application:'Eumo: earned cosmetics make progress visible.',
+      source:'Sailer & Homner · 2020 · Educational Psychology Review', url:'https://link.springer.com/article/10.1007/s10648-019-09498-w'
+    }
   };
   tabs('[data-research]','#researchPanel', button => stageChange($('#researchPanel'), () => {
-    const [response,question,icon] = research[button.dataset.research];
-    $('#researchResponse').textContent=response;$('#researchQuestion').textContent=question;$('#researchIcon use').setAttribute('href',icon);
+    const item = research[button.dataset.research];
+    $('#researchMetric').textContent=item.metric;
+    $('#researchMetricLabel').textContent=item.label;
+    $('#researchResponse').textContent=item.title;
+    $('#researchFinding').textContent=item.finding;
+    $('#researchApplication').textContent=item.application;
+    $('#researchSource').textContent=item.source+' ↗';
+    $('#researchSource').href=item.url;
   }));
   const demo = {
     setup:['setup','Name & color','0:00–0:30','SETUP'],
@@ -163,16 +194,6 @@
     $('#feedbackShot').src=shot;$('#feedbackShot').alt=`Eumo ${label.toLowerCase()} interface; illustrative development context`;
     $('#feedbackLabel').textContent='EUMO / '+label;$('#feedbackCaption').textContent=caption;
   }));
-  const road = {
-    ui:['SUCCESS CRITERION','Complete core tasks without help.','Observe task success, errors and recovery.'],
-    rewards:['SUCCESS CRITERION','Make rewards support the chosen task.','Evaluate balance, reward timing and idle-timer behavior.'],
-    physical:['SUCCESS CRITERION','Make the physical products easier to use.','Test NFC access, controls, comfort, charging and battery life.']
-  };
-  tabs('[data-roadmap]','#roadmapPanel', button => stageChange($('#roadmapPanel'), () => {
-    const [status,title,measure] = road[button.dataset.roadmap];
-    $('#roadmapStatus').textContent=status;$('#roadmapTitle').textContent=title;$('#roadmapMeasure').textContent=measure;
-  }));
-
   const colors=['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange'];
   let color = 5;
   let family = 'keychain';
