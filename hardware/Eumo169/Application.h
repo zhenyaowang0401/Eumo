@@ -288,4 +288,4 @@ void diagnosticSerial(){
  }else if(c!='\r'){if(n<31)line[n++]=c;else n=0;}}
 }
 
-void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active())idleSince=millis();network.poll();pollTouch();if(millis()-lastPaint>125){lastPaint=millis();render();}delay(2);}
+void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();}network.poll();pollTouch();if(millis()-lastPaint>125){lastPaint=millis();render();}delay(2);}

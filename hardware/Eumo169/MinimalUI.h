@@ -11,15 +11,18 @@ bool mineBrowsing=false,mineGesture=false,mineDragged=false;
 int mineCamera=0,mineStartY=0,mineStartX=0,mineStartCamera=0;
 String mineTapCommand;
 int mineMaximum(){return max(-70,76+int(game.worldDepth()*6)-200);}
-int sceneCamera(){return mineBrowsing?constrain(mineCamera,-70,mineMaximum()):mineMaximum();}
+// Excavation depth persists; an idle mole rests on the surface after finishing.
+int moleCamera(){return game.active()?mineMaximum():-70;}
+int sceneCamera(){return mineBrowsing?constrain(mineCamera,-70,mineMaximum()):moleCamera();}
 void followMole(){mineBrowsing=false;mineGesture=false;mineDragged=false;}
 void dragMineTo(int y){
  mineCamera=constrain(mineStartCamera-(y-mineStartY),-70,mineMaximum());
- mineBrowsing=mineCamera<mineMaximum();
+ mineBrowsing=mineCamera!=moleCamera();
 }
 void diggingScene(){
  double depth=game.liveDepth(),world=game.worldDepth();auto sky=skyPalette();unsigned frame=millis()/120;
- int end=76+int(world*6),camera=sceneCamera(),ground=87-camera;
+ double moleDepth=game.active()?world:0;
+ int tunnelEnd=76+int(world*6),end=76+int(moleDepth*6),camera=sceneCamera(),ground=87-camera;
  screen->fillScreen(rgb(sky.sky));
  for(int y=0;y<min(280,ground);y++){double t=constrain((y+camera)/160.0,0.0,1.0);uint32_t color=0;for(int shift=0;shift<24;shift+=8)color|=uint32_t(lround(((sky.sky>>shift)&255)*(1-t)+((sky.skyLow>>shift)&255)*t))<<shift;rect(0,y,240,1,color);}
  if(ground>0){
@@ -30,9 +33,9 @@ void diggingScene(){
   rect(0,ground-5,240,5,sky.grass);rect(0,ground,240,4,sky.grassShadow);
  }
  paintTerrain(camera,frame,world);
- for(int wy=max(87,87+int(floor((camera-95)/4.0))*4);wy<min(end+7,camera+288);wy+=4){double d=(wy-131)/6.0;int cx=120+int(lround(sin(max(0.0,d)*.13)*3))*4,sy=wy-camera;rect(cx-37,sy,74,5,0x344d43);rect(cx-32,sy,64,5,0x243a35);rect(cx-39,sy,3,5,0x96a26c);rect(cx+36,sy,3,5,0x536244);rect(cx-22,sy,2,4,0xad8a7e);rect(cx-10,sy,2,4,0xad8a7e);if(wy%16==7)rect(cx-23,sy,15,2,0xe0b490);}
+ for(int wy=max(87,87+int(floor((camera-95)/4.0))*4);wy<min(tunnelEnd+7,camera+288);wy+=4){double d=(wy-131)/6.0;int cx=120+int(lround(sin(max(0.0,d)*.13)*3))*4,sy=wy-camera;rect(cx-37,sy,74,5,0x344d43);rect(cx-32,sy,64,5,0x243a35);rect(cx-39,sy,3,5,0x96a26c);rect(cx+36,sy,3,5,0x536244);rect(cx-22,sy,2,4,0xad8a7e);rect(cx-10,sy,2,4,0xad8a7e);if(wy%16==7)rect(cx-23,sy,15,2,0xe0b490);}
  if(ground>-35){rect(22,ground-31,2,26,0xb58a91);rect(24,ground-32,28,14,0xfa9ccc);rect(28,ground-28,15,2,0xfff0d7);rect(41,ground-26,4,4,0xfff0d7);rect(57,ground-12,24,12,0xbc8e79);rect(59,ground-15,20,3,0xe7b79a);rect(66,ground-13,4,13,0x4c395b);}
- int cx=120+int(lround(sin(max(0.0,world)*.13)*3))*4,my=end-camera-43-petLift();
+ int cx=120+int(lround(sin(max(0.0,moleDepth)*.13)*3))*4,my=end-camera-43-petLift();
  rect(cx-22,end-camera+7,48,4,0x13162d);
  artCX=cx-25+27;artCY=my+32;artAngle=petAngle();mole(cx-25,my,2);artAngle=0;
  if(my+70>36&&my-14<228)iconTarget(cx-32,max(36,my-14),80,min(100,228-max(36,my-14)),"moleJump");
@@ -161,7 +164,7 @@ void command(String cmd){
   if(!game.active()&&game.state["mode"]!="study"&&game.state["mode"]!="work")game.state["mode"]="study";
   game.start();idleSince=millis();clearPetMotion();
   if(!wasRunning&&!game.running()){page="startHelp";return;}
-  go("focus");return;
+  if(!wasRunning&&game.running())followMole();go("focus");return;
  }
 
  if(cmd=="showPassword"&&page=="keyboard"){revealPassword=!revealPassword;return;}
@@ -187,7 +190,7 @@ void command(String cmd){
  bool initialized=cmd=="yes"&&page=="confirm"&&confirmation=="format";
  bool ending=cmd=="yes"&&page=="confirm"&&confirmation=="finish";
  bool wasActive=game.active();if(allowed)commandLegacy(cmd);if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();}
- if(ending&&!game.active()){discoveryPage=0;page=game.dirty?"startHelp":"records";}
+ if(ending&&!game.active()){discoveryPage=0;followMole();page=game.dirty?"startHelp":"focus";}
  if(initialized){page="startHelp";if(!game.mounted)game.notice="Storage setup failed. Try again.";}
  if(!minimalPage(page))page="focus";
 }

@@ -16,6 +16,8 @@ arduino-cli compile --fqbn esp32:esp32:waveshare_esp32_s3_touch_lcd_169:CDCOnBoo
 
 主界面：左下开始 / 暂停，旁边 `END` 打开「End and save」；顶端向上箭头浏览地面，记录图标查看每次时间和发现；米数在右下，拖动查看地道、点击米数回到鼹鼠。配对在 `Setup → Pair screen`。没有商店、换装、Chat 入口；兼容旧存档的数据和底层模块保留。
 
+`End and save` 保存并结束后，鼹鼠和画面自动返回地面；计时自然结束也一样。暂停仍停在挖掘位置。已有深度、时间和地道保留，可拖动查看旧地道；再次开始从已挖最深处继续，记录通过顶端记录图标查看。
+
 云端代码必须先发布，详见 `../docs/SCREEN_PAIRING.md`。只连 Wi-Fi 并不等于完成配对或已经把数据送达网页。
 
 网页备份往返导入保留原始会话 ID；已由其他设备同步到网页的记录也会保留来源 ID，避免回传时被当作新的学习奖励。固件不会重置已有深度、时间、收获、FFat 或 NVS 来修复同步。若旧备份缺少对应历史，或同一个会话 ID 存在不同结算结果，会显示 `Backup history incomplete; sync paused` / `Backup history conflicts; sync paused` 并暂停同步及生成配对码。原有存档仍保留，需先导出备份并人工核对，不应靠清空存档或计数器解除提示。

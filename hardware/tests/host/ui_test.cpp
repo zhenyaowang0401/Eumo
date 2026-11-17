@@ -63,6 +63,23 @@ packet(pet.x+20,pet.y+20,0,1);packet(pet.x+20,pet.y+20,1,0);assert(jumping);
 assert(textWidth("WWW")>textWidth("iii"));assert(textWidth("140.0m",20)<=100);
 command("surface");assert(mineBrowsing&&sceneCamera()==-70);command("followMole");assert(!mineBrowsing);
 command("go:pairScreen");command("screenPairStart");assert(network.screenCode=="0372");dump("pair-code");network.screenRequest="test";network.screenLabel="Computer 1234";dump("pair-confirm");command("screenPairConfirm");assert(network.screenLinked);
-command("go:focus");command("start");testMillis+=600000;testEpoch+=600;game.tick(testMillis);command("confirm:finish");dump("end-confirm");command("yes");assert(!game.active()&&!game.dirty&&page=="records");dump("discoveries");double ended=game.liveDepth();command("go:focus");command("start");assert(game.state["session"]["elapsed"].as<double>()==0&&game.liveDepth()==ended);
+// Actual END touches settle once and return both the camera and mole to ground.
+command("go:focus");command("start");testMillis+=600000;testEpoch+=600000;game.tick(testMillis);render();
+double ended=game.liveDepth(),endingSeconds=game.state["session"]["elapsed"].as<double>();
+double totalBefore=game.state["totalSeconds"].as<double>();int historyBefore=game.state["history"].size();
+packet(80,246,0,1);packet(80,246,1,0);assert(page=="confirm"&&confirmation=="finish");dump("end-confirm");
+packet(110,216,0,1);packet(110,216,1,0);
+assert(!game.active()&&!game.dirty&&page=="focus"&&!mineBrowsing&&sceneCamera()==-70);
+assert(game.liveDepth()==ended&&game.state["history"].size()==historyBefore+1);
+assert(game.state["totalSeconds"].as<double>()==totalBefore+endingSeconds);
+dump("ended-at-surface");bool surfacePet=false;for(int i=0;i<targetCount;i++)if(targets[i].command=="moleJump")surfacePet=true;assert(surfacePet);
+// Browsing an old tunnel while idle must stay there, even at its deepest point.
+mineStartCamera=sceneCamera();mineStartY=0;dragMineTo(-20000);render();assert(mineBrowsing&&sceneCamera()==mineMaximum());
+assert(game.liveDepth()==ended&&!game.active());dump("ended-tunnel-preserved");command("followMole");assert(sceneCamera()==-70);
+command("go:records");dump("discoveries");command("go:focus");command("start");assert(game.state["session"]["elapsed"].as<double>()==0&&game.liveDepth()==ended);
+assert(!mineBrowsing&&sceneCamera()==mineMaximum());command("start");assert(game.active()&&!game.running()&&sceneCamera()==mineMaximum());
+// Timed completion also returns the idle mole to the surface.
+command("start");mineBrowsing=true;mineCamera=0;testMillis+=1500000;testEpoch+=1500000;appReady=true;appLoop();
+assert(!game.active()&&!mineBrowsing&&sceneCamera()==-70);
 std::cout<<"PASS: minimal screen routes, bounded touch targets, start/pause, chat return, retained depth and session finish\n";
 }
