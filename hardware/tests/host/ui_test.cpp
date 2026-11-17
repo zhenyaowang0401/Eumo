@@ -45,7 +45,7 @@ game.notice="";game.state["depth"]=140;game.state["surfaceDepth"]=0;game.start()
 auto packet=[](int x,int y,int event,int count){testMillis+=80;Wire.touch(x,y,event,count);touchIRQ=true;pollTouch();};
 double progress=game.liveDepth(),elapsed=game.state["session"]["elapsed"].as<double>();int initialCamera=sceneCamera();
 packet(70,90,0,1);packet(70,180,2,1);packet(70,180,1,0);
-assert(mineBrowsing&&sceneCamera()==initialCamera-90);assert(game.running());assert(game.liveDepth()==progress&&game.state["session"]["elapsed"].as<double>()==elapsed);assert(!jumping&&!spinning);dump("browse-running");
+assert(mineBrowsing&&sceneCamera()==initialCamera-int(lround(90/SCENE_ZOOM)));assert(game.running());assert(game.liveDepth()==progress&&game.state["session"]["elapsed"].as<double>()==elapsed);assert(!jumping&&!spinning);dump("browse-running");
 for(int i=0;i<12;i++){packet(70,80,0,1);packet(70,220,2,1);packet(70,220,1,0);}
 assert(sceneCamera()==-70);dump("browse-surface");
 // Holding the view does not freeze actual progress or jump back on redraw.
@@ -59,8 +59,9 @@ TapTarget pet{};for(int i=0;i<targetCount;i++)if(targets[i].command=="moleJump")
 assert(pet.w>0);packet(pet.x+20,pet.y+30,0,1);packet(pet.x+20,pet.y+60,2,1);packet(pet.x+20,pet.y+60,1,0);assert(!jumping);
 followMole();render();for(int i=0;i<targetCount;i++)if(targets[i].command=="moleJump")pet=targets[i];
 packet(pet.x+20,pet.y+20,0,1);packet(pet.x+20,pet.y+20,1,0);assert(jumping);
-// Shared font uses proportional glyph metrics (not the old fixed 6px cell).
+// Readable device font uses proportional metrics; four digits fit at 40 px.
 assert(textWidth("WWW")>textWidth("iii"));assert(textWidth("140.0m",20)<=100);
+assert(textWidth("0000",40)+30<208&&textWidth("8888",40)+30<208);
 command("surface");assert(mineBrowsing&&sceneCamera()==-70);command("followMole");assert(!mineBrowsing);
 command("go:pairScreen");command("screenPairStart");assert(network.screenCode=="0372");dump("pair-code");network.screenRequest="test";network.screenLabel="Computer 1234";dump("pair-confirm");command("screenPairConfirm");assert(network.screenLinked);
 // Actual END touches settle once and return both the camera and mole to ground.
@@ -81,5 +82,11 @@ assert(!mineBrowsing&&sceneCamera()==mineMaximum());command("start");assert(game
 // Timed completion also returns the idle mole to the surface.
 command("start");mineBrowsing=true;mineCamera=0;testMillis+=1500000;testEpoch+=1500000;appReady=true;appLoop();
 assert(!game.active()&&!mineBrowsing&&sceneCamera()==-70);
+// Startup is display-only: same 1.44 s timeline as the web, then the existing UI.
+double bootDepth=game.liveDepth(),bootSeconds=game.state["totalSeconds"].as<double>();
+startupBegin();dump("startup-enter");assert(startupActive());
+testMillis+=200;dump("startup-hold");testMillis+=1120;dump("startup-fade");
+testMillis+=120;assert(!startupActive());dump("startup-finished");
+assert(game.liveDepth()==bootDepth&&game.state["totalSeconds"].as<double>()==bootSeconds);
 std::cout<<"PASS: minimal screen routes, bounded touch targets, start/pause, chat return, retained depth and session finish\n";
 }

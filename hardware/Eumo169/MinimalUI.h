@@ -16,7 +16,7 @@ int moleCamera(){return game.active()?mineMaximum():-70;}
 int sceneCamera(){return mineBrowsing?constrain(mineCamera,-70,mineMaximum()):moleCamera();}
 void followMole(){mineBrowsing=false;mineGesture=false;mineDragged=false;}
 void dragMineTo(int y){
- mineCamera=constrain(mineStartCamera-(y-mineStartY),-70,mineMaximum());
+ mineCamera=constrain(mineStartCamera-int(lround((y-mineStartY)/SCENE_ZOOM)),-70,mineMaximum());
  mineBrowsing=mineCamera!=moleCamera();
 }
 void diggingScene(){
@@ -24,6 +24,7 @@ void diggingScene(){
  double moleDepth=game.active()?world:0;
  int tunnelEnd=76+int(world*6),end=76+int(moleDepth*6),camera=sceneCamera(),ground=87-camera;
  screen->fillScreen(rgb(sky.sky));
+ sceneZoom=true;
  for(int y=0;y<min(280,ground);y++){double t=constrain((y+camera)/160.0,0.0,1.0);uint32_t color=0;for(int shift=0;shift<24;shift+=8)color|=uint32_t(lround(((sky.sky>>shift)&255)*(1-t)+((sky.skyLow>>shift)&255)*t))<<shift;rect(0,y,240,1,color);}
  if(ground>0){
   auto cloud=[](int x,int y,uint32_t color){rect(x+8,y,18,6,color);rect(x+3,y+6,33,7,color);rect(x,y+13,42,7,color);};
@@ -38,8 +39,10 @@ void diggingScene(){
  int cx=120+int(lround(sin(max(0.0,moleDepth)*.13)*3))*4,my=end-camera-43-petLift();
  rect(cx-22,end-camera+7,48,4,0x13162d);
  artCX=cx-25+27;artCY=my+32;artAngle=petAngle();mole(cx-25,my,2);artAngle=0;
- if(my+70>36&&my-14<228)iconTarget(cx-32,max(36,my-14),80,min(100,228-max(36,my-14)),"moleJump");
+ int petTop=max(36,sceneY(my-14)),petBottom=min(228,sceneY(my+70));
+ if(petBottom>petTop)iconTarget(sceneX(cx-32),petTop,sceneX(cx+48)-sceneX(cx-32),petBottom-petTop,"moleJump");
  if(game.running())for(int i=0;i<5;i++){int k=(frame+i*3)%12,dir=i%2?1:-1;rect(cx+dir*(14+k*3),end-camera-5-int(floor(sin(k/12.0*3.141592653589793)*18)),3+(i%2)*2,3,0xc1a16e);}
+ sceneZoom=false;
  // Elapsed session time stays visible, including after pausing/finishing.
  double elapsed=game.active()?game.state["session"]["elapsed"].as<double>():game.state["history"][0]["seconds"].as<double>();
  String clock=duration(elapsed);int clockW=textWidth(clock,20);rect(224-clockW-6,8,clockW+12,28,0x302E39);label(224-clockW,10,clock,2);
@@ -72,7 +75,7 @@ void wifiScreen(){
  else for(int row=0;row<3;row++){int i=listPage*3+row;if(i>=int(network.nearby.size()))break;auto &n=network.nearby[i];int y=70+row*41;button(12,y,216,38,"","wifiPick:"+String(i));label(18,y+3,n.name.substring(0,fitBytes(n.name,202,unicodeText(n.name))));label(18,y+23,String(n.rssi)+" dBm  "+(n.auth==0?"Open":"Password"));}
  if(!network.scanning&&!network.connecting&&WiFi.status()!=WL_CONNECTED)label(12,196,network.wifiNote.substring(0,36),1,GOLD);
  button(12,210,60,26,"<","wifiPrev");button(78,210,84,26,"Rescan","wifiScan");button(168,210,60,26,">","wifiNext");
- button(12,244,104,28,"Back","go:settings");button(124,244,104,28,"More","go:wifiDetails");screen->flush();
+ button(12,244,104,28,"Back","go:settings");button(124,244,104,28,"More","go:wifiDetails");flushScreen();
 }
 bool revealPassword=false;
 String keyboardCharacters(){
@@ -89,7 +92,7 @@ void inputKeyboard(){
  if(password&&!revealPassword){value="";for(unsigned i=0;i<input.length();i++)value+="*";}
  value=utfTail(value,max(0,int(value.length())-32));label(16,66,value.length()?value:"Tap keys below",1,PAPER);
  String chars=keyboardCharacters();for(unsigned i=0;i<chars.length();i++)button(12+(i%6)*36,83+(i/6)*27,33,25,chars[i]==' '?"SP":String(chars[i]),"char:"+String(chars[i]));
- button(12,222,68,25,keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":keyboardPage=="123"?"#+=":"abc","keys");button(86,222,68,25,"Delete","delete");button(160,222,68,25,password?"Connect":"Done","inputdone");button(12,251,216,25,"Cancel","cancelinput");screen->flush();
+ button(12,222,68,25,keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":keyboardPage=="123"?"#+=":"abc","keys");button(86,222,68,25,"Delete","delete");button(160,222,68,25,password?"Connect":"Done","inputdone");button(12,251,216,25,"Cancel","cancelinput");flushScreen();
 }
 void render(){
  if(!minimalPage(page))page="focus";
@@ -101,17 +104,22 @@ void render(){
    button(12,175,216,32,"Confirm pairing","screenPairConfirm");button(12,214,216,28,"Reject / new code","screenPairStart");
   }else{
    label(12,42,network.screenLinked?"Paired":"Enter on website / app");
-   if(network.screenCode.length()){label(82,69,network.screenCode,2,GOLD);label(12,104,"Expires in "+String(max(0,300-int(uint32_t(millis()-network.codeStarted)/1000)))+"s");}
+   if(network.screenCode.length()){
+    rect(16,64,208,56,PAPER);int x=(240-textWidth(network.screenCode,40)-int(network.screenCode.length()-1)*10)/2;
+    for(unsigned char digit:network.screenCode){char glyph[2]={char(digit),0};latinLabel(x,77,String(glyph),40,INK);x+=uiGlyph(digit,40).advance+10;}
+    if(!network.screenPairError.length())label(12,128,"Expires in "+String(max(0,300-int(uint32_t(millis()-network.codeStarted)/1000)))+"s");
+   }
    else label(12,78,network.busy?"Connecting...":"Tap New code to pair");
-   wrap(12,128,network.screenPairError.length()?network.screenPairError:"Website: Connect little mole",35,3);
+   if(network.screenPairError.length())wrap(12,128,network.screenPairError,35,3);
+   else label(12,150,"Website: canele icon");
    button(12,175,216,32,"New code","screenPairStart");button(12,214,216,28,"Revoke paired browsers","screenPairRevoke");
-  }button(12,247,216,28,"Back","go:settings");screen->flush();return;
+  }button(12,247,216,28,"Back","go:settings");flushScreen();return;
  }
  if(page=="confirm"&&confirmation=="finish"){
   targetCount=0;screen->fillScreen(rgb(BG));header("End this session?");
   label(12,48,"Time "+duration(game.state["session"]["elapsed"].as<double>()));label(12,71,"Depth "+String(game.liveDepth(),1)+"m");
   wrap(12,103,"End and save this session. Your time, depth and discoveries stay saved. Next Start begins a new session.",35,6);
-  button(12,201,216,32,"End and save","yes",0x713F38);button(12,242,216,30,"Keep session","cancel");screen->flush();return;
+  button(12,201,216,32,"End and save","yes",0x713F38);button(12,242,216,30,"Keep session","cancel");flushScreen();return;
  }
  if(page=="records"){
   targetCount=0;screen->fillScreen(rgb(BG));header("Discovery records");int count=game.state["history"].size();
@@ -122,12 +130,12 @@ void render(){
    for(int i=0;i<4;i++){int x=12+(i%2)*112,y=88+(i/2)*45;String id=game.catalog["home"]["materials"][i]["id"]|"";sprite("find_"+id,x,y,1);label(x+42,y+7,"x"+String(h["finds"][i].as<int>()));}
    label(12,184,"Rare finds: "+String(h["golden"].size()));
    button(12,211,104,28,"Newer","recordPrev");button(124,211,104,28,"Older","recordNext");
-  }button(12,247,216,28,"Back to mole","go:focus");screen->flush();return;
+  }button(12,247,216,28,"Back to mole","go:focus");flushScreen();return;
  }
  if(page=="displaytest"){
   targetCount=0;screen->fillScreen(rgb(0x267D8C));rect(0,0,240,2,0xFFFFFF);rect(0,278,240,2,0xFFFFFF);rect(0,0,2,280,0xFFFFFF);rect(238,0,2,280,0xFFFFFF);
   rect(35,2,170,5,0xF4DA65);rect(35,273,170,5,0xF4DA65);rect(2,35,5,210,0xF4DA65);rect(233,35,5,210,0xF4DA65);
-  label(48,85,"240 x 280",2);label(36,124,"Full active area");label(36,145,"Top / bottom markers");button(48,198,144,34,"Back","go:settings");screen->flush();return;
+  label(48,85,"240 x 280",2);label(36,124,"Full active area");label(36,145,"Top / bottom markers");button(48,198,144,34,"Back","go:settings");flushScreen();return;
  }
  if(page=="startHelp"){
   targetCount=0;screen->fillScreen(rgb(BG));header("Start digging");
@@ -136,17 +144,17 @@ void render(){
   label(12,87,WiFi.status()==WL_CONNECTED?"Wi-Fi: connected":"Wi-Fi: offline");
   wrap(12,112,!game.mounted?"Initialize storage once to save your digging progress.":!game.clockReady()?"Wi-Fi alone is not enough. Waiting for network time; then tap Start.":game.notice.length()?game.notice:"Ready. Tap Start below.",35,4);
   button(12,174,216,29,!game.mounted?"Initialize storage":"Wi-Fi settings",!game.mounted?"confirm:format":"go:wifi");
-  button(12,212,216,28,"Start","start");button(12,247,216,28,"Back","go:focus");screen->flush();return;
+  button(12,212,216,28,"Start","start");button(12,247,216,28,"Back","go:focus");flushScreen();return;
  }
  if(page=="keyboard"){inputKeyboard();return;}
  if(page=="wifi"){wifiScreen();return;}
  if(page=="wifiDetails"){page="wifi";renderLegacy();page="wifiDetails";return;}
- if(page=="sync"){targetCount=0;screen->fillScreen(rgb(BG));header("Live sync");button(12,43,216,32,network.syncEnabled?"Sync: ON":"Sync: OFF","syncToggle");wrap(12,87,"Read-only viewing link:",35,2);wrap(12,121,"http://"+(network.portal?WiFi.softAPIP():WiFi.localIP()).toString()+"/sync",35,3);wrap(12,176,network.syncError.length()?network.syncError:"Open on your phone. Setup login is shown in Wi-Fi.",35,4);footer();screen->flush();return;}
+ if(page=="sync"){targetCount=0;screen->fillScreen(rgb(BG));header("Live sync");button(12,43,216,32,network.syncEnabled?"Sync: ON":"Sync: OFF","syncToggle");wrap(12,87,"Read-only viewing link:",35,2);wrap(12,121,"http://"+(network.portal?WiFi.softAPIP():WiFi.localIP()).toString()+"/sync",35,3);wrap(12,176,network.syncError.length()?network.syncError:"Open on your phone. Setup login is shown in Wi-Fi.",35,4);footer();flushScreen();return;}
  if(page!="focus"&&page!="settings"){renderLegacy();return;}
  targetCount=0;
  if(page=="focus")diggingScene();
  else {screen->fillScreen(rgb(BG));header("Setup");button(12,45,216,32,"Wi-Fi","go:wifi");button(12,87,216,32,game.mounted?"Save progress":"Initialize storage",game.mounted?"save":"confirm:format");button(12,129,104,32,"Pair screen","go:pairScreen");button(124,129,104,32,"Display test","go:displaytest");if(game.active())button(12,171,216,32,"End session","confirm:finish");footer();}
- screen->flush();
+ flushScreen();
 }
 void command(String cmd){
  if(cmd=="surface"){mineBrowsing=true;mineCamera=-70;mineGesture=false;return;}

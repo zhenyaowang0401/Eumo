@@ -18,6 +18,8 @@ arduino-cli compile --fqbn esp32:esp32:waveshare_esp32_s3_touch_lcd_169:CDCOnBoo
 
 `End and save` 保存并结束后，鼹鼠和画面自动返回地面；计时自然结束也一样。暂停仍停在挖掘位置。已有深度、时间和地道保留，可拖动查看旧地道；再次开始从已挖最深处继续，记录通过顶端记录图标查看。
 
+挖洞场景放大 15%，触摸范围和拖动距离随场景缩放；时间、右下米数和操作按钮不缩放。开机播放网页原有 EUMO 标志、花草背景与约 1.44 秒的进入/淡出动画，主循环继续处理计时和联网。设置文字使用 DM Sans 半粗体，配对码单独使用 40 px 字号并保留前导零。
+
 云端代码必须先发布，详见 `../docs/SCREEN_PAIRING.md`。只连 Wi-Fi 并不等于完成配对或已经把数据送达网页。
 
 网页备份往返导入保留原始会话 ID；已由其他设备同步到网页的记录也会保留来源 ID，避免回传时被当作新的学习奖励。固件不会重置已有深度、时间、收获、FFat 或 NVS 来修复同步。若旧备份缺少对应历史，或同一个会话 ID 存在不同结算结果，会显示 `Backup history incomplete; sync paused` / `Backup history conflicts; sync paused` 并暂停同步及生成配对码。原有存档仍保留，需先导出备份并人工核对，不应靠清空存档或计数器解除提示。
@@ -26,7 +28,7 @@ arduino-cli compile --fqbn esp32:esp32:waveshare_esp32_s3_touch_lcd_169:CDCOnBoo
 
 `Rules.h` / `Game.h` 对应网站 `journey.js` / `treasures.js`；新会话使用 `rewardVersion: 2`，旧会话继续按旧版本结算。`SyncSnapshot.h` 构建协议 v3；`EumoNetwork.h` 执行 HTTPS、扫描 Wi-Fi 和配对；`MinimalUI.h` 是当前显示界面。
 
-`node generate-assets.cjs` 从仓库原像素绘制代码生成 Catalog.h 和 Sprites.h。保留驱动及字体版权声明。设备现有小字号字体是此前的 Pixelify Sans；本分支不回退原网站现在使用的 Silver 字体。
+`node generate-assets.cjs` 从仓库原像素绘制代码生成 Catalog.h 和 Sprites.h。保留驱动及字体版权声明。`python hardware/generate_ui_font.py`（仓库根目录运行，需 Pillow）从仓库已有 DM Sans 生成易读设备字体；网页字体保持原样。`node hardware/generate_startup_assets.cjs` 从原网页 SVG、CSS 与花草图片生成设备开屏资源，需 Chrome、Python/Pillow；可通过 `CHROME_PATH` 指定浏览器。生成资源已经提交，普通 Arduino 编译无需再运行生成器。
 
 在 Windows 设置以下环境变量，再执行 `node tests/run.cjs`：
 

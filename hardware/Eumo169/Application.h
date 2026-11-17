@@ -30,18 +30,26 @@ constexpr uint32_t BG=0x202B2B,PAPER=0xEEE4C9,INK=0x2C3938,GREEN=0x738B65,GOLD=0
 uint16_t rgb(uint32_t c){return ((c>>8)&0xf800)|((c>>5)&0x7e0)|((c>>3)&31);}
 uint32_t hex(const String &s){return strtoul(s.c_str()+(s.startsWith("#")?1:0),nullptr,16);}
 double artAngle=0,artCX=0,artCY=0;float artSquash=1;
+constexpr double SCENE_ZOOM=1.15;
+bool sceneZoom=false;
+int sceneX(int x){return lround(120+(x-120)*SCENE_ZOOM);}
+int sceneY(int y){return lround(180+(y-180)*SCENE_ZOOM);}
+void zoomRect(int &x,int &y,int &w,int &h){int right=sceneX(x+w),bottom=sceneY(y+h);x=sceneX(x);y=sceneY(y);w=right-x;h=bottom-y;}
 void rect(int x,int y,int w,int h,uint32_t c){
- if(fabs(artAngle)<.00001){screen->fillRect(x,y,w,h,rgb(c));return;}
+ if(fabs(artAngle)<.00001){if(sceneZoom)zoomRect(x,y,w,h);screen->fillRect(x,y,w,h,rgb(c));return;}
  int px[4],py[4];for(int i=0;i<4;i++){double a=x+((i==1||i==2)?w:0)-artCX,b=y+(i>=2?h:0)-artCY;px[i]=lround(artCX+a*cos(artAngle)-b*sin(artAngle));py[i]=lround(artCY+a*sin(artAngle)+b*cos(artAngle));}
+ if(sceneZoom)for(int i=0;i<4;i++){px[i]=sceneX(px[i]);py[i]=sceneY(py[i]);}
  screen->fillTriangle(px[0],py[0],px[1],py[1],px[2],py[2],rgb(c));screen->fillTriangle(px[0],py[0],px[2],py[2],px[3],py[3],rgb(c));
 }
 void alphaRect(int x,int y,int w,int h,uint32_t color,double alpha){
+ if(sceneZoom)zoomRect(x,y,w,h);
 #ifdef EUMO_HOST_UI
  screen->alphaRect(x,y,w,h,rgb(color),alpha);
 #else
  uint16_t *pixels=screen->getFramebuffer();for(int yy=max(0,y);yy<min(280,y+h);yy++)for(int xx=max(0,x);xx<min(240,x+w);xx++){uint16_t old=pixels[yy*240+xx];uint32_t r=lround(((old>>11)*255/31)*(1-alpha)+((color>>16)&255)*alpha),g=lround((((old>>5)&63)*255/63)*(1-alpha)+((color>>8)&255)*alpha),b=lround(((old&31)*255/31)*(1-alpha)+(color&255)*alpha);pixels[yy*240+xx]=rgb((r<<16)|(g<<8)|b);}
 #endif
 }
+#include "StartupUI.h"
 bool unicodeText(const String &s){for(unsigned char c:s)if(c>=128)return true;return false;}
 int glyphBytes(uint8_t c){return c<128?1:c<224?2:c<240?3:4;}
 String utfTail(const String &s,int from){from=constrain(from,0,int(s.length()));while(from>0&&from<int(s.length())&&(uint8_t(s[from])&0xc0)==0x80)from--;return s.substring(from);}
@@ -51,7 +59,7 @@ void latinLabel(int x,int y,const String &value,int fontSize,uint32_t color){
 #ifdef EUMO_HOST_UI
  screen->drawing<<"<g aria-label='"<<escaped(value)<<"'>";
 #endif
- const unsigned char *bits=fontSize==20?UI_BITS_20:UI_BITS_12;
+ const unsigned char *bits=fontSize==40?UI_BITS_40:fontSize==20?UI_BITS_20:UI_BITS_12;
  for(unsigned char ch:value){const auto &g=uiGlyph(ch,fontSize);
   for(int yy=0;yy<g.height;yy++)for(int xx=0;xx<g.width;){int at=yy*g.width+xx;auto coverage=[&](int i){int b=bits[g.offset+i/2];return i%2?b&15:b>>4;};int a=coverage(at),run=1;
    while(xx+run<g.width&&coverage(at+run)==a)run++;
@@ -78,7 +86,7 @@ void label(int x,int y,String value,int size=1,uint32_t color=PAPER,bool uniform
   if(displayHasGlyph(cp))screen->print(glyph);else{rect(x+2,y+2,width-4,1,color);rect(x+2,y+12,width-4,1,color);rect(x+2,y+2,1,11,color);rect(x+width-3,y+2,1,11,color);}x+=width;
  }}else{latinLabel(x,y,value,size==1?12:20,color);}
 }
-void wrap(int x,int y,String value,int chars=35,int lines=6,uint32_t color=PAPER){bool u=unicodeText(value);for(int i=0;i<lines&&value.length();i++){int n=fitBytes(value,min(chars*6,230-x),u);if(n<=0)break;int newline=value.indexOf('\n');if(newline>=0&&newline<=n)n=newline;else if(n<int(value.length())&&value[n]!=' '){int space=n-1;while(space>0&&value[space]!=' ')space--;if(space>0)n=space;}label(x,y,value.substring(0,n),1,color,u);value=value.substring(n+(newline==n?1:0));value.trim();y+=u?18:13;}}
+void wrap(int x,int y,String value,int chars=35,int lines=6,uint32_t color=PAPER){bool u=unicodeText(value);for(int i=0;i<lines&&value.length();i++){int n=fitBytes(value,min(chars*6,230-x),u);if(n<=0)break;int newline=value.indexOf('\n');if(newline>=0&&newline<=n)n=newline;else if(n<int(value.length())&&value[n]!=' '){int space=n-1;while(space>0&&value[space]!=' ')space--;if(space>0)n=space;}label(x,y,value.substring(0,n),1,color,u);value=value.substring(n+(newline==n?1:0));value.trim();y+=u?18:15;}}
 void button(int x,int y,int w,int h,const String &title,const String &cmd,uint32_t color=GREEN){rect(x,y,w,h,color);bool u=unicodeText(title);String text=title.substring(0,fitBytes(title,w-8,u));label(x+(w-textWidth(text))/2,y+(h-(u?16:12))/2,text);if(targetCount<64)targets[targetCount++]={x,y,w,h,cmd};}
 String duration(double seconds){unsigned s=max(0.0,seconds);char out[24];snprintf(out,sizeof(out),"%02u:%02u:%02u",s/3600,s/60%60,s%60);return out;}
 const Sprite *findSprite(const String &id){for(auto &s:SPRITES)if(id==s.id)return &s;return nullptr;}
@@ -186,7 +194,7 @@ void renderLegacy(){targetCount=0;screen->fillScreen(rgb(BG));header(page=="focu
  else if(page=="keyboard"){label(12,39,inputPurpose=="password"?pendingSsid.substring(0,fitBytes(pendingSsid,210,unicodeText(pendingSsid))):inputPurpose);wrap(12,57,inputPurpose=="password"?String('*')+String(input.length())+" characters":utfTail(input,max(0,int(input.length())-56)),34,2);String chars=keyboardPage=="abc"?"abcdefghijklmnopqrstuvwxyz .,?!-":keyboardPage=="ABC"?"ABCDEFGHIJKLMNOPQRSTUVWXYZ @#_:/":"0123456789!@#$%^&*()_+-=/:;.,?[]";
   for(unsigned i=0;i<chars.length();i++)button(12+(i%6)*36,91+(i/6)*22,33,20,String(chars[i]),"char:"+String(chars[i]));button(12,225,68,24,keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":"abc","keys");button(86,225,68,24,"Delete","delete");button(160,225,68,24,"Done","inputdone");button(12,253,216,19,"Cancel","cancelinput");}
  if(page!="keyboard")footer();String notice=game.notice.length()?game.notice:network.error;if(notice.length()){rect(8,225,224,14,0x713F38);label(10,228,notice.substring(0,36));}
- screen->flush();
+ flushScreen();
 }
 void commandLegacy(String cmd){
  if(cmd=="trend7"||cmd=="trend30"){trendRange=cmd=="trend7"?7:30;trendPoint=trendRange-1;return;}if(cmd=="trendprev"){trendPoint=max(0,trendPoint-1);return;}if(cmd=="trendnext"){trendPoint=min(trendRange-1,trendPoint+1);return;}
@@ -217,7 +225,7 @@ void commandLegacy(String cmd){
  if(cmd.startsWith("remove:")){network.friendAction("remove",cmd.substring(7));return;}if(cmd=="addfriend"){edit("friend code");return;}if(cmd.startsWith("friendinfo:")){selected=cmd.substring(11);go("friendinfo");return;}if(cmd.startsWith("visit:")){selected=cmd.substring(6);go("visit");return;}
  if(cmd=="ssid"){edit("ssid",network.ssid);return;}if(cmd=="startAP"){network.startPortal();return;}if(cmd=="stopAP"){network.stopPortal();return;}
  if(cmd=="shareChat"){network.shareChat=!network.shareChat;network.prefs.putBool("shareChat",network.shareChat);return;}
- if(cmd=="format"){screen->fillScreen(rgb(BG));label(20,110,"Preparing storage...");screen->flush();bool ok=game.initializeStorage();Serial.printf("EUMO_STORAGE init=%d mounted=%d\n",ok,game.mounted);return;}if(cmd=="save"){game.save();return;}
+ if(cmd=="format"){screen->fillScreen(rgb(BG));label(20,110,"Preparing storage...");flushScreen();bool ok=game.initializeStorage();Serial.printf("EUMO_STORAGE init=%d mounted=%d\n",ok,game.mounted);return;}if(cmd=="save"){game.save();return;}
  if(cmd=="chatinput"){if(!network.busy)edit("message");return;}if(cmd=="chatup"){chatOffset=max(0,chatOffset-175);return;}if(cmd=="chatdown"){chatOffset+=175;return;}if(cmd=="clearChat"){network.chat.clear();network.chat.to<JsonArray>();network.saveChat();chatOffset=0;return;}
  if(cmd.startsWith("char:")){if(input.length()<200)input+=cmd.substring(5);return;}if(cmd=="delete"){if(input.length()){int n=input.length()-1;while(n>0&&(uint8_t(input[n])&0xc0)==0x80)n--;input.remove(n);}return;}if(cmd=="keys"){keyboardPage=keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":"abc";return;}if(cmd=="cancelinput"){page=backPage;return;}
  if(cmd=="inputdone"){
@@ -269,7 +277,7 @@ void pollTouch(){
 }
 
 void appSetup(){Serial.begin(115200);pinMode(15,OUTPUT);digitalWrite(15,LOW);
- if(!screen->begin(20000000)){Serial.println("Display allocation failed; enable PSRAM");return;}screen->setTextWrap(false);digitalWrite(15,HIGH);
+ if(!screen->begin(20000000)){Serial.println("Display allocation failed; enable PSRAM");return;}screen->setTextWrap(false);startupBegin();screen->fillScreen(rgb(BG));flushScreen();digitalWrite(15,HIGH);
  Wire.begin(11,10,400000);Wire.setTimeOut(25);pinMode(13,OUTPUT);digitalWrite(13,LOW);delay(20);digitalWrite(13,HIGH);delay(100);pinMode(14,INPUT_PULLUP);attachInterrupt(digitalPinToInterrupt(14),touched,FALLING);Wire.beginTransmission(0x15);Wire.write(0xfa);Wire.write(0x60);touchOK=Wire.endTransmission()==0;
  game.begin();network.chat.to<JsonArray>();network.begin(game);if(!game.mounted)page="settings";appReady=true;render();Serial.println("EUMO169 native port READY; no website data overwritten.");
 }
@@ -288,4 +296,4 @@ void diagnosticSerial(){
  }else if(c!='\r'){if(n<31)line[n++]=c;else n=0;}}
 }
 
-void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();}network.poll();pollTouch();if(millis()-lastPaint>125){lastPaint=millis();render();}delay(2);}
+void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();}network.poll();pollTouch();if(millis()-lastPaint>(startupActive()?40U:125U)){lastPaint=millis();render();}delay(2);}
