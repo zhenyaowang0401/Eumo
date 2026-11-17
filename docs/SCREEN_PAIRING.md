@@ -40,6 +40,21 @@ git pull --ff-only origin codex/screen-pairing-records
 
 此前的 `api/device.js` / `database/device_pairing.sql` 属于旧的朋友身份配对，与本流程不同。**四位挖掘配对不需要执行那个 SQL**，也不需要打开小屏幕 Chat。
 
+### 倒计时显示更新与兼容
+
+新版固件在 v3 同步快照中增加两个可选的显示字段，单位均为秒：
+
+| 字段 | 含义 |
+| --- | --- |
+| `sessionPlannedSeconds` | 当前会话计划时长；没有进行中的会话时为下次选择的分钟数 × 60 |
+| `sessionRemaining` | 当前会话剩余时间，即 `max(0, 计划时长 − 已用时间)`；没有进行中的会话时为下次选择的完整时长 |
+
+两项字段须一起提供，均为有限数值。计划时长必须大于 0 且不超过 7200 秒，剩余时间须在 0 到计划时长之间；这也兼容原来的 15 秒演示及合法的短时长导入会话。网页按设备最近一次上报的剩余秒数向上取整显示倒计时，暂停或离线时不会在浏览器里自行继续减少；显示更新受正常上传和读取间隔影响。
+
+**已部署配对服务的项目，这次无需新增 SQL 或重建数据库。** 需要将 `app.js`、`device-progress.js` 与 `api/dig-sync.js` 一起重新发布，并刷入包含新字段的固件。旧版 `/api/dig-sync` 会过滤未知字段：只刷固件或只更新网页都不足以让配对网页显示倒计时。离线 HTML 已按当前源代码重新打包；桌面 APP 仍需重新构建并发布安装包。
+
+没有这两项字段的旧快照继续按 `sessionElapsed` 显示正计时，旧设备和旧接口仍可同步。新字段只影响计时显示，不替换 `sessionElapsed`、累计 `seconds`、深度、每日记录、奖励或原始会话 ID，也不修改 v3 累计计数和去重凭据。不要重置学习时间、深度或存储来切换计时方式。
+
 ## 与原网站相同的规则
 
 规则源：`journey.js` 和 `treasures.js`。ESP32 使用相同算法的 C++ 实现；测试直接运行原 JavaScript 生成预期值，并对比设备实际结算。
@@ -71,7 +86,7 @@ git pull --ff-only origin codex/screen-pairing-records
 
 ## 验收与测试
 
-`npm run test:device` 验证真实 PostgreSQL SQL（PGlite）、API、四位码过期 / 确认 / 限流、导入去重、旧身份迁移、桌面 Bearer 转发及存档写入失败回滚。
+`npm run test:device` 验证真实 PostgreSQL SQL（PGlite）、API、四位码过期 / 确认 / 限流、导入去重、旧身份迁移、桌面 Bearer 转发及存档写入失败回滚；同时覆盖可选倒计时字段的校验与 API 往返、离线停止变化、旧正计时数据兼容，以及显示字段变化不会重复累计进度。
 
 `node tests/verify_device_browser.cjs` 使用独立临时 Chrome 资料目录，真实打开原网页，模拟设备 HTTP 响应。可用 `EUMO_CHROME_PATH` 指定 Chrome/Chromium 路径。覆盖四位码、导入确认、等待实体确认、取消/拒绝/过期、503 不误报连接、离线图标、奖励去重、刷新恢复、原子写入失败、断开后恢复独立计时，以及多标签页浏览和自动接手。它不是公网与实体设备联调。
 

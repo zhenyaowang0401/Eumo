@@ -24,7 +24,7 @@ function createHandler({env=process.env,fetchImpl=fetch}={}){return async(req,re
   const options={method:'POST',headers,signal:AbortSignal.timeout(10000)};
   if(b.action==='publish'){
    const normalized=b.snapshot.version?validateSnapshot(b.snapshot):null;
-   options.body=JSON.stringify({p_writer:hash(secret),p_viewer:hash(b.viewerToken),p_sequence:b.sequence,p_snapshot:{depth:b.snapshot.depth,seconds:b.snapshot.seconds,status:b.snapshot.status,color:b.snapshot.color,name:b.snapshot.name,equipped:b.snapshot.equipped,tool:b.snapshot.tool,...(normalized?{version:b.snapshot.version,sessionElapsed:b.snapshot.sessionElapsed,reportDays:normalized.reportDays,...(b.snapshot.version===3?{earned:normalized.earned,records:normalized.records}:{})}:{})}});
+   options.body=JSON.stringify({p_writer:hash(secret),p_viewer:hash(b.viewerToken),p_sequence:b.sequence,p_snapshot:{depth:b.snapshot.depth,seconds:b.snapshot.seconds,status:b.snapshot.status,color:b.snapshot.color,name:b.snapshot.name,equipped:b.snapshot.equipped,tool:b.snapshot.tool,...(normalized?{version:b.snapshot.version,sessionElapsed:b.snapshot.sessionElapsed,reportDays:normalized.reportDays,...(normalized.sessionRemaining!==undefined?{sessionPlannedSeconds:normalized.sessionPlannedSeconds,sessionRemaining:normalized.sessionRemaining}:{}),...(b.snapshot.version===3?{earned:normalized.earned,records:normalized.records}:{})}:{})}});
   }else options.body=JSON.stringify({p_reader:hash(secret)});
   const r=await fetchImpl(base.origin+'/rest/v1/'+path,options);if(!r.ok)throw Error();const result=await r.json();
   if(b.action==='publish')return send(res,200,{accepted:result===true});

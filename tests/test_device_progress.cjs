@@ -28,3 +28,46 @@ test('keeps rounding high water, daily distribution and active session baseline'
  const p=packet(3,142,4260);p.snapshot.reportDays['2026-11-16'].seconds=4200;p.snapshot.reportDays['2026-11-17']={seconds:60};
  const next=merge(state,id,p).state;assert.equal(next.session.baseDepth,242);assert.equal(next.session.status,'paused');assert.equal(next.reportDays['2026-11-17'].seconds,60);
 });
+test('optional countdown metadata is validated without changing cumulative receipts',()=>{
+ const p=packet();p.snapshot.sessionPlannedSeconds=1500;p.snapshot.sessionRemaining=1409.25;
+ assert.equal(validateSnapshot(p.snapshot).sessionRemaining,1409.25);
+ let state=merge(initial(),id,p).state;
+ assert.equal(state.deviceImports[id].sessionRemaining,undefined);
+ assert.equal(state.deviceImports[id].sessionPlannedSeconds,undefined);
+ const next=packet(2);next.snapshot.sessionPlannedSeconds=1800;next.snapshot.sessionRemaining=1709.25;
+ const extended=merge(state,id,next);assert.equal(extended.depth,0);assert.equal(extended.seconds,0);
+ assert.equal(extended.state.totalSeconds,state.totalSeconds);assert.equal(extended.state.depth,state.depth);
+ // Old v2 packets with no display metadata remain valid after a new packet.
+ assert.equal(merge(extended.state,id,packet(3)).seconds,0);
+ for(const [planned,remaining]of [[15,15],[15,0],[120,90],[7200,7200]]){
+  assert.equal(validateSnapshot({...p.snapshot,sessionPlannedSeconds:planned,sessionRemaining:remaining}).sessionRemaining,remaining);
+ }
+ for(const fields of [
+  {sessionPlannedSeconds:1500},{sessionRemaining:900},
+  {sessionPlannedSeconds:0,sessionRemaining:0},{sessionPlannedSeconds:7201,sessionRemaining:7000},
+  {sessionPlannedSeconds:1500,sessionRemaining:-1},{sessionPlannedSeconds:1500,sessionRemaining:1501},
+  {sessionPlannedSeconds:'1500',sessionRemaining:900},{sessionPlannedSeconds:1500,sessionRemaining:null},
+  {sessionPlannedSeconds:Infinity,sessionRemaining:900},{sessionPlannedSeconds:1500,sessionRemaining:NaN}
+ ])assert.throws(()=>validateSnapshot({...packet().snapshot,...fields}),/INVALID_DEVICE_TIMER/);
+});
+test('paired timer renders the received countdown and freezes offline, with legacy fallback',()=>{
+ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+ const source=fs.readFileSync(path.join(__dirname,'../app.js'),'utf8');
+ const render=source.match(/function renderDeviceTimer\(\)\{[\s\S]*?\n\}/)[0];
+ const nodes=new Map(),get=selector=>{
+  if(!nodes.has(selector))nodes.set(selector,{setAttribute(key,value){this[key]=value;}});
+  return nodes.get(selector);
+ };
+ const context=vm.createContext({$:get,$$:()=>[],EumoI18n:{t:s=>s},deviceControl:true,
+  deviceActivity:{until:Date.now()+20000,snapshot:{status:'digging',sessionElapsed:90.75,sessionPlannedSeconds:1500,sessionRemaining:1409.25}},
+  deviceIsDigging:()=>true});
+ vm.runInContext(render,context);
+ const draw=()=>vm.runInContext('renderDeviceTimer()',context);
+ draw();assert.equal(get('#timeDisplay').textContent,'23:30');assert.match(get('#timeDisplay')['aria-label'],/remaining$/);
+ context.deviceActivity.until=0;draw();assert.equal(get('#timeDisplay').textContent,'23:30');assert.equal(get('#timerLabel').textContent,'canele offline');
+ context.deviceActivity.snapshot.status='paused';draw();assert.equal(get('#timeDisplay').textContent,'23:30');
+ context.deviceActivity.snapshot={status:'idle',sessionElapsed:90.75,sessionPlannedSeconds:1800,sessionRemaining:1800};
+ draw();assert.equal(get('#timeDisplay').textContent,'30:00');
+ context.deviceActivity.snapshot={status:'paused',sessionElapsed:90.75};
+ draw();assert.equal(get('#timeDisplay').textContent,'01:30');assert.match(get('#timeDisplay')['aria-label'],/elapsed$/);
+});

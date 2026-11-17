@@ -77,6 +77,26 @@ public:
  double liveDepth()const{auto t=state["session"];return state["depth"].as<double>()+Rules::depth(uint64_t(t["elapsed"].as<double>()*1000+.5),eligible(t),t["demo"]|false);}
  double worldDepth()const{return max(0.0,liveDepth()-state["surfaceDepth"].as<double>());}
  double remaining()const{return active()?max(0.0,state["session"]["plannedSeconds"].as<double>()-state["session"]["elapsed"].as<double>()):state["minutes"].as<int>()*60;}
+ // The website timer displays whole seconds remaining and changes duration in
+ // five-minute steps. Extending a session changes its plan, never its earnings.
+ unsigned remainingSeconds()const{return unsigned(ceil(remaining()));}
+ bool canAdjustMinutes(int delta)const{
+  if(delta!=5&&delta!=-5)return false;
+  if(active())return delta==5&&!state["session"]["demo"].as<bool>()&&remaining()>0&&state["session"]["plannedSeconds"].as<double>()<7200;
+  int minutes=state["minutes"]|25;return delta>0?minutes<120:minutes>5;
+ }
+ bool adjustMinutes(int delta){
+  if(delta!=5&&delta!=-5)return false;
+  bool hadSession=active();tick(millis());
+  // A tap at the deadline must not resurrect a session already settled by tick.
+  if(hadSession&&!active())return false;
+  if(!canAdjustMinutes(delta))return false;
+  if(active()){
+   state["session"]["plannedSeconds"]=min(7200.0,state["session"]["plannedSeconds"].as<double>()+300);
+   state["session"]["remaining"]=remaining();
+  }else state["minutes"]=max(5,min(120,(state["minutes"]|25)+delta));
+  return save();
+ }
  void start(bool demo=false){
   if(running()){state["session"]["status"]="paused";save();return;}
   if(!clockReady()&&!demo){notice="Set clock / connect Wi-Fi first";return;}
@@ -88,7 +108,7 @@ public:
   t["baseDepth"]=state["depth"];t["rareSeed"]=state["rareSeed"];t["task"]=state["lastTask"];t["daySeconds"].to<JsonObject>();previous=millis();save();
  }
  void tick(uint32_t mono){uint32_t delta=mono-previous;previous=mono;if(!running())return;
-  JsonObject t=state["session"];double ms=min(double(delta),remaining()*1000);if(ms<=0){finish(true);return;}
+  JsonObject t=state["session"];double ms=min(double(delta),remaining()*1000);if(ms<=0){if(remaining()<=0)finish(true);return;}
   t["elapsed"]=round((t["elapsed"].as<double>()+ms/1000)*1000)/1000;t["remaining"]=remaining();
   if(formal(t)&&clockReady()){
    uint64_t until=nowMs(),cursor=until-uint64_t(ms);

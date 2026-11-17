@@ -5,9 +5,41 @@
 #undef time
 void init(Game &g){g.defaults();deserializeJson(g.catalog,CATALOG_JSON);g.mounted=true;g.previous=testMillis;}
 void advance(Game &g,uint32_t ms){testMillis+=ms;testEpoch+=ms;g.tick(testMillis);}
+void testDurationControls(){
+ Game timer;init(timer);assert(timer.remainingSeconds()==1500);
+ assert(timer.adjustMinutes(5)&&timer.state["minutes"]==30&&timer.remainingSeconds()==1800);
+ assert(timer.adjustMinutes(-5)&&timer.state["minutes"]==25);
+ assert(!timer.adjustMinutes(1)&&timer.state["minutes"]==25);
+ timer.state["minutes"]=5;assert(!timer.canAdjustMinutes(-5)&&!timer.adjustMinutes(-5));
+ timer.state["minutes"]=120;assert(!timer.canAdjustMinutes(5)&&!timer.adjustMinutes(5));
+ assert(timer.adjustMinutes(-5));Game idleReload;idleReload.begin();assert(!idleReload.active()&&idleReload.state["minutes"]==115);
+ timer.state["minutes"]=5;timer.start();timer.tick(testMillis);assert(timer.running()&&timer.remainingSeconds()==300);
+ advance(timer,1250);assert(timer.remainingSeconds()==299);
+ String id=timer.state["session"]["id"].as<String>();double elapsed=timer.state["session"]["elapsed"].as<double>(),depth=timer.liveDepth();
+ assert(timer.adjustMinutes(5)&&timer.running()&&timer.remainingSeconds()==599);
+ assert(timer.state["session"]["plannedSeconds"]==600&&timer.state["session"]["elapsed"].as<double>()==elapsed);
+ assert(timer.state["session"]["id"]==id&&timer.liveDepth()==depth&&timer.state["balance"]==0&&timer.state["history"].size()==0);
+ assert(!timer.canAdjustMinutes(-5)&&!timer.adjustMinutes(-5)&&timer.remainingSeconds()==599);
+ timer.start();assert(timer.active()&&!timer.running());advance(timer,20000);
+ assert(timer.adjustMinutes(5)&&!timer.running()&&timer.remainingSeconds()==899);
+ assert(!timer.adjustMinutes(-5)&&timer.state["session"]["elapsed"].as<double>()==elapsed&&timer.liveDepth()==depth);
+ Game reloaded;reloaded.begin();assert(reloaded.active()&&!reloaded.running());
+ assert(reloaded.state["session"]["id"]==id&&reloaded.state["session"]["plannedSeconds"]==900);
+ assert(reloaded.remainingSeconds()==899&&reloaded.state["session"]["elapsed"].as<double>()==elapsed);
+ timer.state["session"]["plannedSeconds"]=7190;assert(timer.adjustMinutes(5)&&timer.state["session"]["plannedSeconds"]==7200);
+ assert(!timer.canAdjustMinutes(5)&&!timer.adjustMinutes(5));
+ Game demo;init(demo);demo.start(true);assert(!demo.canAdjustMinutes(5)&&!demo.adjustMinutes(5));assert(demo.remainingSeconds()==15);
+ // Time since the last frame is accounted before a plus tap; completion still
+ // credits exactly once and cannot be extended after its original deadline.
+ Game edge;init(edge);edge.state["minutes"]=5;edge.start();testMillis+=300000;testEpoch+=300000;
+ assert(!edge.adjustMinutes(5)&&!edge.active());assert(edge.state["minutes"]==5);
+ assert(edge.state["history"].size()==1&&edge.state["history"][0]["seconds"]==300&&edge.state["history"][0]["outcome"]=="complete");
+ auto stars=edge.state["balance"].as<int>();edge.tick(testMillis);edge.finish();assert(edge.state["history"].size()==1&&edge.state["balance"]==stars);
+}
 int main(){
  std::cerr.precision(17);
  setTestTimezone();FFat.begin();
+ testDurationControls();
  Game g;init(g);g.start();advance(g,300000);assert(g.state["session"]["elapsed"]==300);assert(g.liveDepth()==10);g.finish();assert(g.state["balance"]==1);assert(g.state["depth"]==10);assert(g.state["eligibleSeconds"]==300);
  g.finish();assert(g.state["balance"]==1);assert(g.state["history"].size()==1);
  g.start();assert(g.state["session"]["rewardVersion"]==2);g.state["session"]["rewardVersion"]=1;advance(g,300000);g.finish();assert(g.state["balance"]==2);int finds=0;for(auto x:g.state["inventory"].as<JsonArray>())finds+=x.as<int>();assert(finds==1);
@@ -61,5 +93,5 @@ int main(){
  String completedDay=Game::day(testEpoch/1000);assert(completion.state["history"][0]["completedDay"]==completedDay);assert(completion.state["reportDays"][completedDay]["completed"]==1);
  assert(fillDigSnapshot(completion,payload.to<JsonObject>()));assert(payload["records"][0]["completedDay"]==completedDay);
  sync.start();advance(sync,30000);assert(fillDigSnapshot(sync,payload.to<JsonObject>()));assert(payload["depth"]==21&&payload["seconds"]==630&&payload["status"]=="digging");
- std::cout<<"PASS: "<<cases<<" original-JavaScript reward fixtures; settlement once, demo exclusion, pause, rollover, midnight, purchases, craft reservations, slots, sale reservations, import rollback, reboot checkpoint, original-ID backup round trips, ambiguous-history sync guard, completed-day provenance, actual device protocol snapshot\n";
+ std::cout<<"PASS: "<<cases<<" original-JavaScript reward fixtures; countdown bounds, live/paused extension, zero-delta ticks, deadline settlement once, demo exclusion, pause, rollover, midnight, purchases, craft reservations, slots, sale reservations, import rollback, reboot checkpoint, original-ID backup round trips, ambiguous-history sync guard, completed-day provenance, actual device protocol snapshot\n";
 }

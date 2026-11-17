@@ -33,6 +33,20 @@ test('actual SQL: ordered snapshots, read-only token, RLS and validation',async(
  assert.equal((await request({action:'publish',sequence:6,viewerToken:viewer,snapshot:v3})).accepted,true);
  read=await request({action:'read'},viewer);assert.deepEqual(read.snapshot.records,[h]);assert.equal(read.snapshot.earned.golden['moon-globe'],1);assert.match(read.deviceId,/^[a-f0-9]{64}$/);
  assert.equal((await request({action:'publish',sequence:7,viewerToken:viewer,snapshot:{...v3,earned:{...v3.earned,stars:99}}})).status,400);
+ const countdown={...v3,sessionPlannedSeconds:1500,sessionRemaining:1410};
+ assert.equal((await request({action:'publish',sequence:7,viewerToken:viewer,snapshot:countdown})).accepted,true);
+ read=await request({action:'read'},viewer);
+ assert.equal(read.snapshot.sessionPlannedSeconds,1500);assert.equal(read.snapshot.sessionRemaining,1410);
+ assert.equal(read.snapshot.sessionElapsed,90);assert.equal(read.snapshot.seconds,90);assert.equal(read.snapshot.depth,12.5);
+ assert.deepEqual(read.snapshot.earned,v3.earned);assert.deepEqual(read.snapshot.records,[h]);
+ for(const patch of [{sessionRemaining:1501},{sessionRemaining:-1},{sessionPlannedSeconds:7201},{sessionPlannedSeconds:null}]){
+  assert.equal((await request({action:'publish',sequence:8,viewerToken:viewer,snapshot:{...countdown,...patch}})).status,400);
+ }
+ assert.equal((await request({action:'publish',sequence:8,viewerToken:viewer,snapshot:{...v3,sessionRemaining:1410}})).status,400);
+ assert.equal((await request({action:'publish',sequence:8,viewerToken:viewer,snapshot:{...v3,sessionPlannedSeconds:1500}})).status,400);
+ // Older firmware can still publish, without inheriting stale countdown fields.
+ assert.equal((await request({action:'publish',sequence:8,viewerToken:viewer,snapshot:v3})).accepted,true);
+ read=await request({action:'read'},viewer);assert.equal(read.snapshot.sessionRemaining,undefined);assert.equal(read.snapshot.sessionPlannedSeconds,undefined);
  for(const role of ['anon','authenticated']){await db.exec('set role '+role);await assert.rejects(db.query('select * from eumo_dig_streams'),/permission denied/);await assert.rejects(db.query("select eumo_publish_dig('a','b',1,'{}')"),/permission denied/);await db.exec('reset role');}
  }finally{await db.close();}
 });

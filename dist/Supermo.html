@@ -4372,7 +4372,14 @@ window.DesktopUpdates=(()=>{
  }
  function validateSnapshot(s){
   if(!object(s)||!finite(s.sessionElapsed)||![2,3].includes(s.version)||!finite(s.depth)||!finite(s.seconds)||!['digging','paused','idle'].includes(s.status))throw Error('UPDATE_DEVICE_FIRMWARE');
-  return {depth:s.depth,seconds:s.seconds,reportDays:days(s.reportDays),...(s.version===3?Records.validate(s):{})};
+  const timer={};
+  if('sessionPlannedSeconds' in s||'sessionRemaining' in s){
+   // Imports may contain short sessions, including the original 15-second demo.
+   // Accept both optional fields together without changing cumulative receipts.
+   if(!Number.isFinite(s.sessionPlannedSeconds)||s.sessionPlannedSeconds<=0||s.sessionPlannedSeconds>7200||!Number.isFinite(s.sessionRemaining)||s.sessionRemaining<0||s.sessionRemaining>s.sessionPlannedSeconds)throw Error('INVALID_DEVICE_TIMER');
+   timer.sessionPlannedSeconds=s.sessionPlannedSeconds;timer.sessionRemaining=s.sessionRemaining;
+  }
+  return {depth:s.depth,seconds:s.seconds,reportDays:days(s.reportDays),...timer,...(s.version===3?Records.validate(s):{})};
  }
  function merge(state,id,packet){
   if(!/^[a-f0-9]{64}$/.test(id)||!Number.isSafeInteger(packet.sequence)||packet.sequence<1)throw Error('INVALID_DEVICE_PACKET');
@@ -4408,7 +4415,7 @@ window.DesktopUpdates=(()=>{
    for(const field of fields)target[field]=(target[field]||0)+credit(day[field],old.reportDays[date]?.[field]||0,overlap?.reportDays[date]?.[field]||0);
   }
   Records.merge(next,id,current,previous,prepared);
-  const {records,...receipt}=current;
+  const {records,sessionPlannedSeconds,sessionRemaining,...receipt}=current;
   // Legacy v2 snapshots may update time/depth, but never erase the last known
   // reward settlement or session ledger before a later v3 snapshot arrives.
   if(!current.earned&&previous?.earned)receipt.earned=JSON.parse(JSON.stringify(previous.earned));
@@ -4493,7 +4500,7 @@ let saveOwnerReady=true,saveOwner=true,releaseSaveOwner=null,requestingSaveOwner
 let pendingIdleSave=null,idleSavePromise=null;
 let savedStateStamp=null;try{savedStateStamp=localStorage.getItem(STORAGE_KEY);}catch{}
 const readonlyControls=new Map();let ownerRecoveryPending=false;
-const progressControls='#startButton,#stopButton,#confirmStop,#minusTime,#plusTime,#demoButton,[data-mode],#taskInput,#editHomeButton,#clearHomeSlot,[data-item],[data-tool],#resetTool,#removeOutfit,[data-home-item],[data-theme],[data-hold],[data-display-treasure],[data-store-treasure],[data-sell-treasure],#putBackButton,#putBackTreasure,[data-place-crafted],#confirmCraft,#confirmTreasureSale,#finishTodayButton,#closeTodayButton,#claimButton,#outcomeInput,#petName,#petColor,[data-color],#enterGame,#importProgress,#saveTransferFile';
+const progressControls='#startButton,#stopButton,#confirmStop,#minusTime,#plusTime,#demoButton,[data-mode],#taskInput,#editHomeButton,#clearHomeSlot,[data-item],[data-tool],#resetTool,#removeOutfit,[data-home-item],[data-theme],[data-hold],[data-display-treasure],[data-store-treasure],[data-sell-treasure],#putBackButton,#putBackTreasure,[data-place-crafted],#confirmCraft,#confirmTreasureSale,#finishTodayButton,#outcomeInput,#petName,#petColor,[data-color],#enterGame,#importProgress,#saveTransferFile';
 function sharedOwner(){try{const value=JSON.parse(localStorage.getItem(SAVE_OWNER_KEY)||'null');return value&&typeof value.id==='string'?value:null;}catch{return null;}}
 function otherProgressOwner(){const owner=sharedOwner();return !!owner&&owner.id!==saveTabId;}
 function mayWriteProgress(){return canSave&&!otherProgressOwner()&&(!navigator.locks||!!releaseSaveOwner||state.session?.status!=='running');}
@@ -4626,8 +4633,12 @@ window.DeviceImportBridge={
 function renderDeviceTimer(){
  $('#startButton').disabled=deviceControl;
  if(!deviceControl)return;
- const s=deviceActivity.snapshot,elapsed=Math.floor(s?.sessionElapsed||0);
- $('#timeDisplay').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
+ const s=deviceActivity.snapshot,countdown=Number.isFinite(s?.sessionRemaining)&&Number.isFinite(s?.sessionPlannedSeconds);
+ // Display the device's last reported time. Never invent offline/local ticks.
+ // Older firmware/API responses retain their original elapsed-time fallback.
+ const seconds=countdown?Math.ceil(s.sessionRemaining):Math.floor(s?.sessionElapsed||0),minutes=Math.floor(seconds/60),remainder=seconds%60;
+ $('#timeDisplay').textContent=String(minutes).padStart(2,'0')+':'+String(remainder).padStart(2,'0');
+ $('#timeDisplay').setAttribute('aria-label',`${minutes} minutes ${remainder} seconds ${countdown?'remaining':'elapsed'}`);
  $('#timerLabel').textContent=EumoI18n.t(Date.now()>=deviceActivity.until?'canele offline':deviceIsDigging()?'canele digging':s?.status==='idle'?'canele ended':'canele paused');
  $('#startText').textContent=EumoI18n.t('Use canele');$('#durationLabel').textContent=EumoI18n.t('Synced from your canele');
  $('#minusTime').disabled=true;$('#plusTime').disabled=true;$('#demoButton').hidden=true;$$('[data-mode]').forEach(b=>b.disabled=true);

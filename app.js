@@ -202,8 +202,12 @@ window.DeviceImportBridge={
 function renderDeviceTimer(){
  $('#startButton').disabled=deviceControl;
  if(!deviceControl)return;
- const s=deviceActivity.snapshot,elapsed=Math.floor(s?.sessionElapsed||0);
- $('#timeDisplay').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
+ const s=deviceActivity.snapshot,countdown=Number.isFinite(s?.sessionRemaining)&&Number.isFinite(s?.sessionPlannedSeconds);
+ // Display the device's last reported time. Never invent offline/local ticks.
+ // Older firmware/API responses retain their original elapsed-time fallback.
+ const seconds=countdown?Math.ceil(s.sessionRemaining):Math.floor(s?.sessionElapsed||0),minutes=Math.floor(seconds/60),remainder=seconds%60;
+ $('#timeDisplay').textContent=String(minutes).padStart(2,'0')+':'+String(remainder).padStart(2,'0');
+ $('#timeDisplay').setAttribute('aria-label',`${minutes} minutes ${remainder} seconds ${countdown?'remaining':'elapsed'}`);
  $('#timerLabel').textContent=EumoI18n.t(Date.now()>=deviceActivity.until?'canele offline':deviceIsDigging()?'canele digging':s?.status==='idle'?'canele ended':'canele paused');
  $('#startText').textContent=EumoI18n.t('Use canele');$('#durationLabel').textContent=EumoI18n.t('Synced from your canele');
  $('#minusTime').disabled=true;$('#plusTime').disabled=true;$('#demoButton').hidden=true;$$('[data-mode]').forEach(b=>b.disabled=true);

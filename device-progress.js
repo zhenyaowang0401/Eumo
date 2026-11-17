@@ -15,7 +15,14 @@
  }
  function validateSnapshot(s){
   if(!object(s)||!finite(s.sessionElapsed)||![2,3].includes(s.version)||!finite(s.depth)||!finite(s.seconds)||!['digging','paused','idle'].includes(s.status))throw Error('UPDATE_DEVICE_FIRMWARE');
-  return {depth:s.depth,seconds:s.seconds,reportDays:days(s.reportDays),...(s.version===3?Records.validate(s):{})};
+  const timer={};
+  if('sessionPlannedSeconds' in s||'sessionRemaining' in s){
+   // Imports may contain short sessions, including the original 15-second demo.
+   // Accept both optional fields together without changing cumulative receipts.
+   if(!Number.isFinite(s.sessionPlannedSeconds)||s.sessionPlannedSeconds<=0||s.sessionPlannedSeconds>7200||!Number.isFinite(s.sessionRemaining)||s.sessionRemaining<0||s.sessionRemaining>s.sessionPlannedSeconds)throw Error('INVALID_DEVICE_TIMER');
+   timer.sessionPlannedSeconds=s.sessionPlannedSeconds;timer.sessionRemaining=s.sessionRemaining;
+  }
+  return {depth:s.depth,seconds:s.seconds,reportDays:days(s.reportDays),...timer,...(s.version===3?Records.validate(s):{})};
  }
  function merge(state,id,packet){
   if(!/^[a-f0-9]{64}$/.test(id)||!Number.isSafeInteger(packet.sequence)||packet.sequence<1)throw Error('INVALID_DEVICE_PACKET');
@@ -51,7 +58,7 @@
    for(const field of fields)target[field]=(target[field]||0)+credit(day[field],old.reportDays[date]?.[field]||0,overlap?.reportDays[date]?.[field]||0);
   }
   Records.merge(next,id,current,previous,prepared);
-  const {records,...receipt}=current;
+  const {records,sessionPlannedSeconds,sessionRemaining,...receipt}=current;
   // Legacy v2 snapshots may update time/depth, but never erase the last known
   // reward settlement or session ledger before a later v3 snapshot arrives.
   if(!current.earned&&previous?.earned)receipt.earned=JSON.parse(JSON.stringify(previous.earned));

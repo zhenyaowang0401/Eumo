@@ -1,8 +1,37 @@
 #pragma once
 // Only these pages are reachable on the simplified device. The saved original
 // game data stays intact so existing web equipment and progress are not lost.
-bool minimalPage(const String &p){return p=="pairScreen"||p=="records"||p=="displaytest"||p=="startHelp"||p=="wifiDetails"||p=="sync"||p=="focus"||p=="settings"||p=="wifi"||p=="keyboard"||p=="confirm";}
+bool minimalPage(const String &p){return p=="pairScreen"||p=="records"||p=="timer"||p=="startHelp"||p=="wifiDetails"||p=="sync"||p=="focus"||p=="settings"||p=="wifi"||p=="keyboard"||p=="confirm";}
 void iconTarget(int x,int y,int w,int h,const String &cmd){if(targetCount<64)targets[targetCount++]={x,y,w,h,cmd};}
+String countdownText(){unsigned seconds=game.remainingSeconds();char value[16];snprintf(value,sizeof(value),"%02u:%02u",seconds/60,seconds%60);return value;}
+void wifiIcon(int cx,int cy,uint32_t color){
+ for(int y=-36;y<=3;y++)for(int x=-36;x<=36;x++){
+  int d=x*x+y*y;bool dot=d<=16;
+  bool arc=y<0&&abs(x)<=-y&&((d<=1296&&d>=1024)||(d<=576&&d>=400)||(d<=144&&d>=64));
+  if(dot||arc)rect(cx+x,cy+y,1,1,color);
+ }
+}
+void settingsScreen(){
+ targetCount=0;screen->fillScreen(rgb(BG));header("Setup");
+ button(12,45,216,84,"","go:wifi");wifiIcon(120,109,PAPER);
+ button(12,141,216,84,"","go:pairScreen");
+ label((240-textWidth("Connect your",20))/2,159,"Connect your",2);
+ label((240-textWidth("canele",20))/2,188,"canele",2);
+ button(12,236,216,40,"Back","go:focus");flushScreen();
+}
+void timerScreen(){
+ targetCount=0;screen->fillScreen(rgb(BG));header("Timer");String clock=countdownText();
+ latinLabel((240-textWidth(clock,40))/2,54,clock,40,PAPER);
+ String state=game.running()?"remaining":game.active()?"paused":"ready";label((240-textWidth(state))/2,96,state);
+ bool minus=game.canAdjustMinutes(-5),plus=game.canAdjustMinutes(5);
+ rect(12,124,56,60,minus?GREEN:0x40514C);rect(172,124,56,60,plus?GREEN:0x40514C);
+ rect(28,152,24,4,minus?PAPER:0x87948B);rect(188,152,24,4,plus?PAPER:0x87948B);rect(198,142,4,24,plus?PAPER:0x87948B);
+ if(minus)iconTarget(12,124,56,60,"minus");if(plus)iconTarget(172,124,56,60,"plus");
+ int minutes=game.active()?int(lround(game.state["session"]["plannedSeconds"].as<double>()/60)):game.state["minutes"].as<int>();
+ String value=String(minutes);label((240-textWidth(value,20))/2,137,value,2);label((240-textWidth("min"))/2,165,"min");
+ wrap(12,198,game.dirty&&game.notice.length()?game.notice:game.active()?"Add 5 minutes. End to set a shorter timer.":"5 to 120 min. Changes save automatically.",35,2);
+ button(12,232,216,44,"Back to mole","go:focus");flushScreen();
+}
 #include "PetMotion.h"
 #include "TerrainArt.h"
 // Camera only: browsing never edits depth, elapsed time, or the running session.
@@ -39,19 +68,19 @@ void diggingScene(){
  int cx=120+int(lround(sin(max(0.0,moleDepth)*.13)*3))*4,my=end-camera-43-petLift();
  rect(cx-22,end-camera+7,48,4,0x13162d);
  artCX=cx-25+27;artCY=my+32;artAngle=petAngle();mole(cx-25,my,2);artAngle=0;
- int petTop=max(36,sceneY(my-14)),petBottom=min(228,sceneY(my+70));
+ int petTop=max(44,sceneY(my-14)),petBottom=min(228,sceneY(my+70));
  if(petBottom>petTop)iconTarget(sceneX(cx-32),petTop,sceneX(cx+48)-sceneX(cx-32),petBottom-petTop,"moleJump");
  if(game.running())for(int i=0;i<5;i++){int k=(frame+i*3)%12,dir=i%2?1:-1;rect(cx+dir*(14+k*3),end-camera-5-int(floor(sin(k/12.0*3.141592653589793)*18)),3+(i%2)*2,3,0xc1a16e);}
  sceneZoom=false;
- // Elapsed session time stays visible, including after pausing/finishing.
- double elapsed=game.active()?game.state["session"]["elapsed"].as<double>():game.state["history"][0]["seconds"].as<double>();
- String clock=duration(elapsed);int clockW=textWidth(clock,20);rect(224-clockW-6,8,clockW+12,28,0x302E39);label(224-clockW,10,clock,2);
+ // Countdown follows the original web timer; the complete elapsed record is saved.
+ String clock=countdownText();int clockW=textWidth(clock,20);rect(224-clockW-6,8,clockW+12,28,0x302E39);label(224-clockW,10,clock,2);
+ iconTarget(116,4,116,40,"go:timer");
  // Keep depth visible after removing Chat.
  String value=String(depth,1)+"m";int fontSize=textWidth(value,20)>100?12:20,w=textWidth(value,fontSize)+12;
  rect(230-w,242,w,26,0x302E39);label(224-textWidth(value,fontSize),243,value,fontSize==20?2:1);
  iconTarget(230-w,238,w,34,"followMole");
  rect(12,232,40,36,0x302E39);
- if(game.running()){rect(23,242,5,17,PAPER);rect(34,242,5,17,PAPER);}else for(int i=0;i<12;i++)rect(24+i,240+i/2,1,20-i,PAPER);
+ if(game.running()){rect(23,242,5,17,PAPER);rect(34,242,5,17,PAPER);}else screen->fillTriangle(24,239,24,261,42,250,rgb(PAPER));
  iconTarget(8,228,48,44,"start");
  if(game.active()){rect(64,232,48,36,0x713F38);label(73,242,"END",1,PAPER);iconTarget(60,228,52,44,"confirm:finish");}
  // Discreet setup target; setup is never mixed into the digging scene.
@@ -77,27 +106,13 @@ void wifiScreen(){
  button(12,210,60,26,"<","wifiPrev");button(78,210,84,26,"Rescan","wifiScan");button(168,210,60,26,">","wifiNext");
  button(12,244,104,28,"Back","go:settings");button(124,244,104,28,"More","go:wifiDetails");flushScreen();
 }
-bool revealPassword=false;
-String keyboardCharacters(){
- if(keyboardPage=="abc")return "abcdefghijklmnopqrstuvwxyz ";
- if(keyboardPage=="ABC")return "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
- if(keyboardPage=="123")return "0123456789!@#$%^&*()-_=+.,/?";
- return R"keys([]{}\|;:'"<>`~)keys";
-}
-void inputKeyboard(){
- targetCount=0;screen->fillScreen(rgb(BG));bool password=inputPurpose=="password";header(password?"Wi-Fi password":inputPurpose);
- String title=password?pendingSsid:"Type your message";label(12,36,title.substring(0,fitBytes(title,password?156:212,unicodeText(title))));
- if(password)button(177,33,51,25,revealPassword?"Hide":"Show","showPassword");
- rect(12,62,216,17,0x40514C);String value=input;
- if(password&&!revealPassword){value="";for(unsigned i=0;i<input.length();i++)value+="*";}
- value=utfTail(value,max(0,int(value.length())-32));label(16,66,value.length()?value:"Tap keys below",1,PAPER);
- String chars=keyboardCharacters();for(unsigned i=0;i<chars.length();i++)button(12+(i%6)*36,83+(i/6)*27,33,25,chars[i]==' '?"SP":String(chars[i]),"char:"+String(chars[i]));
- button(12,222,68,25,keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":keyboardPage=="123"?"#+=":"abc","keys");button(86,222,68,25,"Delete","delete");button(160,222,68,25,password?"Connect":"Done","inputdone");button(12,251,216,25,"Cancel","cancelinput");flushScreen();
-}
+#include "LargeKeyboard.h"
 void render(){
  if(!minimalPage(page))page="focus";
+ if(page=="timer"){timerScreen();return;}
+ if(page=="settings"){settingsScreen();return;}
  if(page=="pairScreen"){
-  targetCount=0;screen->fillScreen(rgb(BG));header("Pair screen");
+  targetCount=0;screen->fillScreen(rgb(BG));header("Connect your canele");
   if(network.screenRequest.length()){
    label(12,43,"Allow this computer?",1,GOLD);wrap(12,67,network.screenLabel,35,3);
    wrap(12,116,"Share study time, depth and discoveries with this browser.",35,4);
@@ -132,11 +147,6 @@ void render(){
    button(12,211,104,28,"Newer","recordPrev");button(124,211,104,28,"Older","recordNext");
   }button(12,247,216,28,"Back to mole","go:focus");flushScreen();return;
  }
- if(page=="displaytest"){
-  targetCount=0;screen->fillScreen(rgb(0x267D8C));rect(0,0,240,2,0xFFFFFF);rect(0,278,240,2,0xFFFFFF);rect(0,0,2,280,0xFFFFFF);rect(238,0,2,280,0xFFFFFF);
-  rect(35,2,170,5,0xF4DA65);rect(35,273,170,5,0xF4DA65);rect(2,35,5,210,0xF4DA65);rect(233,35,5,210,0xF4DA65);
-  label(48,85,"240 x 280",2);label(36,124,"Full active area");label(36,145,"Top / bottom markers");button(48,198,144,34,"Back","go:settings");flushScreen();return;
- }
  if(page=="startHelp"){
   targetCount=0;screen->fillScreen(rgb(BG));header("Start digging");
   label(12,43,game.mounted?"Storage: ready":"Storage: setup needed",1,game.mounted?PAPER:GOLD);
@@ -150,13 +160,13 @@ void render(){
  if(page=="wifi"){wifiScreen();return;}
  if(page=="wifiDetails"){page="wifi";renderLegacy();page="wifiDetails";return;}
  if(page=="sync"){targetCount=0;screen->fillScreen(rgb(BG));header("Live sync");button(12,43,216,32,network.syncEnabled?"Sync: ON":"Sync: OFF","syncToggle");wrap(12,87,"Read-only viewing link:",35,2);wrap(12,121,"http://"+(network.portal?WiFi.softAPIP():WiFi.localIP()).toString()+"/sync",35,3);wrap(12,176,network.syncError.length()?network.syncError:"Open on your phone. Setup login is shown in Wi-Fi.",35,4);footer();flushScreen();return;}
- if(page!="focus"&&page!="settings"){renderLegacy();return;}
- targetCount=0;
- if(page=="focus")diggingScene();
- else {screen->fillScreen(rgb(BG));header("Setup");button(12,45,216,32,"Wi-Fi","go:wifi");button(12,87,216,32,game.mounted?"Save progress":"Initialize storage",game.mounted?"save":"confirm:format");button(12,129,104,32,"Pair screen","go:pairScreen");button(124,129,104,32,"Display test","go:displaytest");if(game.active())button(12,171,216,32,"End session","confirm:finish");footer();}
- flushScreen();
+ if(page!="focus"){renderLegacy();return;}
+ targetCount=0;diggingScene();flushScreen();
 }
+
 void command(String cmd){
+ if(handleLargeKeyboardCommand(cmd))return;
+ if(cmd=="plus"||cmd=="minus"){bool wasActive=game.active();int delta=cmd=="plus"?5:-5;if(game.canAdjustMinutes(delta))game.notice="";game.adjustMinutes(delta);if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();page="focus";}return;}
  if(cmd=="surface"){mineBrowsing=true;mineCamera=-70;mineGesture=false;return;}
  if(cmd=="recordPrev"){discoveryPage=max(0,discoveryPage-1);return;}if(cmd=="recordNext"){discoveryPage++;return;}
  if(cmd=="screenPairStart"){network.startScreenPair();return;}
@@ -175,23 +185,17 @@ void command(String cmd){
   if(!wasRunning&&game.running())followMole();go("focus");return;
  }
 
- if(cmd=="showPassword"&&page=="keyboard"){revealPassword=!revealPassword;return;}
- if(cmd=="keys"&&page=="keyboard"){keyboardPage=keyboardPage=="abc"?"ABC":keyboardPage=="ABC"?"123":keyboardPage=="123"?"symbols":"abc";return;}
- if(cmd=="inputdone"&&page=="keyboard"&&inputPurpose=="password"&&input.length()==0)return;
- if(cmd.startsWith("char:")&&page=="keyboard"&&inputPurpose=="password"&&input.length()>=63)return;
- if(cmd=="cancelinput")revealPassword=false;
-
  if(cmd=="wifiScan"){listPage=0;network.scanWiFi();return;}
  if(cmd=="wifiPrev"){listPage=max(0,listPage-1);return;}if(cmd=="wifiNext"){listPage++;return;}
  if(cmd.startsWith("wifiPick:")){
   int i=cmd.substring(9).toInt();if(network.scanning||network.connecting||i<0||i>=int(network.nearby.size()))return;
   auto n=network.nearby[i];pendingSsid=n.name;
   if(n.auth==5){network.wifiNote="Enterprise login unsupported";return;}
-  if(n.auth==0)network.connect(pendingSsid,"");else {revealPassword=false;edit("password");}return;
+  if(n.auth==0)network.connect(pendingSsid,"");else {resetLargeKeyboard();edit("password");}return;
  }
 
  if(cmd=="syncToggle"){network.toggleSync();return;}
- if(cmd.startsWith("go:")){String next=cmd.substring(3);if(minimalPage(next)){go(next);if(next=="wifi")network.scanWiFi();}return;}
+ if(cmd.startsWith("go:")){String next=cmd.substring(3);if(minimalPage(next)){String saveError=page=="timer"&&game.dirty?game.notice:"";go(next);if(saveError.length())game.notice=saveError;if(next=="wifi")network.scanWiFi();}return;}
  if(cmd=="back"){go("focus");return;}
  if(cmd.startsWith("confirm:")&&cmd!="confirm:format"&&cmd!="confirm:finish"&&cmd!="confirm:clearChat")return;
  bool allowed=cmd=="start"||cmd=="save"||cmd=="ssid"||cmd=="startAP"||cmd=="stopAP"||cmd=="shareChat"||cmd=="chatinput"||cmd=="chatup"||cmd=="chatdown"||cmd=="yes"||cmd=="cancel"||cmd=="delete"||cmd=="keys"||cmd=="cancelinput"||cmd=="inputdone"||cmd.startsWith("char:")||cmd.startsWith("confirm:");

@@ -25,6 +25,9 @@ inline bool fillDigSnapshot(Game &game, JsonObject s, String *error=nullptr){
   if(error)*error="";
   s["version"]=3;s["reportDays"]=game.state["reportDays"];
   s["sessionElapsed"]=game.active()?game.state["session"]["elapsed"].as<double>():game.state["history"][0]["seconds"].as<double>();
+  // Optional display metadata; cumulative accounting and settlement IDs stay v3.
+  s["sessionPlannedSeconds"]=game.active()?game.state["session"]["plannedSeconds"].as<double>():double((game.state["minutes"]|25)*60);
+  s["sessionRemaining"]=game.remaining();
   s["depth"]=game.liveDepth();s["seconds"]=game.state["totalSeconds"].as<double>()+(game.active()&&game.formal(game.state["session"])?game.state["session"]["elapsed"].as<double>():0);
   s["status"]=game.running()&&game.eligible(game.state["session"])?"digging":game.active()?"paused":"idle";
   s["name"]=game.state["profile"]["name"];s["color"]=game.state["profile"]["color"];s["equipped"]=game.state["equipped"];s["tool"]=game.state["tool"];

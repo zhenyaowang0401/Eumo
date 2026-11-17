@@ -114,7 +114,8 @@ void header(const String &title){label(14,9,title.substring(0,fitBytes(title,170
 void footer(){button(12,242,216,28,"<","go:focus");}
 void navList(int count){int pages=max(1,(count+2)/3);listPage=constrain(listPage,0,pages-1);button(12,205,60,29,"Prev","prev");label(99,216,String(listPage+1)+"/"+String(pages));button(169,205,60,29,"Next","next");}
 void go(const String &next){if(next=="menu"||next=="focus")pageHistory.clear();else if(next!=page){if(pageHistory.size()>=12)pageHistory.erase(pageHistory.begin());pageHistory.push_back(page);}backPage=page;page=next;listPage=0;game.notice="";network.error="";}
-void edit(const String &purpose,const String &value=""){inputPurpose=purpose;input=value;backPage=page;page="keyboard";keyboardPage="abc";}
+void resetLargeKeyboard();
+void edit(const String &purpose,const String &value=""){resetLargeKeyboard();inputPurpose=purpose;input=value;backPage=page;page="keyboard";keyboardPage="abc";}
 #include "Appearance.h"
 void mineView(){double maximum=page=="mine"?game.liveDepth():game.worldDepth();double depth=game.running()?maximum:game.visit;depth=constrain(depth,0.0,maximum);
  uint32_t soil=depth>=720?0x484459:depth>=600?0x77648F:depth>=480?0xA47C8A:depth>=360?0x6E7F9D:depth>=300?0xD5B590:depth>=240?0x949C8B:0x9B875D;
@@ -208,7 +209,7 @@ void commandLegacy(String cmd){
  if(cmd=="cancel"){page=backPage;return;}if(cmd=="yes"){page=backPage;cmd=confirmation;}
  if(cmd=="start"){idleSince=millis();game.start();return;}if(cmd=="finish"){game.finish();idleSince=millis();game.visit=0;return;}if(cmd=="finishday"){game.finish();game.state["surfaceDepth"]=game.state["depth"];game.state["digDay"]=Game::day(time(nullptr));game.visit=0;game.save();go("reports");return;}if(cmd=="demo"){if(!game.active()){game.start(true);go("focus");}return;}
  if(cmd.startsWith("mode:")){if(!game.active()){game.state["mode"]=cmd.substring(5);game.save();}else game.notice="Finish current session first";return;}
- if(cmd=="plus"||cmd=="minus"){if(!game.active()){game.state["minutes"]=constrain((game.state["minutes"]|25)+(cmd=="plus"?5:-5),5,120);game.save();}else if(cmd=="plus"&&!game.state["session"]["demo"].as<bool>()){game.state["session"]["plannedSeconds"]=min(7200,game.state["session"]["plannedSeconds"].as<int>()+300);game.state["session"]["remaining"]=game.remaining();game.save();}return;}
+ if(cmd=="plus"||cmd=="minus"){game.adjustMinutes(cmd=="plus"?5:-5);return;}
  if(cmd=="task"){if(!game.active())edit("task",game.state["lastTask"]|"");return;}if(cmd=="name"){edit("name",game.state["profile"]["name"]|"Momo");return;}
  if(cmd=="color"){edit("color",game.state["profile"]["color"]|"#a9b4c6");return;}
  if(cmd.startsWith("history:")){selected=cmd.substring(8);go("historydetail");return;}if(cmd=="note"){edit("note",game.state["history"][selected.toInt()]["note"]|"");return;}
@@ -296,4 +297,4 @@ void diagnosticSerial(){
  }else if(c!='\r'){if(n<31)line[n++]=c;else n=0;}}
 }
 
-void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();}network.poll();pollTouch();if(millis()-lastPaint>(startupActive()?40U:125U)){lastPaint=millis();render();}delay(2);}
+void appLoop(){if(!appReady){delay(100);return;}diagnosticSerial();bool wasActive=game.active();game.tick(millis());if(wasActive&&!game.active()){idleSince=millis();clearPetMotion();followMole();if(page=="timer"){page="focus";render();lastPaint=millis();}}network.poll();pollTouch();if(millis()-lastPaint>(startupActive()?40U:125U)){lastPaint=millis();render();}delay(2);}
