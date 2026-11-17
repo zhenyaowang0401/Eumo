@@ -5,7 +5,7 @@
 <meta name="description" content="Eumo: a product case study of a focus companion, research, product development and physical prototypes.">
 <title>Eumo — MADE Project</title><link rel="icon" href="assets/mushroom.svg" type="image/svg+xml">
 <link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=5"><link rel="stylesheet" href="bookends.css?v=5"><link rel="stylesheet" href="keychain-sizing.css?v=5"><link rel="stylesheet" href="revision.css?v=6"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=6"></script><script defer src="app.js?v=6"></script>
+<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=5"><link rel="stylesheet" href="bookends.css?v=5"><link rel="stylesheet" href="keychain-sizing.css?v=5"><link rel="stylesheet" href="revision.css?v=7"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=6"></script><script defer src="app.js?v=7"></script>
 </head><body>
 <a class="skip" href="#story">Skip to presentation</a>
 <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -30,6 +30,7 @@
     <path fill="#b75c48" d="M318 58h42v6h8v8h6v51h-6v8h-8v6h-42v-6h-8v-8h-6V72h6v-8h8zM330 80v35h18V80z"/>
    </g>
   </defs>
+  <g id="cover-artwork">
   <g stroke="#fff7df" stroke-width="5" stroke-linejoin="miter" paint-order="stroke">
    <use href="#cover-flower" transform="translate(49 8) scale(1.5)"/>
    <use href="#cover-flower" transform="translate(318 143) scale(1.4)"/>
@@ -48,6 +49,7 @@
   <g fill="#f7edc8"><path d="M50 60h48v3H50zm80 6h4v45h-4zm86-4h13v3h-13zm108 2h30v3h-30z"/></g>
   <g fill="#bd684e"><path d="M152 26h4v7h7v4h-7v7h-4v-7h-7v-4h7zM277 164h3v5h5v3h-5v5h-3v-5h-5v-3h5z"/></g>
   <g fill="#7d9564"><path d="M24 113h4v8h8v4h-8v8h-4v-8h-8v-4h8zM389 48h3v5h5v3h-5v5h-3v-5h-5v-3h5zM190 163h4v4h-4zM256 30h4v4h-4z"/></g>
+  </g>
  </svg></div>
 <p class="bookend-credit"><span>design by</span><strong>Zhenyao Wang</strong><strong>Yun Ye</strong></p>
 </section>
@@ -63,10 +65,9 @@
    <div><dt>HOW</dt><dd>Eumo combines a flexible timer, <strong>AI chat, online friends and earned rewards</strong> to make independent work feel supported.</dd></div>
   </dl>
  </div>
- <aside class="overview-evidence" aria-label="Research context" data-enter-item>
-  <svg class="overview-mark" aria-hidden="true" viewBox="25 35 370 120"><use href="#cover-letters"/></svg>
-  <div class="overview-stat"><strong>30<span>%</span></strong><p>of students reported distraction while using digital devices in most or every mathematics lesson.</p><a href="https://www.oecd.org/en/publications/pisa-2022-results-volume-ii_a97db61c-en.html" target="_blank" rel="noopener">PISA 2022 · 15-year-olds across OECD countries ↗</a></div>
- </aside>
+ <figure class="overview-brand" data-enter-item>
+  <svg class="overview-mark" role="img" aria-label="Eumo logo with flowers and mushrooms" viewBox="0 0 420 205"><use href="#cover-artwork"/></svg>
+ </figure>
 </div>
 </section>
 <section id="inspiration" class="chapter" data-title="Project Inspiration" data-time="0:40" aria-labelledby="inspiration-title">
@@ -85,9 +86,8 @@
   <button id="research-motivation" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="motivation"><span class="item-number">04</span><span>Reward mechanisms</span><svg><use href="#i-arrow"/></svg></button>
  </div>
  <div id="researchPanel" class="research-panel evidence-panel" role="tabpanel" aria-labelledby="research-presence" tabindex="0">
-  <div class="evidence-stat"><strong id="researchMetric">138</strong><span id="researchMetricLabel">randomized studies · 19,951 participants</span></div>
-  <h3 id="researchResponse">Shared progress supports follow-through.</h3>
-  <p id="researchFinding">Goal monitoring improved attainment (d = 0.40); effects were larger when progress was reported or made public.</p>
+  <h3 id="researchHeadline">A review of <strong>138 randomized studies</strong> found that tracking progress <strong>helped people achieve their goals.</strong></h3>
+  <p id="researchFinding">The review included 19,951 participants. Benefits were greater when progress was reported or made public.</p>
   <p class="evidence-application" id="researchApplication">Eumo: optional friend visibility and shared study time.</p>
   <a id="researchSource" class="source-link" href="https://doi.org/10.1037/bul0000025" target="_blank" rel="noopener">Harkin et al. · 2016 · Psychological Bulletin ↗</a>
  </div>

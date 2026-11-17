@@ -1,5 +1,13 @@
 # Presentation verification
 
+## V7: complete logo and readable research sentences
+
+Checked 17 November 2026. The overview now shows only the complete original Eumo logo on its right, including its flowers and mushrooms. Each research tab presents a complete English finding with the numbers and conclusion emphasized within the sentence. Statistical effect-size notation remains in the source details.
+
+**116/116 targeted checks passed**, with no JavaScript errors or failed local resources. Coverage includes the overview and all four research states at 1440×900, 1366×768, 1280×720, 768×1024, 390×844 and 320×568; desktop fit, horizontal overflow, original SVG artwork and painted colors, unique SVG IDs and references, complete sentences, source links, keyboard tabs, dialogs and navigation. This was targeted verification, not a repeat of the full V6 suite.
+
+Reports and screenshots: `/workspace/scratch/presentation-v7-qa/`.
+
 ## V6: concise content and verified evidence
 
 Checked 17 November 2026. The 12-page presentation now uses MADE PROJECT in the header, an editorial overview with the OECD distraction statistic, four cited research themes, a name-and-avatar persona, function/limitation competitor comparisons, four development priorities, and a commercial model with floral artwork. Removed explanatory badges and the feedback/roadmap/closing banners from the main slides.

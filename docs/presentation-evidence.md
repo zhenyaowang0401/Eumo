@@ -6,7 +6,7 @@ Updated **17 November 2026**. Selected sources were retrieved and checked for th
 
 | Slide / theme | Verified finding | Study context | Product connection |
 | --- | --- | --- | --- |
-| Overview | **30%** reported distraction from using digital devices in most or every mathematics lesson. | PISA 2022; 15-year-old students; OECD average; self-report. | Frame distraction as a concrete study-context problem. |
+| Background context (source details) | **30%** reported distraction from using digital devices in most or every mathematics lesson. | PISA 2022; 15-year-old students; OECD average; self-report. | Frame distraction as a concrete study-context problem. |
 | Community & accountability | **138 randomized studies**, N = 19,951; progress monitoring improved goal attainment, **d = 0.40**. Effects were larger when progress was reported or made public. | Harkin et al., 2016; goal-monitoring interventions across contexts. | Optional friend visibility and study records. |
 | AI learning support | **More than twice the median learning gains** with a purpose-built AI tutor versus in-class active learning. | Kestin et al., 2025; 194 undergraduate physics students; two-lesson counterbalanced randomized trial. | Explore structured questions, task breakdown and feedback in AI chat. |
 | AI companionship | Users described companionship and emotional support. | Ta et al., 2020; 1,854 Replika reviews plus a separate qualitative study of 66 users. | Optional conversation and a persistent character. |
@@ -26,7 +26,7 @@ These findings concern other interventions. They do not establish Eumo’s effec
 
 > Some 30% of students, on average across OECD countries, reported that, in most or every mathematics lesson, they get distracted using digital devices; 25% of students reported that they get distracted by other students using these devices in class.
 
-PISA assesses 15-year-olds. Keep the age group, OECD average and mathematics-lesson context visible beside the headline number. The result is self-reported distraction, not a causal experiment, a clinical diagnosis or a prevalence estimate across all Eumo users.
+PISA assesses 15-year-olds. The overview now shows only the complete Eumo logo. This statistic remains in source details with its age group, OECD average and mathematics-lesson context. The result is self-reported distraction, not a causal experiment, a clinical diagnosis or a prevalence estimate across all Eumo users.
 
 **Local extracts:** `oecd_5_retry.clean`, `oecd_volume.clean`, `oecd-pisa2022.pdf`, `oecd-pisa2022.txt`.
 

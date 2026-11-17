@@ -131,39 +131,34 @@
   }
   const research = {
     presence: {
-      metric:'138', label:'randomized studies · 19,951 participants',
-      title:'Shared progress supports follow-through.',
-      finding:'Goal monitoring improved attainment (d = 0.40); effects were larger when progress was reported or made public.',
+      headline:'A review of <strong>138 randomized studies</strong> found that tracking progress <strong>helped people achieve their goals.</strong>',
+      finding:'The review included 19,951 participants. Benefits were greater when progress was reported or made public.',
       application:'Eumo: optional friend visibility and shared study time.',
       source:'Harkin et al. · 2016 · Psychological Bulletin', url:'https://doi.org/10.1037/bul0000025'
     },
     learning: {
-      metric:'>2×', label:'median learning gains · 194 university students',
-      title:'Structured AI tutoring can support learning.',
-      finding:'A purpose-built AI tutor outperformed active classroom learning across two undergraduate physics lessons.',
+      headline:'In a <strong>194-student physics trial</strong>, a structured AI tutor produced <strong>more than twice the median learning gains</strong> of active classroom learning.',
+      finding:'University students completed two physics lessons with a purpose-built AI tutor or in an active-learning class.',
       application:'Eumo: explore task-focused AI support alongside the timer.',
       source:'Kestin et al. · 2025 · Scientific Reports', url:'https://www.nature.com/articles/s41598-025-97652-6'
     },
     companion: {
-      metric:'66', label:'user responses + 1,854 app reviews',
-      title:'Users describe a sense of company.',
-      finding:'Companionship and emotional support emerged in a qualitative study of Replika users.',
+      headline:'An analysis of <strong>1,854 reviews</strong> and responses from <strong>66 Replika users</strong> identified <strong>companionship and emotional support.</strong>',
+      finding:'Users described their experiences with a companion chatbot in app reviews and open-ended responses.',
       application:'Eumo: optional conversation during independent study.',
       source:'Ta et al. · 2020 · JMIR', url:'https://www.jmir.org/2020/3/e16235/'
     },
     motivation: {
-      metric:'g = 0.36', label:'motivational effect · 16 studies · 2,246 learners',
-      title:'Gamification can support motivation.',
-      finding:'A meta-analysis found a positive motivational effect, with results varying by study context and quality.',
+      headline:'Across <strong>16 studies involving 2,246 learners</strong>, gamified learning had a <strong>small positive effect on motivation.</strong>',
+      finding:'Results varied by context and study quality. The studies examined combinations of game elements, including rewards.',
       application:'Eumo: earned cosmetics make progress visible.',
       source:'Sailer & Homner · 2020 · Educational Psychology Review', url:'https://link.springer.com/article/10.1007/s10648-019-09498-w'
     }
   };
   tabs('[data-research]','#researchPanel', button => stageChange($('#researchPanel'), () => {
     const item = research[button.dataset.research];
-    $('#researchMetric').textContent=item.metric;
-    $('#researchMetricLabel').textContent=item.label;
-    $('#researchResponse').textContent=item.title;
+    // Headline markup is static presentation copy; no external or user HTML is used.
+    $('#researchHeadline').innerHTML=item.headline;
     $('#researchFinding').textContent=item.finding;
     $('#researchApplication').textContent=item.application;
     $('#researchSource').textContent=item.source+' ↗';

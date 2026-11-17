@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v6-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v7-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
 CHAPTERS = ['cover', 'overview', 'inspiration', 'research', 'persona', 'landscape',
@@ -77,12 +77,15 @@ try:
         REPORT['independent_assets']=decoded
         check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
         check('MADE project masthead', lambda: need(page.locator('.masthead-label').inner_text()=='MADE PROJECT'))
-        check('Overview has concrete audience and cited context', lambda: (
+        check('Overview pairs the audience with only the complete original logo', lambda: (
             need('8–35' in page.locator('.product-facts').inner_text()),
-            need(page.locator('#overview .hero-frame').count()==0),
-            need('30' in page.locator('.overview-stat>strong').inner_text()),
-            need('oecd.org' in page.locator('.overview-stat>a').get_attribute('href')),
-            need('15-year-olds' in page.locator('.overview-stat>a').inner_text())))
+            need(page.locator('#overview .hero-frame,.overview-stat').count()==0),
+            need(page.locator('.overview-brand').inner_text().strip()==''),
+            need(page.locator('.overview-mark>use').get_attribute('href')=='#cover-artwork'),
+            need(page.locator('.overview-mark').get_attribute('viewBox')=='0 0 420 205'),
+            need(page.locator('#cover-artwork use[href="#cover-flower"]').count()>0),
+            need(page.locator('#cover-artwork use[href="#cover-mushroom"]').count()>0)))
+        check('SVG ids stay unique and every local use resolves', lambda: need(page.evaluate('''()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return new Set(ids).size===ids.length&&[...document.querySelectorAll('svg use')].every(e=>document.getElementById(e.getAttribute('href').slice(1)))}''')))
         check('Persona identity stays concise', lambda: (
             need(page.locator('.persona-profile h2').inner_text()=='Alex, 20'),
             need(page.locator('.persona-profile img').count()==1),
@@ -197,7 +200,7 @@ try:
         goto('research');page.locator('#research-presence').focus();page.keyboard.press('ArrowDown')
         check('Vertical research keyboard tab', lambda: (
             need(page.locator('#research-learning').get_attribute('aria-selected')=='true'),
-            need(page.locator('#researchMetric').inner_text()=='>2×'),
+            need('a structured AI tutor produced' in page.locator('#researchHeadline').inner_text()),
             need('nature.com' in page.locator('#researchSource').get_attribute('href')),
             need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-learning')))
         page.keyboard.press('End')
@@ -205,12 +208,16 @@ try:
         page.keyboard.press('Home')
         check('Research Home tab', lambda: need(page.locator('#research-presence').get_attribute('aria-selected')=='true'))
         check('Tab keys do not navigate chapter', lambda: need(page.locator('#chapterNumber').inner_text()=='04'))
-        for name, metric, source in [('presence','138','doi.org'),('learning','>2×','nature.com'),('companion','66','jmir.org'),('motivation','g = 0.36','springer.com')]:
+        for name, conclusion, source in [('presence','found that tracking progress','doi.org'),('learning','a structured AI tutor produced','nature.com'),('companion','identified companionship and emotional support','jmir.org'),('motivation','had a small positive effect on motivation','springer.com')]:
             page.locator(f'[data-research="{name}"]').click()
-            check('Research evidence '+name, lambda name=name,metric=metric,source=source: (
-                need(page.locator('#researchMetric').inner_text()==metric),
+            check('Research evidence sentence '+name, lambda name=name,conclusion=conclusion,source=source: (
+                need(conclusion in page.locator('#researchHeadline').inner_text()),
+                need(page.locator('#researchHeadline').inner_text().endswith('.')),
+                need(page.locator('#researchHeadline strong').count()>=2),
                 need(source in page.locator('#researchSource').get_attribute('href')),
                 need(page.locator('#researchPanel').get_attribute('aria-labelledby')=='research-'+name),
+                need(page.locator('#researchMetric,#researchMetricLabel,#researchResponse').count()==0),
+                need('g =' not in page.locator('#researchPanel').inner_text() and 'd =' not in page.locator('#researchPanel').inner_text()),
                 need(bool(page.locator('#researchFinding').inner_text())),
                 need(bool(page.locator('#researchApplication').inner_text()))))
 

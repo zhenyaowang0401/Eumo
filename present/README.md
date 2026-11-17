@@ -1,8 +1,8 @@
-# Eumo product presentation — v6
+# Eumo product presentation — v7
 
 An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels. The page uses local DM Sans for readable text and a clear weight/size hierarchy, retaining the pixel Eumo mark and artwork. Terracotta emphasizes the key idea in each title.
 
-**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html?v=6#cover)
+**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html?v=7#cover)
 
 ## Presentation structure
 
@@ -24,8 +24,8 @@ An English presentation for a product-management final. The main screens use sho
 Total: **13:00**, including a six-minute live demonstration. No speaker script is included yet.
 
 - Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. The new `#cover` and `#thankyou` links target the opening and closing pages. Older aliases such as `#beyond` and `#hello` still work.
-- Four research tabs show checked findings on accountability, AI learning, AI companionship and gamification, with study context and clickable citations.
-- Overview gives WHO / PROBLEM / HOW one sentence each. A small logo and the OECD PISA 2022 distraction statistic replace the large interface screenshot.
+- Four research tabs present checked findings as complete English sentences. Study numbers and conclusions are highlighted within the sentence, with context and clickable citations; technical effect sizes remain in source details.
+- Overview gives WHO / PROBLEM / HOW one sentence each. The complete Eumo startup logo, including flowers and mushrooms, appears on the right.
 - Inspiration retains pixel co-study and electronic-pet illustrations.
 - Persona shows Alex, 20, and one avatar beside study context, goals, pain points and needs. The profile's illustrative basis is available in the detail panel.
 - Competitive Analysis separates each tool's function from its limitation. Cat On Chair's rewards/decorating and the Pomodoro method's non-punitive nature are represented accurately.
