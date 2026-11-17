@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#edf0df">
+<meta name="description" content="Eumo: a product case study of a focus companion, research, product development and physical prototypes.">
+<title>Eumo — MADE Project</title><link rel="icon" href="assets/mushroom.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="style.css?v=3"><link rel="stylesheet" href="refinements.css?v=5"><link rel="stylesheet" href="bookends.css?v=5"><link rel="stylesheet" href="keychain-sizing.css?v=8"><link rel="stylesheet" href="revision.css?v=7"><link rel="stylesheet" href="overview-scene.css?v=9"><script defer src="vendor/gsap.min.js"></script><script defer src="interactions.js"></script><script defer src="notes.js?v=9"></script><script defer src="app.js?v=9"></script>
+</head><body>
+<a class="skip" href="#story">Skip to presentation</a>
+<svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+<symbol id="i-full" viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 48 48"><path d="M17 4h14m-7 0v6M11 12l-4-4m30 4 4-4"/><circle cx="24" cy="28" r="17"/><path d="M24 16v13l8 5"/></symbol>
+<symbol id="i-cat" viewBox="0 0 48 48"><path d="M9 19V5l12 10h7L40 5v23c0 10-6 15-16 15S8 38 8 28Z"/><path d="M16 23v4m16-4v4m-12 7 4 3 4-3M3 30l10 1m22 0 10-1"/></symbol>
+<symbol id="i-screen" viewBox="0 0 48 48"><path d="M4 6h40v29H4Zm20 29v8m-12 0h24M12 16h15m-15 7h23"/></symbol>
+<symbol id="i-book" viewBox="0 0 48 48"><path d="M24 11C18 6 12 5 4 7v31c8-2 14-1 20 4 6-5 12-6 20-4V7c-8-2-14-1-20 4Zm0 0v31M11 15h6m-6 7h6m14-7h6m-6 7h6"/></symbol>
+</defs></svg>
+<header class="masthead"><a class="wordmark" href="#overview" aria-label="Eumo product overview">Eu<span>mo</span><img src="assets/mushroom.svg" alt=""></a><span class="masthead-label">MADE PROJECT</span><nav aria-label="Presentation controls"><button id="sourcesButton" data-detail="research">Evidence</button><button id="contentsButton">Chapters <span class="menu-lines" aria-hidden="true">☷</span></button><button id="fullscreenButton" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-full"/></svg></button></nav></header>
+<main id="story" tabindex="-1" aria-label="Eumo product presentation">
+<section id="cover" class="chapter bookend cover" data-title="Opening" data-time="0:10" aria-labelledby="cover-title">
+<div class="bookend-center"><h1 id="cover-title" class="visually-hidden">Eumo — MADE Project</h1><svg class="cover-mark" aria-hidden="true" viewBox="0 0 420 205" focusable="false">
+  <defs>
+   <g id="cover-flower"><path fill="#647d52" d="M11 15h3v17h-3zM4 21h7v5H7v-2H4zm10-4h8v3h-3v3h-5z"/><path fill="#c36752" d="M8 0h9v5h5v9h-5v5H8v-5H3V5h5z"/><path fill="#e6b56f" d="M9 6h7v7H9z"/><path fill="#fff2cf" d="M10 6h4v2h-4z"/></g>
+   <g id="cover-mushroom"><path fill="#526348" d="M8 0h14v3h5v5h4v6h3v8H22v10h3v4H9v-4h3V22H0v-8h3V8h5z"/><path fill="#b55343" d="M8 3h14v3h5v8h4v5H3v-5h3V8h2z"/><path fill="#d68a68" d="M8 3h14v3H8zM6 8h4v4H6z"/><path fill="#fff1ce" d="M9 10h5v5H9zm11-3h5v5h-5zm2 8h6v3h-6zM14 22h6v10h-6z"/><path fill="#d7b887" d="M3 19h28v2H3zm15 3h2v10h-2zM11 32h12v2H11z"/></g>
+   <g id="cover-letters" fill-rule="evenodd">
+    <path fill="#5c7955" d="M48 54h62v18H72v12h32v18H72v13h38v18H48v-6h-6V60h6z"/>
+    <path fill="#b75c48" d="M124 60h24v56h6v6h12v-6h6V60h24v63h-6v10h-12v6h-36v-6h-12v-10h-6z"/>
+    <path fill="#5c7955" d="M210 135V56h24v8h6v10h6v10h12V74h6V64h6v-8h24v79h-24V97h-6v10h-6v10h-12v-10h-6V97h-6v38z"/>
+    <path fill="#b75c48" d="M318 58h42v6h8v8h6v51h-6v8h-8v6h-42v-6h-8v-8h-6V72h6v-8h8zM330 80v35h18V80z"/>
+   </g>
+  </defs>
+  <g id="cover-artwork">
+  <g stroke="#fff7df" stroke-width="5" stroke-linejoin="miter" paint-order="stroke">
+   <use href="#cover-flower" transform="translate(49 8) scale(1.5)"/>
+   <use href="#cover-flower" transform="translate(318 143) scale(1.4)"/>
+   <use href="#cover-mushroom" transform="translate(333 6) scale(.85)"/>
+   <use href="#cover-mushroom" transform="translate(87 146) scale(.9)"/>
+  </g>
+  <g>
+   <use href="#cover-flower" transform="translate(49 8) scale(1.5)"/>
+   <use href="#cover-flower" transform="translate(318 143) scale(1.4)"/>
+   <use href="#cover-mushroom" transform="translate(333 6) scale(.85)"/>
+   <use href="#cover-mushroom" transform="translate(87 146) scale(.9)"/>
+  </g>
+  <use href="#cover-letters" transform="translate(0 5)" stroke="#839776" stroke-width="17"/>
+  <use href="#cover-letters" stroke="#fff7df" stroke-width="16"/>
+  <use href="#cover-letters"/>
+  <g fill="#f7edc8"><path d="M50 60h48v3H50zm80 6h4v45h-4zm86-4h13v3h-13zm108 2h30v3h-30z"/></g>
+  <g fill="#bd684e"><path d="M152 26h4v7h7v4h-7v7h-4v-7h-7v-4h7zM277 164h3v5h5v3h-5v5h-3v-5h-5v-3h5z"/></g>
+  <g fill="#7d9564"><path d="M24 113h4v8h8v4h-8v8h-4v-8h-8v-4h8zM389 48h3v5h5v3h-5v5h-3v-5h-5v-3h5zM190 163h4v4h-4zM256 30h4v4h-4z"/></g>
+  </g>
+ </svg></div>
+<p class="bookend-credit"><span>design by</span><strong>Zhenyao Wang</strong><strong>Yun Ye</strong></p>
+</section>
+<section id="overview" class="chapter overview" data-title="Product Overview" data-time="0:30" aria-labelledby="overview-title">
+<div class="chapter-heading"><span class="eyebrow">02 / PRODUCT OVERVIEW</span><span class="status">Web · Windows · macOS</span></div>
+<div class="overview-layout overview-editorial">
+ <div class="overview-copy" data-enter-item>
+  <h1 id="overview-title">Eumo<span class="title-dot">.</span></h1>
+  <p class="overview-intro">A study companion for <em>starting, staying,<br>and returning.</em></p>
+  <dl class="product-facts">
+   <div><dt>WHO</dt><dd>Learners aged <strong>8–35</strong> who study or work independently and want more structure and company.</dd></div>
+   <div><dt>PROBLEM</dt><dd>Distractions, isolation and delayed progress make it difficult to start a task, sustain effort and return after interruptions.</dd></div>
+   <div><dt>HOW</dt><dd>Eumo combines a flexible timer, <strong>AI chat, online friends and earned rewards</strong> to make independent work feel supported.</dd></div>
+  </dl>
+ </div>
+ <figure class="overview-focus" data-enter-item>
+  <div class="overview-focus-heading"><span>Focus</span><span class="overview-focus-status">Surface <span aria-hidden="true">·</span> 000 m</span></div>
+  <img class="overview-focus-scene" src="assets/overview-focus.png" width="384" height="224" alt="Luka wearing a frog hat, glasses and striped scarf, ready to dig beneath a sunny flower meadow.">
+  <figcaption class="overview-focus-chat"><img src="assets/mole-default.png" width="128" height="128" alt=""><div><span class="overview-chat-name">Luka <span>· chat</span></span><p>One small step at a time.<br>I'm here with you.</p></div></figcaption>
+ </figure>
+</div>
+</section>
+<section id="inspiration" class="chapter" data-title="Project Inspiration" data-time="0:40" aria-labelledby="inspiration-title">
+<div class="chapter-heading"><span class="eyebrow">03 / PROJECT INSPIRATION</span><button class="text-button" data-detail="inspiration">Origin notes ↗</button></div><h2 id="inspiration-title">Two sources of <em>inspiration.</em></h2>
+<div class="inspiration-sources"><article class="inspiration-source"><div class="source-title"><span class="source-number">01</span><div><h3>Online co-study</h3><p>Discord · Zoom · Study livestreams</p></div></div><figure class="co-study-figure"><div class="window-bar"><span>STUDY TOGETHER</span><div class="call-controls" aria-hidden="true"><span></span><span></span><span></span></div></div><img src="assets/co-study-pixels.png" alt="Illustration of four pixel-art students reading, writing and using laptops in separate study-call windows"><figcaption>Illustrative co-study scene</figcaption></figure><p class="source-takeaway"><strong>Shared presence</strong><span>Mutual accountability</span></p></article>
+<article class="inspiration-source"><div class="source-title"><span class="source-number">02</span><div><h3>Traditional electronic pets</h3><p>Tamagotchi as a design reference</p></div></div><figure class="digital-pet-figure"><img src="assets/digital-pet-illustration.png" alt="Illustrated Tamagotchi-style electronic pet with an egg-shaped shell, pixel character and three buttons"><figcaption>Illustrated electronic-pet reference</figcaption></figure><p class="source-takeaway"><strong>Persistent character</strong><span>Emotional attachment</span></p></article></div>
+<div class="section-bottom synthesis"><span class="eyebrow">DESIGN DIRECTION</span><strong>A study companion with optional human connection.</strong><img src="assets/mole-default.png" alt="Eumo mole"></div>
+</section>
+<section id="research" class="chapter" data-title="Research Insights" data-time="0:50" aria-labelledby="research-title">
+<div class="chapter-heading"><span class="eyebrow">04 / RESEARCH INSIGHTS</span><button class="text-button" data-detail="research">Sources ↗</button></div><h2 id="research-title">Research <em>Insights</em></h2>
+<div class="research-layout evidence-layout">
+ <div class="research-select" role="tablist" aria-label="Research themes" aria-orientation="vertical">
+  <button id="research-presence" role="tab" aria-selected="true" aria-controls="researchPanel" data-research="presence"><span class="item-number">01</span><span>Community &amp; accountability</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-learning" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="learning"><span class="item-number">02</span><span>AI-assisted learning</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-companion" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="companion"><span class="item-number">03</span><span>AI companionship</span><svg><use href="#i-arrow"/></svg></button>
+  <button id="research-motivation" role="tab" aria-selected="false" tabindex="-1" aria-controls="researchPanel" data-research="motivation"><span class="item-number">04</span><span>Reward mechanisms</span><svg><use href="#i-arrow"/></svg></button>
+ </div>
+ <div id="researchPanel" class="research-panel evidence-panel" role="tabpanel" aria-labelledby="research-presence" tabindex="0">
+  <h3 id="researchHeadline">A review of <strong>138 randomized studies</strong> found that tracking progress <strong>helped people achieve their goals.</strong></h3>
+  <p id="researchFinding">The review included 19,951 participants. Benefits were greater when progress was reported or made public.</p>
+  <p class="evidence-application" id="researchApplication">Eumo: optional friend visibility and shared study time.</p>
+  <a id="researchSource" class="source-link" href="https://doi.org/10.1037/bul0000025" target="_blank" rel="noopener">Harkin et al. · 2016 · Psychological Bulletin ↗</a>
+ </div>
+</div>
+</section>
+<section id="persona" class="chapter" data-title="Persona" data-time="0:40" aria-labelledby="persona-title">
+<div class="chapter-heading"><span class="eyebrow">05 / PERSONA</span><button class="text-button" data-detail="persona">Profile notes ↗</button></div>
+<div class="persona-layout persona-with-character">
+  <div class="persona-profile">
+    <h2 id="persona-title">Alex<span>, 20</span></h2>
+    <figure class="persona-character"><img src="assets/persona-avatar.png" alt="Pixel avatar of Alex, a young adult with glasses and a terracotta sweater"></figure>
+  </div>
+  <div class="persona-details persona-expanded">
+    <h3>Study <em>profile</em></h3>
+    <div class="persona-facts">
+      <div><h4>Study context</h4><p>An undergraduate studying on a laptop at home or in the library, moving between readings, notes and coursework.</p></div>
+      <div><h4>Goals</h4><p>Start a manageable session and <strong>complete a concrete task</strong>, with company and control over the pace.</p></div>
+      <div><h4>Pain points</h4><p>Starting alone feels difficult. Interruptions break momentum; phone-based tools occupy the phone and use its battery.</p></div>
+      <div><h4>Product needs</h4><p>A persistent companion, flexible pauses and optional friend visibility. <strong>Rewards that support task progress.</strong></p></div>
+    </div>
+  </div>
+</div>
+</section>
+<section id="landscape" class="chapter" data-title="Competitive Analysis" data-time="0:50" aria-labelledby="landscape-title">
+<div class="chapter-heading"><span class="eyebrow">06 / FOCUS TOOLS</span><button class="text-button" data-detail="landscape">Sources ↗</button></div><h2 id="landscape-title">Competitive <em>Analysis</em></h2>
+<div class="comparison visual-comparison comparison-v6">
+ <article><div class="competitor-art"><div class="reference-sprite tomato" role="img" aria-label="Illustrated tomato timer reference"></div></div><h3>Pomodoro apps</h3><p>Timed focus blocks with scheduled breaks.</p><p class="competitor-limit">Fixed intervals; penalty rules in some apps.</p></article>
+ <article><div class="competitor-art"><div class="reference-sprite cat" role="img" aria-label="Illustrated Cat On Chair reference"></div></div><h3>Cat On Chair</h3><p>A focus timer with a cat, gifts and room decoration.</p><p class="competitor-limit">No live peer study presence listed.</p></article>
+ <article class="eumo-comparison"><div class="competitor-art"><img class="landscape-eumo" src="assets/mole-starhat.png" alt="Eumo companion wearing a collectible outfit"></div><h3>Eumo</h3><p>A flexible timer with a persistent study companion.</p><p class="competitor-edge">AI chat + online friends + earned rewards</p></article>
+</div>
+</section>
+<section id="demo" class="chapter demo" data-title="Product Walkthrough" data-time="6:00" aria-labelledby="demo-title">
+<div class="chapter-heading"><span class="eyebrow">07 / PRODUCT WALKTHROUGH</span><button class="text-button" data-detail="demo">Demo route & reward rules ↗</button></div><div class="demo-heading"><h2 id="demo-title">The product <em>in use.</em></h2><a class="primary" href="https://1111-phi-ten.vercel.app/index.html" target="_blank" rel="noopener">Open Eumo ↗</a></div>
+<div class="walkthrough-layout"><figure class="product-frame demo-frame"><div class="window-bar"><span id="demoScreenLabel">EUMO / SETUP</span><i aria-hidden="true"></i></div><img id="demoShot" src="assets/screenshots/setup.png" alt="Eumo setup screen with mole name and color selection"></figure><div class="demo-route"><div id="demoTabs" role="tablist" aria-label="Walkthrough steps" aria-orientation="vertical"><button role="tab" id="demo-setup" data-demo="setup" aria-selected="true" aria-controls="demoPanel"><span>01</span>Setup</button><button role="tab" id="demo-focus" data-demo="focus" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>02</span>Focus</button><button role="tab" id="demo-discover" data-demo="discover" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>03</span>Discover & equip</button><button role="tab" id="demo-home" data-demo="home" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>04</span>Home</button><button role="tab" id="demo-friends" data-demo="friends" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>05</span>Friends</button><button role="tab" id="demo-music" data-demo="music" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>06</span>Music & floating</button><button role="tab" id="demo-review" data-demo="review" aria-selected="false" tabindex="-1" aria-controls="demoPanel"><span>07</span>Review & AI</button></div><div id="demoPanel" role="tabpanel" tabindex="0" aria-labelledby="demo-setup"><p id="demoCue">Name & color</p><span id="demoStepTime">0:00–0:30</span></div></div></div><div class="section-bottom demo-bottom"><span>Live demonstration · 6 minutes</span><div class="demo-clock"><output id="demoTimer" aria-label="Demo elapsed time">00:00</output><button id="startDemoClock" aria-pressed="false">Start clock</button><button id="resetDemoClock" aria-label="Reset demo clock">↺</button></div></div>
+</section>
+<section id="testing" class="chapter" data-title="User Feedback & Iteration" data-time="1:00" aria-labelledby="testing-title">
+<div class="chapter-heading"><span class="eyebrow">08 / USER FEEDBACK & ITERATION</span><button class="text-button" data-detail="testing">Feedback notes ↗</button></div><h2 id="testing-title">User Feedback <em>&amp; Iteration</em></h2>
+<div class="feedback-layout clear-feedback"><div class="feedback-table-wrap"><div class="feedback-column-head" aria-hidden="true"><span>USER FEEDBACK</span><span>IMPLEMENTED RESPONSE</span></div><div class="feedback-list" role="tablist" aria-label="Reported feedback and implemented responses" aria-orientation="vertical"><button id="feedback-outfits" role="tab" data-feedback="outfits" aria-selected="true" aria-controls="feedbackPanel"><span>Outfits motivate use</span><strong>Material-based apparel <i>↗</i></strong></button><button id="feedback-desktop" role="tab" data-feedback="desktop" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Phone sessions drain battery</span><strong>Web + desktop access <i>↗</i></strong></button><button id="feedback-social" role="tab" data-feedback="social" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Want to see friends studying</span><strong>Online status + study time <i>↗</i></strong></button><button id="feedback-friction" role="tab" data-feedback="friction" aria-selected="false" tabindex="-1" aria-controls="feedbackPanel"><span>Too much text; unclear controls</span><strong>Less copy · Shop / Owned · drag <i>↗</i></strong></button></div></div><figure id="feedbackPanel" role="tabpanel" aria-labelledby="feedback-outfits" tabindex="0" class="product-frame feedback-frame"><div class="window-bar"><span id="feedbackLabel">EUMO / WARDROBE</span><i aria-hidden="true"></i></div><img id="feedbackShot" src="assets/screenshots/wardrobe.png" alt="Eumo wardrobe, with material-based equipment"><figcaption id="feedbackCaption">Discoveries can be exchanged for apparel.</figcaption></figure></div>
+
+</section>
+<section id="roadmap" class="chapter" data-title="Next Steps" data-time="0:45" aria-labelledby="roadmap-title">
+<div class="chapter-heading"><span class="eyebrow">09 / DEVELOPMENT ROADMAP</span><button class="text-button" data-detail="roadmap">Development details ↗</button></div><h2 id="roadmap-title">Next <em>Steps</em></h2>
+<div class="next-grid">
+ <article><span class="next-number">01</span><svg aria-hidden="true"><use href="#i-screen"/></svg><h3>App UI</h3><p>Refine hierarchy, navigation and responsive layouts.</p></article>
+ <article><span class="next-number">02</span><svg aria-hidden="true" viewBox="0 0 48 48"><path d="m13 5-6 34q17 8 34 0L35 5ZM13 5q11-5 22 0M18 8l-3 30m9-28v31m6-33 3 30"/></svg><h3>Enclosure design</h3><p>Develop the shell, materials, grip and charging access.</p></article>
+ <article><span class="next-number">03</span><svg aria-hidden="true" viewBox="0 0 48 48"><rect x="10" y="3" width="28" height="42" rx="4"/><path d="M15 10h18v22H15Zm6 28h6"/></svg><h3>Device interface</h3><p>Simplify pairing, timer controls and reward feedback.</p></article>
+ <article><span class="next-number">04</span><svg aria-hidden="true" viewBox="0 0 48 48"><path d="M7 16h34v28H7Zm7 0V8h20v8M24 35V22m-6 6 6-6 6 6"/></svg><h3>Commercial launch</h3><p>Test paid offerings and pricing; prepare app-store submissions.</p></article>
+</div>
+</section>
+<section id="extensions" class="chapter extensions" data-title="Product Extensions" data-time="0:50" aria-labelledby="extensions-title">
+<div class="chapter-heading"><span class="eyebrow">10 / PRODUCT EXTENSIONS</span><button class="text-button" data-detail="extensions">Prototype scope ↗</button></div><div class="extensions-heading"><h2 id="extensions-title">Physical <em>product extensions.</em></h2><div class="segmented" role="tablist" aria-label="Physical product"><button id="family-keychain" data-family="keychain" role="tab" aria-selected="true" aria-controls="familyPanel">NFC keychain</button><button id="family-handheld" data-family="handheld" role="tab" aria-selected="false" tabindex="-1" aria-controls="familyPanel">Canele</button></div></div><div id="familyPanel" class="extensions-layout" role="tabpanel" aria-labelledby="family-keychain" tabindex="0"><div class="render-wrap"><div id="renderStage" class="render-stage"><div id="keychainSprite" data-variant="5" class="keychain-sprite" role="img" aria-label="Orange handmade Eumo keychain"><img id="keychainPhoto" src="assets/keychains-extra.png" alt="" width="1774" height="887" decoding="async"></div><img id="handheldRender" src="assets/canele-yellow.png" alt="Yellow Canele product visualization with the pixel mole, focus timer and digging scene on its screen" hidden></div><span id="renderCaption" class="render-caption">Handmade keychain</span></div><div class="extensions-copy"><span class="status" id="familyStatus">WORKING NFC PROTOTYPE</span><h3 id="familyTitle">Tap to open a link.</h3><p id="familyDescription">A physical entry point to Eumo.</p><div id="colorPicker"><span class="eyebrow color-label">COLOR / <strong id="colorName">Orange</strong></span><div class="swatches" aria-label="Keychain colors"><button data-color="5" aria-pressed="true"><i style="--swatch:#e98f2d"></i>Orange</button><button data-color="4" aria-pressed="false"><i style="--swatch:linear-gradient(135deg,#91a7b7 50%,#ed9b3f 50%)"></i>Blue & Orange</button><button data-color="0" aria-pressed="false"><i style="--swatch:#ecc94c"></i>Sunflower</button><button data-color="1" aria-pressed="false"><i style="--swatch:#159892"></i>Teal</button><button data-color="2" aria-pressed="false"><i style="--swatch:#a89bc8"></i>Lavender</button><button data-color="3" aria-pressed="false"><i style="--swatch:#55534f"></i>Charcoal</button></div></div><div id="handheldFunctions" class="handheld-functions" hidden><span>Timer</span><span>Digging</span></div></div></div><div class="section-bottom"><span>Next validation</span><span>Everyday use · ergonomics · feasibility</span></div>
+</section>
+<section id="business" class="chapter business business-v6" data-title="Business Model" data-time="0:35" aria-labelledby="business-title">
+<div class="chapter-heading"><span class="eyebrow">11 / COMMERCIAL STRATEGY</span><button class="text-button" data-detail="business">Market &amp; economics ↗</button></div><h2 id="business-title">Business <em>Model</em></h2>
+<div class="business-intro"><p><strong>Free core. Optional paid layers.</strong><span>Timer and basic companion remain accessible.</span></p><span class="planned-label">Proposed model</span></div>
+<div class="revenue-grid">
+ <article><span class="revenue-number">01</span><span class="revenue-type">RECURRING REVENUE</span><h3>Premium membership</h3><p>Expanded AI support and premium personalization.</p><span class="revenue-unit">Monthly / annual subscription</span></article>
+ <article><span class="revenue-number">02</span><span class="revenue-type">DIGITAL SALES</span><h3>Digital collections</h3><p>Artist-designed outfits, interiors and seasonal worlds.</p><span class="revenue-unit">One-time content purchases</span></article>
+ <article><span class="revenue-number">03</span><span class="revenue-type">PRODUCT SALES</span><h3>Physical products</h3><p>NFC keychains and the Canele focus device.</p><span class="revenue-unit">Direct sales / app bundles</span></article>
+</div>
+<div class="business-operations"><div><h4>Acquisition</h4><p>Study communities · campus creators · referrals</p></div><div><h4>Distribution</h4><p>Web &amp; desktop → app stores → direct product sales</p></div><div><h4>Cost structure</h4><p>AI &amp; hosting · art production · hardware &amp; fulfillment</p></div></div>
+</section>
+<section id="thankyou" class="chapter bookend thankyou" data-title="Thank You" data-time="0:10" aria-labelledby="thankyou-title">
+<div class="bookend-center"><h2 id="thankyou-title">Thank you.</h2></div>
+<p class="bookend-credit"><strong>Zhenyao Wang</strong><strong>Yun Ye</strong></p>
+</section>
+</main>
+<footer class="presentation-footer"><button id="prevChapter" class="nav-arrow" aria-label="Previous chapter">←</button><span class="chapter-counter"><b id="chapterNumber">01</b><span>/</span><span id="chapterTotal">12</span></span><span id="chapterLabel">Opening</span><div class="progress-track" aria-hidden="true"><span id="progressFill"></span></div><span class="keyboard-hint">← → Navigate</span><button id="nextChapter" class="nav-arrow" aria-label="Next chapter">→</button></footer>
+<dialog id="contentsDialog" aria-labelledby="contentsTitle"><div class="dialog-heading"><h2 id="contentsTitle">Chapters</h2><button id="closeContents" aria-label="Close chapters" autofocus>×</button></div><nav id="chapterLinks" aria-label="Chapter index"></nav><p class="dialog-note">13:00 total · including a 6-minute live demo</p></dialog>
+<dialog id="detailDialog" aria-labelledby="detailTitle"><div class="dialog-heading"><h2 id="detailTitle">Details</h2><button id="closeDetail" aria-label="Close details" autofocus>×</button></div><div id="detailBody"></div></dialog>
+</body></html>

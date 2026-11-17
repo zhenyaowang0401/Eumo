@@ -1,0 +1,179 @@
+{
+  "updated": "2026-11-17",
+  "status": "selected-sources-verified",
+  "notice": "The selected findings below were checked against retrieved official reports, publisher full text or indexed primary-publication abstracts. They inform design; they are not Eumo outcome data.",
+  "feedbackNotice": "Qualitative project-owner feedback; participant count and study protocol were not supplied.",
+  "themes": [
+    {
+      "id": "presence",
+      "label": "Community & accountability",
+      "headline": "Progress is easier to act on when it is visible.",
+      "summary": "Progress-monitoring interventions improved goal attainment; reported or public progress was associated with larger effects.",
+      "metric": "138 studies",
+      "design": "Optional friend visibility and study records.",
+      "limit": "Goal monitoring is not the same intervention as live co-study or online friend status.",
+      "sourceIds": [
+        "harkin2016"
+      ]
+    },
+    {
+      "id": "learning",
+      "label": "AI learning support",
+      "headline": "Structured AI can support learning.",
+      "summary": "A tailored AI tutor produced more than twice the median learning gains of an active-learning class in a 194-student physics trial.",
+      "metric": ">2× median learning gains",
+      "design": "Explore guided questions, task breakdown and feedback in optional AI chat.",
+      "limit": "The tested educational tutor is different from Eumo’s open-ended companion chat.",
+      "sourceIds": [
+        "kestin2025"
+      ]
+    },
+    {
+      "id": "companion",
+      "label": "AI companionship",
+      "headline": "Users describe company and support.",
+      "summary": "A thematic analysis of 1,854 reviews and 66 user responses identified companionship and emotional support.",
+      "metric": "66 user responses + 1,854 reviews",
+      "design": "A persistent character with optional conversation.",
+      "limit": "Reported experiences, not an efficacy rate or a learning result.",
+      "sourceIds": [
+        "ta2020"
+      ]
+    },
+    {
+      "id": "motivation",
+      "label": "Rewards & motivation",
+      "headline": "Game elements can support motivation.",
+      "summary": "A learning-gamification meta-analysis found a positive motivational effect across 16 studies and 2,246 participants.",
+      "metric": "g = 0.36",
+      "design": "Make effort visible through discoveries and personalization.",
+      "limit": "A standardized effect size, not a percentage; effects concern gamification packages, not rewards alone.",
+      "sourceIds": [
+        "sailer2020"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "oecd2023",
+      "citation": "OECD (2023). PISA 2022 Results (Volume II): Learning During – and From – Disruption.",
+      "url": "https://www.oecd.org/en/publications/pisa-2022-results-volume-ii_a97db61c-en/full-report/component-5.html",
+      "doi": "10.1787/a97db61c-en",
+      "status": "Verified official executive summary and report",
+      "finding": "30% of students, on average across OECD countries, reported distraction from using digital devices in most or every mathematics lesson.",
+      "population": "15-year-old students assessed by PISA 2022",
+      "scope": "Self-reported classroom distraction; not a causal effect or prevalence estimate for the entire 8–35 target range.",
+      "localExtract": "oecd_5_retry.clean"
+    },
+    {
+      "id": "harkin2016",
+      "citation": "Harkin, B., et al. (2016). Does monitoring goal progress promote goal attainment? A meta-analysis of the experimental evidence. Psychological Bulletin, 142(2), 198–229.",
+      "url": "https://doi.org/10.1037/bul0000025",
+      "retrievedFrom": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&resultType=core&query=EXT_ID:26479070%20AND%20SRC:MED",
+      "status": "Verified indexed primary abstract and Crossref metadata",
+      "finding": "138 randomized studies (N = 19,951); goal-attainment effect d = 0.40, 95% CI [0.32, 0.48]. Effects were larger when progress was reported or made public and physically recorded.",
+      "population": "Participants across goal-monitoring intervention studies; not a single age-defined student sample.",
+      "scope": "Progress monitoring across contexts, not an experiment on Eumo, Zoom study rooms or body doubling. Public reporting is a moderator, and d is not a percentage.",
+      "localExtract": "harkin-epmc.json"
+    },
+    {
+      "id": "kestin2025",
+      "citation": "Kestin, G., Miller, K., Klales, A., Milbourne, T., & Ponti, G. (2025). AI tutoring outperforms in-class active learning: an RCT introducing a novel research-based design in an authentic educational setting. Scientific Reports, 15, 17458.",
+      "url": "https://www.nature.com/articles/s41598-025-97652-6",
+      "doi": "10.1038/s41598-025-97652-6",
+      "status": "Verified publisher full text",
+      "finding": "The purpose-built AI tutor produced more than twice the median learning gains of in-class active learning.",
+      "population": "194 Harvard undergraduate physics students; counterbalanced randomized comparison across two lessons.",
+      "scope": "Structured pedagogical tutoring, not generic companion chat. Does not establish Eumo effects, long-term benefits or equivalent results for all ages/subjects. The study does not justify saying half the time.",
+      "localExtract": "kestin.txt"
+    },
+    {
+      "id": "ta2020",
+      "citation": "Ta, V., et al. (2020). User Experiences of Social Support From Companion Chatbots in Everyday Contexts: Thematic Analysis. Journal of Medical Internet Research, 22(3), e16235.",
+      "url": "https://www.jmir.org/2020/3/e16235/",
+      "doi": "10.2196/16235",
+      "status": "Verified publisher full text",
+      "finding": "Users described companionship and emotional, informational and appraisal support.",
+      "population": "Study 1: 1,854 Replika reviews. Study 2: open-ended responses from 66 Replika users.",
+      "scope": "Separate qualitative datasets from self-selected users, not 1,920 interviewed participants, population prevalence, causal efficacy or measured learning gains.",
+      "localExtract": "ta.txt"
+    },
+    {
+      "id": "sailer2020",
+      "citation": "Sailer, M., & Homner, L. (2020). The Gamification of Learning: a Meta-analysis. Educational Psychology Review, 32, 77–112.",
+      "url": "https://link.springer.com/article/10.1007/s10648-019-09498-w",
+      "doi": "10.1007/s10648-019-09498-w",
+      "status": "Verified publisher full text",
+      "finding": "Motivational outcomes: Hedges’ g = 0.36, 95% CI [0.18, 0.54]; 16 studies, N = 2,246.",
+      "population": "Participants in the learning-gamification studies included in the motivational outcome analysis.",
+      "scope": "Gamification combines multiple game elements; it does not isolate rewards or compare all rewards with punishment. g is not a percentage. Motivational effects were less stable in a more rigorous subset.",
+      "localExtract": "sailer.txt"
+    },
+    {
+      "id": "steel2007",
+      "citation": "Steel, P. (2007). The nature of procrastination: a meta-analytic and theoretical review of quintessential self-regulatory failure. Psychological Bulletin, 133(1), 65–94.",
+      "url": "https://doi.org/10.1037/0033-2909.133.1.65",
+      "retrievedFrom": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&resultType=core&query=EXT_ID:17201571%20AND%20SRC:MED",
+      "status": "Verified indexed primary abstract and Crossref metadata",
+      "finding": "A review of 691 correlations identified task aversiveness, task delay, self-efficacy, impulsiveness and related self-regulation factors among consistent predictors.",
+      "population": "Studies included in the procrastination review; no single age cohort.",
+      "scope": "Supports a broader problem framing; no student prevalence statistic is used.",
+      "localExtract": "steel-epmc.json"
+    }
+  ],
+  "competitors": [
+    {
+      "name": "Pomodoro technique",
+      "lens": "Timed focus, breaks, planning and reflection",
+      "url": "https://www.pomodorotechnique.com/",
+      "status": "Official description verified 2026-11-17",
+      "scope": "The technique itself is not punitive; separate product-specific penalties from the method.",
+      "localExtract": "pomodoro.clean"
+    },
+    {
+      "name": "Forest",
+      "lens": "An example of a penalty in a focus app",
+      "url": "https://www.forestapp.cc/",
+      "status": "Official FAQ verified 2026-11-17",
+      "finding": "During strict sessions, leaving the app or using blocked apps may make the tree wither.",
+      "scope": "Forest also has group focus; do not generalize the absence of peer features to all focus apps.",
+      "localExtract": "forest.clean"
+    },
+    {
+      "name": "Cat On Chair: Pomodoro Timer",
+      "lens": "Cat companionship, timers, gifts and room decoration",
+      "url": "https://apps.apple.com/us/app/cat-on-chair-pomodoro-timer/id6746562271",
+      "retrievedFrom": "https://itunes.apple.com/search?term=cat%20on%20chair&entity=software&limit=5",
+      "status": "Publisher description in official Apple software API verified 2026-11-17",
+      "finding": "Both Pomodoro and count-up modes, gifts/rewards and furniture. Failed sessions may produce trash.",
+      "scope": "No live human peer-presence feature is listed; this is not an exhaustive feature audit.",
+      "localExtract": "cat_search.txt"
+    }
+  ],
+  "market": {
+    "target": "Learners aged 8–35 who want support for independent study and work.",
+    "status": "Requested product target, not a measured market estimate; studies do not validate effects for this entire age range.",
+    "persona": "Alex, 20: illustrative profile informed by project feedback, not an interviewed participant.",
+    "business": "Planned free core with optional subscription, digital collections and physical-product revenue."
+  },
+  "productStatus": {
+    "cloud": "Four-digit Canele pairing and device-to-web progress import are deployed; pairing requires confirmation on the device.",
+    "hardware": "Updated firmware and real-device pairing/sync verification remain to be completed on the connected computer.",
+    "boundary": "This is not general account-based save synchronization between independent browsers.",
+    "rewards": "Active Study / Work timer time earns progress. Paused time and Break do not. Ending early preserves already-earned rewards."
+  },
+  "validation": [
+    "Observe task starts, interruptions, reward interpretation and repeat use.",
+    "Record actual participant count, ages and methods.",
+    "Evaluate perceived company, study progress and collection distraction separately.",
+    "Test pricing and repeat use before claiming commercial demand."
+  ],
+  "provenance": {
+    "extractionDirectory": "/workspace/scratch/presentation-v6-research/",
+    "researchReports": [
+      "social.md",
+      "ai-rewards.md"
+    ],
+    "verificationDate": "2026-11-17"
+  }
+}

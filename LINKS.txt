@@ -1,0 +1,4 @@
+Presentation: https://1111-phi-ten.vercel.app/present/index.html?v=9#cover
+Product: https://1111-phi-ten.vercel.app/index.html
+Editable source: https://github.com/zhenyaowang0401/Eumo/tree/main/present
+Source commit: 05d099dd3beda1434a9d08277b54d108afefb84e

@@ -1,0 +1,8 @@
+{
+  "name": "eumo-presentation",
+  "private": true,
+  "version": "1.9.0",
+  "scripts": {
+    "start": "node serve.cjs"
+  }
+}
