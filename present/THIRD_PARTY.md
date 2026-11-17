@@ -40,3 +40,11 @@ The supplied references identify the comparison; they do not establish efficacy,
 ## Opening and closing
 
 The cover's EUMO mark is copied directly from the application's own `startup-mark` SVG in the root `index.html`, with IDs prefixed to avoid collisions. `bookends.css` reuses the application's 200 ms stepped entrance from `woodland.css`, while keeping the presentation page visible afterward. Both cover and Thank You use the existing `assets/backgrounds/flower-meadow.png`. No new logo or floral background was generated.
+
+## V8 product imagery
+
+`assets/overview-burrow.png` is exported from the application's actual `PixelArt.drawHomePreview` renderer using an isolated, deterministic scene. It includes the existing home, furniture and clothed mole; no user account, saved home or interface is captured. CSS frames the left rooms and entrance ladder for the overview.
+
+The five individual keychains in `assets/keychains/` are AI-retouched product images based on the new photographs supplied on November 17, 2026. The editing tool removed the wood background, adjusted lighting and, at the user's request, repositioned the metal hardware with its opening hook above its closed ring. These are edited images, not untouched photographs. Original inline photograph files are not bundled. CSS preserves each output's aspect ratio and aligns bead-body width and foot baseline across colors; it does not stretch the photos.
+
+Orange retains its existing visualization from the right half of `assets/keychains-extra.png`; CSS frames that cell and matches the new images’ body width and foot baseline. Its opening hook is already above the closed ring. This existing artwork is intentionally used for release because the new orange photograph is not yet available to the image editor. The page makes no request for a missing `orange.png`.

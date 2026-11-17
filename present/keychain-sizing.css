@@ -1,41 +1,14 @@
-/*
- * Match every colorway to the Blue & Orange reference's visible height.
- * The source sheets have different transparent margins. Their visible bounds
- * (alpha > 64) are normalized in CSS without changing the source images.
- * Keep the sprite element square and inside its stage; scale only its image.
- * The position override replaces the legacy inline 0/100% cell selection.
+/* Individual studio edits of the supplied handmade keychain photographs.
+ * Normalize bead-body width to 62% of the stage and feet to a 94% baseline.
+ * Clasp height varies naturally; retain each photo's proportions.
  */
-#keychainSprite[data-variant] {
-  background-size: var(--keychain-sheet-size);
-  background-position: var(--keychain-sheet-position) !important;
-}
+#keychainSprite {position:relative;background:none;overflow:visible}
+#keychainPhoto {position:absolute;display:block;width:var(--photo-scale,100%);height:auto;max-width:none;left:var(--photo-x,0%);top:var(--photo-y,0%);image-rendering:auto}
+#keychainSprite[data-variant="0"] {--photo-scale:94.012092%;--photo-x:2.956469%;--photo-y:4.111245%}
+#keychainSprite[data-variant="1"] {--photo-scale:95.866831%;--photo-x:2.028360%;--photo-y:0.961776%}
+#keychainSprite[data-variant="2"] {--photo-scale:90.721120%;--photo-x:4.675613%;--photo-y:6.823804%}
+#keychainSprite[data-variant="3"] {--photo-scale:92.009467%;--photo-x:3.958580%;--photo-y:5.512426%}
+#keychainSprite[data-variant="4"] {--photo-scale:96.461538%;--photo-x:1.692308%;--photo-y:1.384615%}
 
-#keychainSprite[data-variant="0"] {
-  --keychain-sheet-size: 229.116201% 229.116201%;
-  --keychain-sheet-position: 6.132870% 2.486818%;
-}
-
-#keychainSprite[data-variant="1"] {
-  --keychain-sheet-size: 229.116201% 229.116201%;
-  --keychain-sheet-position: 91.320006% 2.486818%;
-}
-
-#keychainSprite[data-variant="2"] {
-  --keychain-sheet-size: 229.562821% 229.562821%;
-  --keychain-sheet-position: 6.269517% 90.937340%;
-}
-
-#keychainSprite[data-variant="3"] {
-  --keychain-sheet-size: 230.461306% 230.461306%;
-  --keychain-sheet-position: 91.556674% 90.954720%;
-}
-
-#keychainSprite[data-variant="4"] {
-  --keychain-sheet-size: 200% 100%;
-  --keychain-sheet-position: 1.972943% 50%;
-}
-
-#keychainSprite[data-variant="5"] {
-  --keychain-sheet-size: 200.965018% 100.482509%;
-  --keychain-sheet-position: 97.685337% 96.730552%;
-}
+/* Keep the existing orange image, framing the right-hand cell only. */
+#keychainSprite[data-variant="5"] {overflow:hidden;--photo-scale:182.401327%;--photo-x:-84.847430%;--photo-y:5.781095%}

@@ -189,16 +189,16 @@
     $('#feedbackShot').src=shot;$('#feedbackShot').alt=`Eumo ${label.toLowerCase()} interface; illustrative development context`;
     $('#feedbackLabel').textContent='EUMO / '+label;$('#feedbackCaption').textContent=caption;
   }));
-  const colors=['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange'];
+  const colors=['Sunflower','Teal','Lavender','Charcoal','Blue & Orange','Orange'];
+  const colorPhotos=['sunflower','teal','lavender','charcoal','blue-orange'].map(name=>`assets/keychains/${name}.png`).concat('assets/keychains-extra.png');
   let color = 5;
   let family = 'keychain';
   function drawProduct() {
     const keychain = family === 'keychain';
     $('#keychainSprite').hidden = !keychain;$('#handheldRender').hidden=keychain;
-    $('#keychainSprite').classList.toggle('extra',color>=4);
     $('#keychainSprite').dataset.variant=String(color);
-    $('#keychainSprite').style.backgroundPosition=color<4 ? `${color%2*100}% ${Math.floor(color/2)*100}%` : `${(color-4)*100}% 50%`;
-    $('#keychainSprite').setAttribute('aria-label',`${colors[color]} Eumo keychain visualization`);
+    $('#keychainPhoto').src=colorPhotos[color];
+    $('#keychainSprite').setAttribute('aria-label',`${colors[color]} handmade Eumo keychain`);
   }
   $$('[data-color]').forEach(button => button.addEventListener('click', () => {
     color=Number(button.dataset.color);$('#colorName').textContent=colors[color];
@@ -210,12 +210,12 @@
     $('#familyStatus').textContent=keychain ? 'WORKING NFC PROTOTYPE' : 'WORKING ELECTRONIC PROTOTYPE';
     $('#familyTitle').textContent=keychain ? 'Tap to open a link.' : 'Timer + digging.';
     $('#familyDescription').textContent=keychain ? 'A physical entry point to Eumo.' : 'A compact, standalone companion.';
-    $('#renderCaption').textContent=keychain ? 'Colorway visualization' : 'Enclosure visualization';
+    $('#renderCaption').textContent=keychain ? 'Handmade keychain' : 'Enclosure visualization';
     $('#colorPicker').hidden=!keychain;$('#handheldFunctions').hidden=keychain;
     pixelSwap($('#renderStage'),drawProduct);
   });
-  // Preload both sprite sheets before a user chooses a color.
-  for(const src of ['assets/keychains.png','assets/keychains-extra.png','assets/handheld.png']) {const img=new Image();img.src=src;}
+  // Orange keeps its existing artwork until the new source photo is available.
+  for(const src of [...colorPhotos,'assets/handheld.png']) {const img=new Image();img.src=src;}
 
   let accumulated=0, started=0, ticker=null;
   function renderClock() {

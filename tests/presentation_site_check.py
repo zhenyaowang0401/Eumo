@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v7-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v8-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
 CHAPTERS = ['cover', 'overview', 'inspiration', 'research', 'persona', 'landscape',
@@ -77,14 +77,13 @@ try:
         REPORT['independent_assets']=decoded
         check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
         check('MADE project masthead', lambda: need(page.locator('.masthead-label').inner_text()=='MADE PROJECT'))
-        check('Overview pairs the audience with only the complete original logo', lambda: (
+        check('Overview pairs the audience with the original mole and burrow scene', lambda: (
             need('8–35' in page.locator('.product-facts').inner_text()),
-            need(page.locator('#overview .hero-frame,.overview-stat').count()==0),
-            need(page.locator('.overview-brand').inner_text().strip()==''),
-            need(page.locator('.overview-mark>use').get_attribute('href')=='#cover-artwork'),
-            need(page.locator('.overview-mark').get_attribute('viewBox')=='0 0 420 205'),
-            need(page.locator('#cover-artwork use[href="#cover-flower"]').count()>0),
-            need(page.locator('#cover-artwork use[href="#cover-mushroom"]').count()>0)))
+            need(page.locator('#overview .hero-frame,.overview-stat,.overview-mark').count()==0),
+            need(page.locator('.overview-burrow').inner_text().strip()==''),
+            need(page.locator('.overview-burrow img').get_attribute('src')=='assets/overview-burrow.png'),
+            need(page.locator('.overview-burrow img').evaluate('e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0')),
+            need('underground home' in page.locator('.overview-burrow img').get_attribute('alt'))))
         check('SVG ids stay unique and every local use resolves', lambda: need(page.evaluate('''()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return new Set(ids).size===ids.length&&[...document.querySelectorAll('svg use')].every(e=>document.getElementById(e.getAttribute('href').slice(1)))}''')))
         check('Persona identity stays concise', lambda: (
             need(page.locator('.persona-profile h2').inner_text()=='Alex, 20'),
@@ -274,38 +273,47 @@ try:
 
         goto('extensions')
         check('Orange default',lambda:(need(page.locator('#colorName').inner_text()=='Orange'),need(page.locator('[data-color="5"]').get_attribute('aria-pressed')=='true'),need(page.locator('#keychainSprite').get_attribute('data-variant')=='5')))
-        sprites=[]
-        for i,name in enumerate(['Sunflower','Mint','Lavender','Charcoal','Blue & Orange','Orange']):
+        photos=[]
+        color_files=[f'assets/keychains/{name}.png' for name in ['sunflower','teal','lavender','charcoal','blue-orange']]+['assets/keychains-extra.png']
+        for i,name in enumerate(['Sunflower','Teal','Lavender','Charcoal','Blue & Orange','Orange']):
             page.locator(f'[data-color="{i}"]').click()
-            sprites.append(page.locator('#keychainSprite').evaluate('e=>[getComputedStyle(e).backgroundImage,getComputedStyle(e).backgroundPosition]'))
+            page.locator('#keychainPhoto').evaluate('e=>e.decode()')
+            photos.append(page.locator('#keychainPhoto').get_attribute('src'))
             check('Color '+name,lambda i=i,name=name:(
                 need(page.locator('#colorName').inner_text()==name),
                 need(page.locator(f'[data-color="{i}"]').get_attribute('aria-pressed')=='true'),
                 need(page.locator('[data-color][aria-pressed="true"]').count()==1),
                 need(page.locator('#keychainSprite').get_attribute('aria-label').startswith(name)),
+                need(page.locator('#keychainPhoto').get_attribute('src')==color_files[i]),
                 need(page.locator('[data-pixel-wipe]').count()==0,'Reduced motion created overlay')))
-        check('Six distinct color sprite cells',lambda:need(len(set(map(str,sprites)))==6,str(sprites)))
-        check('Two new colors use extra sprite',lambda:need(all('keychains-extra.png' in s[0] for s in sprites[4:])))
-        check('Four original colors use original sprite',lambda:need(all('keychains.png' in s[0] for s in sprites[:4])))
+        check('Six distinct available color sources',lambda:need(len(set(photos))==6,str(photos)))
+        check('Legacy sprite background is absent',lambda:need(page.locator('#keychainSprite').evaluate('e=>getComputedStyle(e).backgroundImage')=='none'))
         sources=[]
-        for index in range(6):
-            path=ROOT/'present/assets'/('keychains.png' if index<4 else 'keychains-extra.png')
-            sheet=Image.open(path).convert('RGBA');cell=627 if index<4 else 887
-            col=index%2 if index<4 else index-4;row=index//2 if index<4 else 0
-            alpha=sheet.crop((col*cell,row*cell,(col+1)*cell,(row+1)*cell)).getchannel('A')
-            bounds=alpha.point(lambda a:255 if a>64 else 0).getbbox()
-            sources.append({'sheet':sheet.size,'bounds':(bounds[0]+col*cell,bounds[1]+row*cell,bounds[2]+col*cell,bounds[3]+row*cell)})
+        for filename in color_files:
+            image=Image.open(ROOT/'present'/filename).convert('RGBA')
+            alpha=image.getchannel('A').point(lambda a:255 if a>160 else 0)
+            # The retained orange artwork is the right cell of the existing sheet.
+            source_left=image.width//2 if filename.endswith('keychains-extra.png') else 0
+            bounds=alpha.crop((source_left,0,image.width,image.height)).getbbox()
+            bounds=(bounds[0]+source_left,bounds[1],bounds[2]+source_left,bounds[3])
+            # Below the clasp, measure the mole body rather than attachment height.
+            body_start=round(image.height*.45)
+            body=alpha.crop((source_left,body_start,image.width,image.height)).getbbox()
+            sources.append({'size':image.size,'bounds':bounds,'body':(body[0]+source_left,body[1]+body_start,body[2]+source_left,body[3]+body_start)})
         REPORT['keychain_bounds']=[]
         for width,height in [(1440,900),(1366,768),(1280,720),(768,1024),(390,844),(320,568)]:
             page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(160);goto('extensions')
+            color_bounds=[]
             for index in range(6):
                 page.locator(f'[data-color="{index}"]').click()
-                style=page.locator('#keychainSprite').evaluate('''e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{w:r.width,h:r.height,size:s.backgroundSize.split(' ').map(parseFloat),pos:s.backgroundPosition.split(' ').map(parseFloat),variant:e.dataset.variant}}''')
-                src=sources[index];bw=style['w']*style['size'][0]/100;bh=style['h']*style['size'][1]/100
-                sx=bw/src['sheet'][0];sy=bh/src['sheet'][1];ox=(style['w']-bw)*style['pos'][0]/100;oy=(style['h']-bh)*style['pos'][1]/100
-                x1,y1,x2,y2=src['bounds'];box={'left':ox+x1*sx,'right':ox+x2*sx,'top':oy+y1*sy,'bottom':oy+y2*sy}
-                box.update({'visibleHeight':box['bottom']-box['top'],'width':width,'height':height,'variant':index,'spriteWidth':style['w'],'spriteHeight':style['h']});REPORT['keychain_bounds'].append(box)
-                check(f'Keychain visible bounds {width}x{height} color {index}',lambda box=box,style=style,index=index,sx=sx,sy=sy:(need(style['variant']==str(index)),need(abs(style['w']-style['h'])<1),need(abs(sx-sy)<.001),need(box['left']>=-1 and box['top']>=-1 and box['right']<=style['w']+1 and box['bottom']<=style['h']+1,str(box)),need(abs(box['visibleHeight']/style['w']-833/887)<.005,str(box)),need(abs((box['left']+box['right'])/2-style['w']/2)<1.5,str(box))))
+                page.locator('#keychainPhoto').evaluate('e=>e.decode()')
+                style=page.locator('#keychainSprite').evaluate('''e=>{const r=e.getBoundingClientRect(),i=e.querySelector('img').getBoundingClientRect();return{w:r.width,h:r.height,image:{w:i.width,h:i.height,x:i.left-r.left,y:i.top-r.top},variant:e.dataset.variant}}''')
+                src=sources[index];sx=style['image']['w']/src['size'][0];sy=style['image']['h']/src['size'][1];ox=style['image']['x'];oy=style['image']['y']
+                x1,y1,x2,y2=src['bounds'];body=src['body']
+                box={'left':ox+x1*sx,'right':ox+x2*sx,'top':oy+y1*sy,'bottom':oy+y2*sy,'bodyWidth':(body[2]-body[0])*sx,'feetBaseline':oy+body[3]*sy,'bodyCenter':ox+(body[0]+body[2])*sx/2}
+                box.update({'width':width,'height':height,'variant':index,'spriteWidth':style['w'],'spriteHeight':style['h']});REPORT['keychain_bounds'].append(box);color_bounds.append(box)
+                check(f'Keychain photograph bounds {width}x{height} color {index}',lambda box=box,style=style,index=index,sx=sx,sy=sy:(need(style['variant']==str(index)),need(abs(style['w']-style['h'])<1),need(abs(sx-sy)<.001),need(box['left']>=-2 and box['top']>=-2 and box['right']<=style['w']+2 and box['bottom']<=style['h']+2,str(box)),need(abs(box['bodyCenter']-style['w']/2)<2,str(box))))
+            check(f'Equal mole size and foot baseline {width}x{height}',lambda boxes=color_bounds:(need(max(b['bodyWidth'] for b in boxes)-min(b['bodyWidth'] for b in boxes)<=2,str(boxes)),need(max(b['feetBaseline'] for b in boxes)-min(b['feetBaseline'] for b in boxes)<=2,str(boxes))))
             if width in [1366,390]:page.screenshot(path=str(OUTPUT/f'{width}x{height}-normalized-orange.png'))
         page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160);goto('extensions')
 

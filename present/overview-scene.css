@@ -1,0 +1,25 @@
+/* A close view of the real game's home canvas; no interface or account data. */
+.overview-burrow {
+  min-width:0;
+  width:100%;
+  max-width:460px;
+  aspect-ratio:380/360;
+  margin:0;
+  overflow:hidden;
+  border:1px solid #53654b;
+  box-shadow:7px 7px 0 #48624d19;
+}
+.overview-burrow img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:left center;
+  image-rendering:pixelated;
+}
+@media(max-width:999px) and (min-width:651px) {
+  .overview-burrow { align-self:center; }
+}
+@media(max-width:650px) {
+  .overview-burrow { max-width:420px; justify-self:center; }
+}

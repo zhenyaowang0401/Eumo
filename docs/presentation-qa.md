@@ -1,5 +1,13 @@
 # Presentation verification
 
+## V8: burrow and corrected keychain hardware
+
+Checked 17 November 2026. **149/149 targeted release checks passed** for the overview and all six keychain colors at six viewport sizes. The burrow comes from the existing game renderer. Five product images use the newly supplied photographs with edited lighting and corrected clasp orientation (opening hook above, closed ring below). Orange deliberately retains the existing right-hand image in `keychains-extra.png`, framed with CSS; no missing `orange.png` is requested.
+
+Measured bead-body widths differ by at most 1.02 px and foot baselines by at most 0.32 px. Keyboard interaction, handheld switching, reduced motion and rapid animated color/family switching passed, with no JavaScript errors or resource failures. Desktop and mobile Orange framing was visually reviewed; the other sheet cell stays outside the clipped frame. This targeted run covers the changed presentation screens, not another full-suite run.
+
+Report and screenshots: `/workspace/scratch/presentation-v8-release-qa/`.
+
 ## V7: complete logo and readable research sentences
 
 Checked 17 November 2026. The overview now shows only the complete original Eumo logo on its right, including its flowers and mushrooms. Each research tab presents a complete English finding with the numbers and conclusion emphasized within the sentence. Statistical effect-size notation remains in the source details.
