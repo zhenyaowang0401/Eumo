@@ -1,8 +1,8 @@
-# Eumo product presentation — v8
+# Eumo product presentation — v9
 
 An English presentation for a product-management final. The main screens use short points, actual product UI and Eumo's floral/pixel visual system; supporting methods and evidence sit in optional detail panels. The page uses local DM Sans for readable text and a clear weight/size hierarchy, retaining the pixel Eumo mark and artwork. Terracotta emphasizes the key idea in each title.
 
-**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html?v=8#cover)
+**Entry:** [`index.html`](index.html) · **Web:** [Open the presentation](https://1111-phi-ten.vercel.app/present/index.html?v=9#cover)
 
 ## Presentation structure
 
@@ -25,7 +25,7 @@ Total: **13:00**, including a six-minute live demonstration. No speaker script i
 
 - Navigate with the bottom controls, left/right arrows, PageUp/PageDown, Home/End or Chapters menu. The new `#cover` and `#thankyou` links target the opening and closing pages. Older aliases such as `#beyond` and `#hello` still work.
 - Four research tabs present checked findings as complete English sentences. Study numbers and conclusions are highlighted within the sentence, with context and clickable citations; technical effect sizes remain in source details.
-- Overview gives WHO / PROBLEM / HOW one sentence each. An authentic mole-and-burrow scene from the game renderer appears on the right.
+- Overview gives WHO / PROBLEM / HOW one sentence each. A sunny Focus scene with the frog-hat mole appears on the right, using the original game renderer and crisp HTML framing and chat.
 - Inspiration retains pixel co-study and electronic-pet illustrations.
 - Persona shows Alex, 20, and one avatar beside study context, goals, pain points and needs. The profile's illustrative basis is available in the detail panel.
 - Competitive Analysis separates each tool's function from its limitation. Cat On Chair's rewards/decorating and the Pomodoro method's non-punitive nature are represented accurately.
@@ -34,7 +34,7 @@ Total: **13:00**, including a six-minute live demonstration. No speaker script i
 - Business Model presents a proposed free core, three revenue streams, acquisition, distribution and cost structure. Eumo's floral artwork replaces mascot decoration.
 - Details open in native dialogs. Escape closes a dialog and restores trigger focus.
 - The opening reuses the application’s actual EUMO startup SVG and short pixel entrance over its floral background. It stays visible as a presentation cover. The final Thank You page uses the same background; both carry Zhenyao Wang and Yun Ye’s names.
-- **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The handheld has its own tab. Five colorways use the newly supplied photographs, retouched with transparent backgrounds and corrected hook-above-ring orientation. Orange keeps its existing artwork. All six share the same visible body width and foot baseline without stretching.
+- **Orange** is the default keychain. Six named swatches include the new **Blue & Orange** and **Orange** designs. The yellow device has its own **Canele** tab, with its pixel mole, timer and digging screen visible. Five colorways use the newly supplied photographs, retouched with transparent backgrounds and corrected hook-above-ring orientation. Orange keeps its existing artwork. All six share the same visible body width and foot baseline without stretching.
 - Open Eumo launches the actual application in another tab. The optional demo clock tracks presentation time only.
 - A brief entrance plays once; physical-product swaps use a GSAP pixel transition adapted from React Bits. Reduced motion uses immediate changes. There are no timed carousels, autoplay music or scroll-triggered reveals.
 
@@ -62,6 +62,6 @@ Most product screenshots come from the current code in an isolated illustrative 
 
 The co-study scene and Tamagotchi-style device are generated illustrations. Competitor visuals are reference illustrations recreated from the presenter's supplied images, not original app screenshots; this is disclosed in the page and detail notes. See [asset provenance](THIRD_PARTY.md).
 
-`assets/keychains/` contains five AI-retouched images based on the newly supplied product photographs. Orange uses the existing right-hand image in `keychains-extra.png` until its new source can be supplied to the editor. Original photographs are not bundled. The previous sprite sheets are preserved. `handheld.png` remains a generated enclosure visualization with a blank screen. `overview-burrow.png` comes directly from the game’s home renderer in an isolated scene.
+`assets/keychains/` contains five AI-retouched images based on the newly supplied product photographs. Orange uses the existing right-hand image in `keychains-extra.png` until its new source can be supplied to the editor. Original photographs are not bundled. The previous sprite sheets are preserved. `canele-yellow.png` is a product visualization based on the supplied enclosure model and yellow working-device photograph; the screen follows the supplied mole game, timer and mineshaft reference. The former blank-screen `handheld.png` is preserved but no longer shown. `overview-focus.png` comes directly from the game’s focus renderer in an isolated sunny surface scene; its header and chat are native HTML. The earlier burrow asset is preserved.
 
 This revision changes only the presentation and its verification/documentation. Gameplay, balances, saves, native packaging and update configuration are unchanged. GitHub source publication and production deployment are separate checks; do not treat a successful push as proof that Vercel has served the revision.

@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT.parent / 'scratch' / 'presentation-v8-qa'
+OUTPUT = ROOT.parent / 'scratch' / 'presentation-v9-qa'
 OUTPUT.mkdir(parents=True, exist_ok=True)
 REPORT = {'checks': [], 'viewports': [], 'errors': [], 'bad_responses': []}
 CHAPTERS = ['cover', 'overview', 'inspiration', 'research', 'persona', 'landscape',
@@ -77,13 +77,14 @@ try:
         REPORT['independent_assets']=decoded
         check('All new reference images independently decode', lambda:need(all(i['ok'] for i in decoded),str(decoded)))
         check('MADE project masthead', lambda: need(page.locator('.masthead-label').inner_text()=='MADE PROJECT'))
-        check('Overview pairs the audience with the original mole and burrow scene', lambda: (
+        check('Overview pairs the audience with the frog-hat focus scene and native chat', lambda: (
             need('8–35' in page.locator('.product-facts').inner_text()),
-            need(page.locator('#overview .hero-frame,.overview-stat,.overview-mark').count()==0),
-            need(page.locator('.overview-burrow').inner_text().strip()==''),
-            need(page.locator('.overview-burrow img').get_attribute('src')=='assets/overview-burrow.png'),
-            need(page.locator('.overview-burrow img').evaluate('e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0')),
-            need('underground home' in page.locator('.overview-burrow img').get_attribute('alt'))))
+            need(page.locator('#overview .hero-frame,.overview-stat,.overview-mark,.overview-burrow').count()==0),
+            need(page.locator('.overview-focus-scene').get_attribute('src')=='assets/overview-focus.png'),
+            need(page.locator('.overview-focus-scene').evaluate('e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0')),
+            need('frog hat' in page.locator('.overview-focus-scene').get_attribute('alt')),
+            need('Luka' in page.locator('.overview-focus-chat').inner_text()),
+            need("I'm here with you." in page.locator('.overview-focus-chat p').inner_text())))
         check('SVG ids stay unique and every local use resolves', lambda: need(page.evaluate('''()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return new Set(ids).size===ids.length&&[...document.querySelectorAll('svg use')].every(e=>document.getElementById(e.getAttribute('href').slice(1)))}''')))
         check('Persona identity stays concise', lambda: (
             need(page.locator('.persona-profile h2').inner_text()=='Alex, 20'),
@@ -318,7 +319,7 @@ try:
         page.set_viewport_size({'width':1366,'height':768});page.wait_for_timeout(160);goto('extensions')
 
         page.locator('#family-keychain').focus();page.keyboard.press('ArrowRight')
-        check('Handheld tab and scope',lambda:(need(page.locator('#handheldRender').is_visible()),need(not page.locator('#keychainSprite').is_visible()),need(not page.locator('#colorPicker').is_visible()),need(page.locator('#familyTitle').inner_text()=='Timer + digging.')))
+        check('Canele tab and displayed prototype',lambda:(need(page.locator('#handheldRender').is_visible()),need(not page.locator('#keychainSprite').is_visible()),need(not page.locator('#colorPicker').is_visible()),need(page.locator('#familyTitle').inner_text()=='Canele'),need(page.locator('#family-handheld').inner_text()=='Canele'),need(page.locator('#handheldRender').get_attribute('src')=='assets/canele-yellow.png'),need(page.locator('#handheldRender').evaluate('e=>e.complete&&e.naturalWidth>0'))))
         page.keyboard.press('ArrowLeft')
         check('Return keychain preserves selected color',lambda:(need(page.locator('#keychainSprite').is_visible()),need(page.locator('#colorName').inner_text()=='Orange')))
 

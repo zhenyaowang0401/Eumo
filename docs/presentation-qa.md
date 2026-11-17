@@ -1,5 +1,11 @@
 # Presentation verification
 
+## V9: native Focus composition and yellow Canele
+
+Checked 17 November 2026. **155/155 targeted checks passed** at six viewport sizes, with no JavaScript errors or resource failures. Coverage includes the original-renderer frog-hat Focus scene and native HTML chat; the Canele tab/title and new yellow visualization; all six keychain colors; family switching, keyboard behavior, reduced motion and rapid animated swaps. Desktop and mobile visuals confirm that the complete yellow device fits and its screen contains the pixel mole, timer and mineshaft. No unrelated full-suite run was performed.
+
+Report and screenshots: `/workspace/scratch/presentation-v9-qa/`.
+
 ## V8: burrow and corrected keychain hardware
 
 Checked 17 November 2026. **149/149 targeted release checks passed** for the overview and all six keychain colors at six viewport sizes. The burrow comes from the existing game renderer. Five product images use the newly supplied photographs with edited lighting and corrected clasp orientation (opening hook above, closed ring below). Orange deliberately retains the existing right-hand image in `keychains-extra.png`, framed with CSS; no missing `orange.png` is requested.

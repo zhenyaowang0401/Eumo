@@ -72,7 +72,7 @@ window.EumoNotes = Object.freeze({
     title: 'Physical Product Extensions',
     html: `<ul><li><strong>NFC keychain:</strong> opens its programmed link on a compatible phone.</li><li><strong>Canele:</strong> a working electronic prototype for digging and timekeeping, with firmware for recording settled progress and rewards.</li><li><strong>Cloud connection:</strong> four-digit pairing and device-to-web import are deployed. Pairing requires confirmation on the device.</li></ul>
       <p>The physical screen needs the latest firmware and a live pairing / sync test. This is not full account-based save synchronization.</p>
-      <p class="note">Keychain colors and the enclosure are visualizations based on supplied references. Manufacturing readiness and battery life remain to be evaluated.</p>`
+      <p class="note">The Canele visualization combines the supplied enclosure model and yellow prototype references, with screen content based on the working-device photograph. Keychain images are edited product visuals. Manufacturing readiness and battery life remain to be evaluated.</p>`
   },
   business: {
     title: 'Business Model',

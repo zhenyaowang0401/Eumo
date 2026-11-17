@@ -208,14 +208,14 @@
   tabs('[data-family]','#familyPanel', button => {
     family=button.dataset.family;const keychain=family==='keychain';
     $('#familyStatus').textContent=keychain ? 'WORKING NFC PROTOTYPE' : 'WORKING ELECTRONIC PROTOTYPE';
-    $('#familyTitle').textContent=keychain ? 'Tap to open a link.' : 'Timer + digging.';
-    $('#familyDescription').textContent=keychain ? 'A physical entry point to Eumo.' : 'A compact, standalone companion.';
-    $('#renderCaption').textContent=keychain ? 'Handmade keychain' : 'Enclosure visualization';
+    $('#familyTitle').textContent=keychain ? 'Tap to open a link.' : 'Canele';
+    $('#familyDescription').textContent=keychain ? 'A physical entry point to Eumo.' : 'Start a focus session, dig with your mole and keep your rewards.';
+    $('#renderCaption').textContent=keychain ? 'Handmade keychain' : 'Canele · product visualization';
     $('#colorPicker').hidden=!keychain;$('#handheldFunctions').hidden=keychain;
     pixelSwap($('#renderStage'),drawProduct);
   });
   // Orange keeps its existing artwork until the new source photo is available.
-  for(const src of [...colorPhotos,'assets/handheld.png']) {const img=new Image();img.src=src;}
+  for(const src of [...colorPhotos,'assets/canele-yellow.png']) {const img=new Image();img.src=src;}
 
   let accumulated=0, started=0, ticker=null;
   function renderClock() {
