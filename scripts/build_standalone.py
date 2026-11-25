@@ -8,7 +8,7 @@ import mimetypes
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ('presentation.js', 'locale.js', 'world.js', 'journey.js', 'home.js', 'home-editor.js', 'wardrobe.js', 'wardrobe-art.js', 'terrain.js', 'music-catalog.js', 'audio.js', 'treasures.js', 'mine-view.js', 'mole-art.js', 'home-navigation.js', 'home-scenery.js', 'home-walk.js', 'pixel-art.js', 'voice-input.js', 'chat.js', 'music.js', 'friends.js', 'focus-icons.js', 'canele.js', 'appearance.js', 'floating-mole.js', 'onboarding.js', 'save-transfer.js', 'desktop-updates.js', 'device-records.js', 'device-progress.js', 'app.js', 'device-link.js')
+SCRIPTS = ('presentation.js', 'locale.js', 'world.js', 'journey.js', 'home.js', 'home-editor.js', 'wardrobe.js', 'wardrobe-art.js', 'terrain.js', 'music-catalog.js', 'audio.js', 'treasures.js', 'mine-view.js', 'mole-art.js', 'home-navigation.js', 'home-scenery.js', 'home-walk.js', 'pixel-art.js', 'voice-input.js', 'chat.js', 'music.js', 'friends.js', 'focus-icons.js', 'canele.js', 'appearance.js', 'floating-mole.js', 'onboarding.js', 'save-transfer.js', 'desktop-updates.js', 'device-records.js', 'device-progress.js', 'co-study.js', 'study-guidance.js', 'app.js', 'device-link.js')
 
 
 def embed_music() -> tuple[str, str]:
@@ -58,6 +58,12 @@ def build(output: Path) -> Path:
         raise ValueError('Expected exactly one woodland.css stylesheet tag')
     css += '\n' + (ROOT / 'woodland.css').read_text(encoding='utf-8')
     page = page.replace(woodland_tag, '')
+    for name in ['co-study.css', 'study-guidance.css']:
+        tag = f'<link rel="stylesheet" href="{name}">'
+        if page.count(tag) != 1:
+            raise ValueError('Expected exactly one stylesheet tag: ' + name)
+        css += '\n' + (ROOT / name).read_text(encoding='utf-8')
+        page = page.replace(tag, '')
     for font_path, mime in [('assets/fonts/pixelify-sans.ttf', 'font/ttf'),
                             ('assets/fonts/silver.woff', 'font/woff'),
                             ('assets/fonts/silver-complement.woff', 'font/woff')]:

@@ -17,6 +17,9 @@
     },
     "api/transcribe.js": {
       "maxDuration": 60
+    },
+    "api/co-study.js": {
+      "maxDuration": 30
     }
   }
 }

@@ -9,6 +9,7 @@ const server=http.createServer(async(req,res)=>{
  if(pathname==='/api/transcribe')return transcribe(req,res);
  if(pathname==='/api/chat')return chat(req,res);
  if(pathname==='/api/friends')return friends(req,res);
+ if(pathname==='/api/co-study')return require('../api/co-study.js')(req,res);
  if(pathname==='/api/device')return device(req,res);
  if(pathname==='/api/dig-pair')return require('../api/dig-pair.js')(req,res);
  if(pathname==='/api/dig-sync')return require('../api/dig-sync.js')(req,res);

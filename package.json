@@ -19,7 +19,9 @@
     "test:voice": "node --test tests/test_voice.cjs",
     "test:updates": "node --test tests/test_updates.cjs",
     "test:home": "node --test tests/test_home_design.cjs tests/test_crafting.cjs tests/test_treasures.cjs tests/test_home_navigation.cjs tests/test_material_outfits.cjs",
-    "test:device": "node --test tests/test_device_progress.cjs tests/test_device_records.cjs tests/test_dig_pair.cjs tests/test_dig_sync.cjs tests/test_device_viewer.cjs tests/test_desktop.cjs tests/test_save_transfer_ownership.cjs"
+    "test:device": "node --test tests/test_device_progress.cjs tests/test_device_records.cjs tests/test_dig_pair.cjs tests/test_dig_sync.cjs tests/test_device_viewer.cjs tests/test_desktop.cjs tests/test_save_transfer_ownership.cjs",
+    "dev:local": "node scripts/dev_local.cjs",
+    "test:co-study": "node --test tests/test_co_study.cjs tests/test_study_guidance.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.12",
@@ -27,7 +29,7 @@
     "electron-builder": "26.18.0"
   },
   "main": "desktop/main.cjs",
-  "description": "Eumo — a little mole for focus, collecting and decorating",
+  "description": "Eumo \u2014 a little mole for focus, collecting and decorating",
   "author": "Eumo",
   "build": {
     "appId": "app.eumo.companion",

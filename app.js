@@ -61,6 +61,7 @@ let trendRange=7,selectedDay=todayKey(),calendarView=new Date(new Date().getFull
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
 let deviceLedgerStamp=JSON.stringify(state.deviceImports||{});
 let deviceActivity={until:0,status:'idle',snapshot:null},deviceControl=false;
+let taskPreparedAt=0;
 // A tab owns progress only while actively recording or editing, never just
 // because it was opened first. Idle tabs can browse and edit normally.
 const SAVE_OWNER_KEY='eumo-progress-owner-v1',SAVE_OWNER_LOCK='eumo-browser-save-owner';
@@ -220,11 +221,11 @@ function trackStudy(){
  if(!focusSession(t))return;
  let cursor=from;while(cursor<until){const d=new Date(cursor),key=dateKey(d),midnight=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime(),end=Math.min(until,midnight),day=state.reportDays[key]||(state.reportDays[key]={seconds:0,completed:0,workSeconds:0,workCompleted:0}),seconds=(end-cursor)/1000,field=t.mode==='work'?'workSeconds':'seconds';day[field]=Math.round(((day[field]||0)+seconds)*1000)/1000;t.daySeconds=t.daySeconds||{};t.daySeconds[key]=Math.round(((t.daySeconds[key]||0)+seconds)*1000)/1000;cursor=end;}
 }
-function pauseSession(){if(!mayWriteProgress())return;trackStudy();const t=state.session;if(!t||t.status!=='running')return;if(remaining()===0){complete();return;}t.remaining=remaining();t.status='paused';save();releaseIdleOwner();renderTimer();MoleChat.onGameEvent('session_paused');FriendsClient.notify();}
+function pauseSession(){if(!mayWriteProgress())return;trackStudy();const t=state.session;if(!t||t.status!=='running')return;if(remaining()===0){complete();return;}t.remaining=remaining();t.status='paused';t.pausedAt=Date.now();save();releaseIdleOwner();renderTimer();MoleChat.onGameEvent('session_paused');FriendsClient.notify();window.CoStudy?.notify?.();}
 
 function ensureDigDay(){if(!state.session&&state.digDay!==todayKey()){state.surfaceDepth=state.depth;state.digDay=todayKey();return true;}return false;}
 function petMood(){if(deviceIsDigging())return 'awake';return state.session?(state.session.status==='paused'||state.session.mode==='rest'?'rest':'awake'):(Date.now()-state.idleAt>=300000?'asleep':Date.now()-state.idleAt>=90000?'drowsy':'awake');}
-function renderTimer(){document.body.dataset.petState=petMood();const s=state.session,n=remaining(),min=Math.floor(n/60),sec=n%60;$('#timeDisplay').innerHTML=String(min).padStart(2,'0')+'<span>:</span>'+String(sec).padStart(2,'0');$('#timeDisplay').setAttribute('aria-label',`${min} minutes ${sec} seconds remaining`);$('#durationLabel').textContent=s?(s.demo?'15 sec':`${Math.round(s.plannedSeconds/60)} min`):demoSelected?'15 sec':`${state.minutes} min`;$('#startText').textContent=s?(s.status==='running'?'Pause':'Resume'):'Start';$('.play-symbol').innerHTML=FocusIcons.svg(s?.status==='running'?'pause':'play');$('#startButton').setAttribute('aria-label',EumoI18n.t(s?(s.status==='running'?'Pause':'Resume'):'Start'));$('#startButton').title=$('#startButton').getAttribute('aria-label');$('#stopButton').hidden=!s;$('#demoButton').hidden=!!s;$('#demoButton').textContent=demoSelected?'Exit demo':'15s demo';$('#timerLabel').textContent=s?(s.status==='running'?'Running':'Paused'):demoSelected?'Demo':'Ready';$('#minusTime').disabled=!!s||(!demoSelected&&state.minutes<=5);$('#plusTime').disabled=!!s?.demo||(s?s.plannedSeconds:state.minutes*60)>=7200;FocusIcons.set($('#focusMode'),state.mode,modes[state.mode]);document.body.classList.toggle('running',s?.status==='running');$$('[data-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.mode===state.mode);b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode));FocusIcons.set(b,b.dataset.mode,modes[b.dataset.mode]);b.disabled=!!s;});$('#taskInput').disabled=!!s;if(s)$('#taskInput').value=s.task||'';const busy=!!s;$('#homePetButton').disabled=busy;$('#petButton').disabled=busy;$('#wardrobePetButton').disabled=busy;$('#petButton').title=busy?'Session in progress':`Pet ${state.profile.name}`;updateHomeMode();updateGoldenControls();const gold=s?RareTreasures.awards(s,Journey.pickups(s)):[];$('#goldenPickup').hidden=!gold.length;$('#goldenPickup').textContent=gold.length?'✦ GOLDEN FIND · '+RareTreasures.get(gold[gold.length-1].id).name+' · in your backpack':'';renderDig();MineView.refresh();renderReportStats();renderDeviceTimer();showSaveOwnership();}
+function renderTimer(){document.body.dataset.petState=petMood();const s=state.session,n=remaining(),min=Math.floor(n/60),sec=n%60;$('#timeDisplay').innerHTML=String(min).padStart(2,'0')+'<span>:</span>'+String(sec).padStart(2,'0');$('#timeDisplay').setAttribute('aria-label',`${min} minutes ${sec} seconds remaining`);$('#durationLabel').textContent=s?(s.demo?'15 sec':`${Math.round(s.plannedSeconds/60)} min`):demoSelected?'15 sec':`${state.minutes} min`;$('#startText').textContent=s?(s.status==='running'?'Pause':'Resume'):'Start';$('.play-symbol').innerHTML=FocusIcons.svg(s?.status==='running'?'pause':'play');$('#startButton').setAttribute('aria-label',EumoI18n.t(s?(s.status==='running'?'Pause':'Resume'):'Start'));$('#startButton').title=$('#startButton').getAttribute('aria-label');$('#stopButton').hidden=!s;$('#demoButton').hidden=!!s;$('#demoButton').textContent=demoSelected?'Exit demo':'15s demo';$('#timerLabel').textContent=s?(s.status==='running'?'Running':'Paused'):demoSelected?'Demo':'Ready';$('#minusTime').disabled=!!s||(!demoSelected&&state.minutes<=5);$('#plusTime').disabled=!!s?.demo||!!s?.coStudy||(s?s.plannedSeconds:state.minutes*60)>=7200;FocusIcons.set($('#focusMode'),state.mode,modes[state.mode]);document.body.classList.toggle('running',s?.status==='running');$$('[data-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.mode===state.mode);b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode));FocusIcons.set(b,b.dataset.mode,modes[b.dataset.mode]);b.disabled=!!s;});$('#taskInput').disabled=!!s;if(s)$('#taskInput').value=s.task||'';const busy=!!s;$('#homePetButton').disabled=busy;$('#petButton').disabled=busy;$('#wardrobePetButton').disabled=busy;$('#petButton').title=busy?'Session in progress':`Pet ${state.profile.name}`;updateHomeMode();updateGoldenControls();const gold=s?RareTreasures.awards(s,Journey.pickups(s)):[];$('#goldenPickup').hidden=!gold.length;$('#goldenPickup').textContent=gold.length?'✦ GOLDEN FIND · '+RareTreasures.get(gold[gold.length-1].id).name+' · in your backpack':'';renderDig();MineView.refresh();renderReportStats();renderDeviceTimer();showSaveOwnership();}
 function renderDig(){const m=PixelArt.digMetrics({...state,remaining:remaining()});$('#depthDisplay').textContent=String(Math.floor(m.worldDepth)).padStart(3,'0');$('#totalDepth').textContent=Math.floor(state.depth);$('#digPercent').textContent=Math.floor(m.fraction*100)+'%';$('#digProgress').style.width=(m.fraction*100)+'%';$('#mineStatus').textContent=state.session?(state.session.status==='running'?(Journey.eligible(state.session)?'Digging':'Resting'):'Resting'):({awake:'Idle',rest:'Resting',drowsy:'Drowsy',asleep:'Sleeping'}[petMood()]);if(deviceIsDigging())$('#mineStatus').textContent=EumoI18n.t('canele digging');if(!state.session&&!deviceIsDigging()&&m.worldDepth===0)$('#mineStatus').textContent='Surface';$('#sceneLabel').textContent=m.worldDepth===0?'Surface':Terrain.layerAt(m.worldDepth).name;}
 function renderStats(){$('#balance').textContent=state.balance;$('#closetBalance').textContent=state.balance;$('#ownedCount').textContent=state.owned.length+state.ownedTools.length;$('#equippedList').innerHTML=state.equipped.length?state.equipped.map(id=>`<span class="equipment-chip">${outfits.find(o=>o.id===id).name}</span>`).join(''):'No equipment';$('#removeOutfit').disabled=!state.equipped.length;HomeCatalog.rememberFinds(state);renderGoldenShelf();renderCloset();renderReportStats();renderHome();}
 function renderCloset(){
@@ -247,9 +248,28 @@ window.addEventListener('popstate',navigate);
 function navigateTo(target){if(target==='rewards')target='home';navigate(target);try{if(location.hash!=='#'+target)history.pushState(null,'','#'+target);}catch(_){/* Embedded previews may disallow URL changes; the view is already updated. */}}
 document.addEventListener('click',e=>{const link=e.target.closest('a[href^="#"]');if(!link||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const target=link.getAttribute('href').slice(1);if(['start','focus','home','rewards','wardrobe','reports','companions'].includes(target)){e.preventDefault();navigateTo(target);}});
 function clearPet(){petAt=0;petSpinAt=0;petCombo=[];petComboCanvas=null;clearTimeout(petTimeout);$('#petSpeech').hidden=true;$('#wardrobeSpeech').hidden=true;$('#homeSpeech').hidden=true;}
-$('#startButton').addEventListener('click',async()=>{if(deviceControl)return;if(!await acquireSaveOwner('timer')){showSaveOwnership();return;}if(deviceControl)return;trackStudy();clearPet();state.idleAt=Date.now();const t=state.session;if(!t){ensureDigDay();homeEditing=false;const seconds=demoSelected?15:state.minutes*60,now=Date.now();state.lastTask=cleanText($('#taskInput').value);state.session={id:globalThis.crypto?.randomUUID?.()||String(now)+'-'+Math.random().toString(36).slice(2),status:'running',mode:state.mode,plannedSeconds:seconds,deadline:now+seconds*1000,demo:demoSelected,trackedAt:now,startedAt:now,elapsed:0,baseEligible:state.eligibleSeconds,rareSeed:state.rareSeed,rewardVersion:2,baseDepth:state.depth,task:state.lastTask,daySeconds:{}};}else if(t.status==='running'){pauseSession();return;}else{homeEditing=false;t.deadline=Date.now()+t.remaining*1000;t.trackedAt=Date.now();t.status='running';}MineView.reset();save();renderTimer();MoleChat.onGameEvent(t?'session_resumed':'session_started');FriendsClient.notify();});
-$('#taskInput').value=state.lastTask;$('#taskInput').addEventListener('input',()=>{state.lastTask=cleanText($('#taskInput').value);save();});
-$('#plusTime').addEventListener('click',()=>{trackStudy();const s=state.session;if(s){if(s.demo||s.plannedSeconds>=7200)return;s.plannedSeconds+=300;if(s.status==='running')s.deadline+=300000;else s.remaining+=300;}else if(demoSelected){demoSelected=false;state.minutes=5;}else state.minutes=Math.min(120,state.minutes+5);save();renderTimer();});
+// Keep solo and shared sessions on the same timer, save lease and reward path.
+async function toggleLocalSession(){
+ if(deviceControl||!canSave)return false;
+ if(!await acquireSaveOwner('timer')){showSaveOwnership();return false;}
+ if(deviceControl)return false;
+ trackStudy();clearPet();state.idleAt=Date.now();const t=state.session;
+ if(!t){
+  ensureDigDay();homeEditing=false;taskPreparedAt=0;
+  const seconds=demoSelected?15:state.minutes*60,now=Date.now();state.lastTask=cleanText($('#taskInput').value);
+  state.session={id:globalThis.crypto?.randomUUID?.()||String(now)+'-'+Math.random().toString(36).slice(2),status:'running',mode:state.mode,plannedSeconds:seconds,deadline:now+seconds*1000,demo:demoSelected,trackedAt:now,startedAt:now,elapsed:0,baseEligible:state.eligibleSeconds,rareSeed:state.rareSeed,rewardVersion:2,baseDepth:state.depth,task:state.lastTask,daySeconds:{}};
+ }else if(t.status==='running'){pauseSession();return state.session?.status==='paused';}
+ else{homeEditing=false;t.deadline=Date.now()+t.remaining*1000;t.trackedAt=Date.now();t.status='running';delete t.pausedAt;}
+ MineView.reset();const written=save();renderTimer();MoleChat.onGameEvent(t?'session_resumed':'session_started');FriendsClient.notify();window.CoStudy?.notify?.();return written;
+}
+async function toggleFocusSession(){
+ if(deviceControl||!canSave||otherProgressOwner())return false;
+ if(await window.CoStudy?.handleTimerAction?.('toggle'))return true;
+ return toggleLocalSession();
+}
+$('#startButton').addEventListener('click',toggleFocusSession);
+$('#taskInput').value=state.lastTask;$('#taskInput').addEventListener('input',()=>{state.lastTask=cleanText($('#taskInput').value);taskPreparedAt=state.lastTask?Date.now():0;save();});
+$('#plusTime').addEventListener('click',()=>{trackStudy();const s=state.session;if(s){if(s.demo||s.coStudy||s.plannedSeconds>=7200)return;s.plannedSeconds+=300;if(s.status==='running')s.deadline+=300000;else s.remaining+=300;}else if(demoSelected){demoSelected=false;state.minutes=5;}else state.minutes=Math.min(120,state.minutes+5);save();renderTimer();});
 $('#minusTime').addEventListener('click',()=>{if(state.session)return;if(demoSelected)demoSelected=false;else state.minutes=Math.max(5,state.minutes-5);save();renderTimer();});
 $('#demoButton').addEventListener('click',()=>{demoSelected=!demoSelected;renderTimer();});
 $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>{if(state.session)return;state.mode=b.dataset.mode;save();renderTimer();}));
@@ -261,10 +281,10 @@ function finishSession(outcome='complete',showDialog=true){
  const golden=RareTreasures.settle(state,t,Journey.pickups(t));
  state.depth+=r.depth;state.balance+=r.stars;r.finds.forEach((n,i)=>state.inventory[i]+=n);if(focusSession(t)){state.eligibleSeconds+=t.elapsed;state.totalSeconds+=t.elapsed;}
  if(outcome==='complete')state.sessions++;
- const h={id:t.id,at,startedAt:t.startedAt,mode:t.mode,task:cleanText(t.task),note:'',seconds:t.elapsed,stars:r.stars,depth:r.depth,finds:r.finds,golden:golden.map(a=>a.id),collected:r.collected.map(e=>e.id),demo:!!t.demo,daySeconds:t.daySeconds||{},outcome};
+ const h={id:t.id,at,startedAt:t.startedAt,mode:t.mode,task:cleanText(t.task),note:'',seconds:t.elapsed,stars:r.stars,depth:r.depth,finds:r.finds,golden:golden.map(a=>a.id),collected:r.collected.map(e=>e.id),demo:!!t.demo,daySeconds:t.daySeconds||{},outcome,...(t.coStudy?{coStudy:{...t.coStudy}}:{})};
  if(t.elapsed>0){state.history.unshift(h);lastFinishedId=h.id;}
  if(focusSession(t)&&outcome==='complete'){const key=dateKey(new Date(at)),day=state.reportDays[key]||(state.reportDays[key]={seconds:0,completed:0,workSeconds:0,workCompleted:0}),field=t.mode==='work'?'workCompleted':'completed';day[field]=(day[field]||0)+1;}
- state.session=null;state.idleAt=Date.now();demoSelected=false;ensureDigDay();save();releaseIdleOwner();renderTimer();renderStats();if(!$('#reports').hidden)renderReports();MoleChat.onGameEvent('session_finished',{seconds:t.elapsed,demo:!!t.demo,mode:t.mode,outcome});FriendsClient.notify();
+ state.session=null;taskPreparedAt=0;state.idleAt=Date.now();demoSelected=false;ensureDigDay();save();releaseIdleOwner();renderTimer();renderStats();if(!$('#reports').hidden)renderReports();MoleChat.onGameEvent('session_finished',{seconds:t.elapsed,demo:!!t.demo,mode:t.mode,outcome});FriendsClient.notify();window.CoStudy?.notify?.();
  $('#goldenFinishCopy').hidden=!golden.length;$('#goldenFinishCopy').textContent=golden.map(a=>'✦ GOLDEN FIND · '+RareTreasures.get(a.id).name).join(' · ');if(golden.length)toast('Golden find! '+golden.map(a=>RareTreasures.get(a.id).name).join(' · '));
  $('#finishHeading').textContent=t.demo?'DEVELOPER DEMO':outcome==='complete'?'SESSION COMPLETE':'SESSION SAVED';$('#finishStars').textContent=`+${r.stars} ✦`;$('#finishCopy').textContent=`${duration(t.elapsed,true)} · ${Math.floor(r.depth)} m dug · ${Math.floor(state.depth)} m total`;
  $('#discoveryCopy').textContent=r.finds.some(Boolean)?r.finds.map((n,i)=>n?`${discoveries[i].name} × ${n}`:'').filter(Boolean).join(' · '):'No finds this time';$('#outcomeInput').value='';$('#stopDialog').close();if(showDialog&&!$('#finishDialog').open)$('#finishDialog').showModal();
@@ -439,6 +459,31 @@ let reportResize;window.addEventListener('resize',()=>{clearTimeout(reportResize
 MoleChat.init(()=>{trackStudy();return {...state,remaining:remaining()};});
 
 FriendsClient.init(()=>{trackStudy();return {...state,remaining:remaining()};});
+
+window.CoStudy?.init({
+ read(){trackStudy();return {profile:state.profile,equipped:state.equipped,profileConfigured:state.profile.configured,session:state.session,history:state.history,lastTask:state.lastTask,deviceControl,canSave,mayWriteProgress:mayWriteProgress(),canControl:canSave&&!deviceControl&&!otherProgressOwner()};},
+ async start({sourceSessionId,roomId,roundId,plannedSeconds,task}){
+  if(!canSave||deviceControl||!state.profile.configured||!sourceSessionId||!roomId||!roundId||plannedSeconds!==1200)return false;
+  if(!await acquireSaveOwner('timer'))return false;
+  // Re-check after acquiring: another tab or a local session may have changed.
+  if(deviceControl||state.session||state.history.some(h=>h.id===sourceSessionId)){releaseIdleOwner();return false;}
+  ensureDigDay();homeEditing=false;clearPet();taskPreparedAt=0;demoSelected=false;
+  const now=Date.now();state.mode='study';state.lastTask=cleanText(task);state.idleAt=now;
+  state.session={id:sourceSessionId,status:'running',mode:'study',plannedSeconds,deadline:now+plannedSeconds*1000,demo:false,trackedAt:now,startedAt:now,elapsed:0,baseEligible:state.eligibleSeconds,rareSeed:state.rareSeed,rewardVersion:2,baseDepth:state.depth,task:state.lastTask,daySeconds:{},coStudy:{roomId,roundId}};
+  $('#taskInput').value=state.lastTask;MineView.reset();const written=save();renderTimer();MoleChat.onGameEvent('session_started');FriendsClient.notify();return written;
+ },
+ pause(){if(deviceControl||!mayWriteProgress()||!state.session?.coStudy)return false;pauseSession();return state.session?.status==='paused';},
+ async resume(){if(deviceControl||!state.session?.coStudy||state.session.status!=='paused')return false;return toggleLocalSession();},
+ finish(){if(deviceControl||!mayWriteProgress()||!state.session?.coStudy)return false;finishSession(remaining()===0?'complete':'stopped',false);return !state.session;},
+ review(sourceSessionId,note){if(!mayWriteProgress())return;const h=state.history.find(h=>h.id===sourceSessionId);if(h){h.note=cleanText(note,160);save();if(!$('#reports').hidden)renderReports();}},
+ openFriends(){document.querySelector('#coStudyDialog')?.close();$('#openFriends').click();}
+});
+window.StudyGuidance?.init({
+ mount:'#studyGuidance',
+ getSnapshot(){return {userId:window.CoStudy?.snapshot?.()?.self?.id||'local',profileConfigured:state.profile.configured,canControl:canSave&&!deviceControl&&!otherProgressOwner(),task:$('#taskInput').value,taskPreparedAt,session:state.session,focusVisible:!$('#focus').hidden&&!$('#gameShell').hidden,coStudy:window.CoStudy?.snapshot?.()?.break};},
+ start(){if(window.CoStudy?.snapshot?.()?.room?.status==='between_rounds'){window.CoStudy.open();return true;}return toggleFocusSession();},resume:toggleFocusSession,
+ openTaskHelp(task){MoleChat.open();const input=$('#chatDialogInput');input.value=EumoI18n.language==='zh'?`帮我把“${cleanText(task)||'学习任务'}”缩小成现在可以开始的一步。`:`Help me turn “${cleanText(task)||'my study task'}” into one small step I can start now.`;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();}
+});
 
 // The floating view shares this tab's timer, rewards and pet interaction; it never owns a second game loop.
 FloatingMole.init({

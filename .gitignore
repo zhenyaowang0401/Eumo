@@ -21,3 +21,6 @@ node_modules/
 # Generated desktop bundle and installers
 desktop/web/
 desktop-dist/
+
+# Isolated local co-study trial database
+.eumo-local-db/
