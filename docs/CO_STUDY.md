@@ -2,7 +2,9 @@
 
 This build extends the existing Focus screen. It retains the original pixel assets,
 scene, personal timer, saved progress, wardrobe, home and reward calculation.
-The presentation under `present/` is outside this change.
+The presentation under `present/` is outside this change. The shared room keeps
+people, statuses and actions prominent; longer rules are collapsed, and saved
+reviews appear as a short summary with an Edit action.
 
 ## Try the local version
 
@@ -77,9 +79,11 @@ Chat/transcription require their normal server configuration.
 
 ## Hosted migration and rollback
 
-No production database migration or production deployment has been performed for
-this build. Existing Vercel access returned 403 for the project and Supabase
-management access returned 401 (invalid access token) during verification.
+Website publishing and database installation are separate steps. A Git-triggered
+Vercel release does not execute this migration. Until it is installed, shared
+study reports unavailable while the original solo flow remains usable. Management
+access checks returned Vercel 403 and Supabase 401 (invalid access token); the
+existing GitHub integration provides an alternate website publishing route.
 
 Before hosted deployment, back up the relevant database and apply
 `database/co_study.sql` **after** the existing `database/friends.sql` on the intended

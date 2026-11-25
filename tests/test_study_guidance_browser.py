@@ -23,7 +23,7 @@ def run():
    }""")
    expect(page.locator('.study-guidance-cue')).not_to_be_visible()
    page.evaluate('guideNow+=120000;guide.refresh()')
-   expect(page.locator('.study-guidance-message')).to_have_text('Ready for your first small step?')
+   expect(page.locator('.study-guidance-message')).to_have_text('Ready to start?')
    page.locator('[data-guidance-action="later"]').click();expect(page.locator('.study-guidance-cue')).not_to_be_visible()
    page.evaluate('mountGuidance();guideNow+=299999;guide.refresh()');expect(page.locator('.study-guidance-cue')).not_to_be_visible()
    page.evaluate('guideNow++;guide.refresh()');expect(page.locator('.study-guidance-cue')).to_be_visible()
@@ -32,7 +32,7 @@ def run():
    page.locator('[data-guidance-action="later"]').click();expect(page.locator('.study-guidance-popover')).not_to_be_visible()
    page.evaluate('guideNow+=300000;guide.refresh()');expect(page.locator('.study-guidance-popover')).to_be_visible()
    page.evaluate("EumoI18n.set('zh')")
-   expect(page.locator('.study-guidance-message')).to_have_text('准备好开始第一个小步骤了吗？')
+   expect(page.locator('.study-guidance-message')).to_have_text('准备开始了吗？')
    for width in [360,390,768,1366]:
     page.set_viewport_size({'width':width,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')

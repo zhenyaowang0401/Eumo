@@ -8,8 +8,8 @@
  'use strict';
  const PREFIX='eumo-study-guidance-v1:',TASK_DELAY=120000,SNOOZE=300000;
  const COPY={
-  en:{entry:'Study prompts',close:'Close study prompts',label:'Gentle prompts',help:'Find a small first step',task:'Ready for your first small step?',pause:'Your task is still here. Continue when you’re ready.',rest:'Your planned break has ended. Ready to return?',start:'Start',resume:'Continue',later:'Remind me in 5 min',dismiss:'Dismiss',region:'Study guidance',saved:'Your reminder choice is saved on this device.',helpUnavailable:'Choose one small part of your task to start with.',actionError:'Please try again when your session is ready.'},
-  zh:{entry:'学习提示',close:'关闭学习提示',label:'温和提醒',help:'找一个容易开始的小步骤',task:'准备好开始第一个小步骤了吗？',pause:'你的任务还在，准备好时就继续吧。',rest:'计划的休息时间到了，准备好回来了吗？',start:'开始',resume:'继续',later:'5 分钟后提醒',dismiss:'关闭',region:'学习引导',saved:'提醒设置保存在此设备。',helpUnavailable:'先从任务中选一个容易完成的小步骤。',actionError:'等会话准备好后再试一次。'}
+  en:{entry:'Study prompts',close:'Close study prompts',label:'Gentle prompts',help:'Help me start',task:'Ready to start?',pause:'Ready to continue?',rest:'Break over. Ready to return?',start:'Start',resume:'Continue',later:'In 5 min',dismiss:'Dismiss',region:'Study guidance',saved:'Saved on this device.',helpUnavailable:'Start with one small step.',actionError:'Session not ready. Try again.'},
+  zh:{entry:'学习提示',close:'关闭学习提示',label:'温和提醒',help:'帮我拆分任务',task:'准备开始了吗？',pause:'准备继续了吗？',rest:'休息结束，继续吗？',start:'开始',resume:'继续',later:'5 分钟后提醒',dismiss:'关闭',region:'学习引导',saved:'提醒设置保存在此设备。',helpUnavailable:'先做一个小步骤。',actionError:'会话未就绪，请重试。'}
  };
  const clean=value=>String(value??'').trim().slice(0,200);
  // Hashes identify an event without retaining its task text in reminder storage.

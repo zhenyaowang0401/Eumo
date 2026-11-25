@@ -213,6 +213,16 @@ def run():
             refresh(b)
             assert room(a)['status'] == 'between_rounds'
             assert [m['points'] for m in room(a)['members']] == [1, 1]
+            # A saved review is compact; editing is explicit and cannot mint points.
+            expect(a.locator('#coStudyReviewForm')).to_have_count(0)
+            expect(a.locator('#coStudyReviewSaved')).to_be_visible()
+            a.locator('#coStudyEditReview').click()
+            expect(a.locator('#coStudyReviewNote')).to_have_value('Made progress; continue next round.')
+            a.locator('#coStudyReviewNote').fill('Continue from the next paragraph.')
+            mutate(a, 'review', lambda: a.locator('#coStudyReviewSubmit').click())
+            expect(a.locator('#coStudyReviewForm')).to_have_count(0)
+            assert member(a)['review']['note'] == 'Continue from the next paragraph.'
+            assert member(a)['points'] == 1
             first_round = room(a)['roundId']
             first_source = member(a)['sourceSessionId']
             before = a.evaluate('({history:state.history.filter(h=>h.id===CoStudy.getRoom().members.find(m=>m.id===CoStudy.getState().self.id).sourceSessionId),balance:state.balance,inventory:state.inventory})')
@@ -242,7 +252,7 @@ def run():
             a.locator('#coStudyBreak').click()
             a.locator('#coStudyClose').click()
             advance(300001)
-            expect(a.locator('.study-guidance-message')).to_have_text('Your planned break has ended. Ready to return?')
+            expect(a.locator('.study-guidance-message')).to_have_text('Break over. Ready to return?')
             a.locator('[data-guidance-action="primary"]').click()
             expect(a.locator('#coStudyDialog')).to_be_visible()
             assert a.evaluate('state.session') is None and b.evaluate('state.session') is None
@@ -295,7 +305,7 @@ def run():
             advance(200)
             saved_inventory = a.evaluate('JSON.stringify(state.inventory)')
             contexts[0].set_offline(True)
-            expect(a.locator('#coStudyPanel')).to_contain_text('Connection interrupted')
+            expect(a.locator('#coStudyPanel')).to_contain_text('Offline · local progress kept')
             a.locator('#coStudyPause').click()
             wait_js(a, "state.session.status==='paused' && !CoStudy.getState().ui.busy")
             expect(a.locator('#coStudyPause')).to_be_enabled()
