@@ -16,3 +16,69 @@
 
 /* Keep the room focused on people and actions; explanations are optional. */
 .co-study-rules{border-top:1px solid var(--edge-soft);margin-top:12px;padding-top:8px;color:var(--muted);font-size:14px;text-align:left}.co-study-rules summary{cursor:pointer;min-height:32px;display:list-item;list-style:revert;padding:5px 0;width:fit-content}.co-study-rules summary:focus-visible{outline:2px solid var(--focus-ring);outline-offset:3px}.co-study-rules>div{padding:6px 0 0}.co-study-panel .co-study-rules p{font-size:14px;line-height:1.4;margin:0 0 8px}.co-review-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--line);background:var(--raised);margin:12px 0;font-size:16px}.co-review-summary>span{min-width:0;overflow-wrap:anywhere}.co-review-summary b{font-weight:500;color:var(--cyan)}.co-review-summary button{flex:none}.co-member-status::before{content:"";display:inline-block;width:5px;height:5px;background:currentColor;margin-right:6px;vertical-align:middle}.co-study-room-heading h3{margin-bottom:0}.co-study-room-heading{margin-bottom:14px}.co-study-footer{margin-top:10px;padding-top:8px}.co-study-review .co-review-buttons button{white-space:nowrap}
+
+/* A two-person room: the same mole portraits, with clear local/remote state. */
+.co-study-members{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.co-member{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+.co-member-self{border-color:var(--edge);box-shadow:inset 0 0 0 1px var(--edge)}
+.co-member .co-member-identity{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 6px;height:40px}
+.co-member-identity strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.15}
+.co-member-you{font-size:13px;line-height:1.2;padding:2px 5px;background:var(--titlebar);color:var(--titlebar-ink)}
+.co-member-host{grid-column:1/-1;min-height:16px}
+.co-member .co-member-stage{display:flex;align-items:center;justify-content:center;background:var(--selected);border:1px solid var(--edge-soft);min-height:116px}
+.co-member canvas{width:108px;height:108px}
+.co-member .co-member-details{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center}
+.co-member-status{font-size:16px;line-height:1.2}
+.co-member[data-co-status="offline"] .co-member-status{color:var(--muted)}
+.co-member-time{font-size:23px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.co-member-time small{font-size:14px}
+.co-member-time-label{font-size:12px!important}
+.co-member-task{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.co-member-points{font-size:14px}
+.co-study-readiness{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;line-height:1.3;padding:8px 0;border-bottom:1px solid var(--edge-soft);margin-bottom:10px;color:var(--muted)}
+.co-study-readiness strong{color:var(--text);font-weight:500;flex:none}
+.co-study-readiness.is-ready strong{color:var(--cyan)}
+.co-study-readiness>span{text-align:right}
+.co-study-preparation{padding-top:0;border-top:0}
+.co-study-fields>label:not(.co-study-check){display:block;font-size:16px;margin-bottom:4px}
+.co-study-fields>#coStudyTask{margin-bottom:4px}
+.co-study-fields .co-study-mode-label{margin-top:8px!important}
+.co-study-actions{margin:10px 0 4px;gap:8px}
+.co-study-session-actions{justify-content:center}
+.co-study-panel .co-study-countdown{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0;font-size:18px!important}
+.co-study-countdown b{font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+@media(max-width:700px){
+ #coStudyBody{padding:10px}
+ #coStudyDialog button{min-height:44px}
+ .co-study-panel input:not([type=checkbox]),.co-study-panel select{font-size:16px}
+ .co-study-heading #coStudyClose{min-height:44px;min-width:44px}
+ .co-study-room-heading{flex-direction:row;align-items:baseline;gap:8px;margin-bottom:8px}
+ .co-study-room-heading h3{font-size:18px}
+ .co-study-room-heading>span{font-size:13px;text-align:right}
+ .co-study-members{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+ .co-member{padding:7px;gap:6px}
+ .co-member-identity strong{font-size:16px}
+ .co-member .co-member-identity{height:38px;gap:2px 4px}
+ .co-member-you{font-size:12px;padding:2px 3px}
+ .co-member-host{font-size:12px;min-height:14px}
+ .co-member .co-member-stage{min-height:72px}
+ .co-member canvas{width:68px;height:68px}
+ .co-member-status{font-size:14px}
+ .co-member-task,.co-member-points{font-size:13px}
+ .co-member-time{font-size:20px}
+ .co-member-time small{font-size:12px}
+ .co-study-readiness{font-size:14px;padding:6px 0;margin-bottom:8px}
+ .co-study-check{font-size:14px;margin:7px 0;gap:7px}
+ .co-study-mode-label{flex-direction:row;align-items:center}
+ .co-study-mode-label select{flex:1;min-width:0}
+ .co-study-actions>button{flex:1;min-height:44px;padding:6px 8px;font-size:15px}
+ .co-study-footer{margin-top:8px;padding-top:6px}
+ .co-study-rules{margin-top:8px;padding-top:4px}
+}
+@media(max-height:600px){
+ #coStudyDialog{max-height:calc(100dvh - 16px)}
+ .co-study-heading{padding:5px 10px}
+ .co-member .co-member-stage{min-height:60px}
+ .co-member canvas{width:56px;height:56px}
+ .co-study-members{margin-bottom:6px}
+}

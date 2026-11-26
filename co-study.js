@@ -9,7 +9,7 @@ window.CoStudy=(()=>{
   incoming:['Invitations','邀请'],accept:['Join','加入'],decline:['Decline','拒绝'],cancel:['Cancel invite','取消邀请'],waiting:['Waiting for your friend…','等待好友加入…'],inviteInfo:['Invites expire in 5 minutes.','邀请 5 分钟后过期。'],
   connect:['Connect friends','连接好友'],empty:['Add a friend to begin.','先添加一位好友。'],auth:['Connect to Friends first.','请先连接好友。'],loading:['Loading…','加载中…'],retry:['Retry','重试'],refresh:['Refresh','刷新'],
   task:['Task','任务'],taskPlaceholder:['One task for this round','这轮想做什么？'],share:['Share task','分享任务'],consent:['Share ready, study and pause status','共享准备、学习和暂停状态'],privacy:['Tasks are private until you share them. Chats and review notes stay private.','任务由你选择是否分享；聊天和回顾笔记仅自己可见。'],
-  ready:['Ready','准备好了'],unready:['Not ready','取消准备'],start:['Start','开始'],round:['Round','轮次'],of:['of','/'],you:['You','你'],host:['Host','发起人'],
+  ready:['Ready','准备好了'],unready:['Undo ready','取消准备'],start:['Start together','一起开始'],round:['Round','轮次'],of:['of','/'],you:['You','你'],host:['Host','房主'],readyCount:['ready','已准备'],waitReady:['Waiting for friend','等待好友准备'],waitHost:['Waiting for host','等待房主开始'],allReady:['Ready to start','可以开始了'],starting:['Starting','即将开始'],lastSync:['Last sync','上次同步'],localTime:['Local time','本机计时'],roomActive:['In room','房间中'],
   pause:['Pause','暂停'],resume:['Continue','继续'],end:['End round','结束本轮'],left:['Left','已离开'],leave:['Leave','离开'],confirmLeave:['Leave? Your saved progress stays.','离开共学？已保存的进度会保留。'],
   studying:['Studying','学习中'],paused:['Paused','已暂停'],joined:['Preparing','准备中'],invited:['Invited','已邀请'],review_pending:['Review due','待回顾'],completed:['Finished','已完成'],stopped:['Ended','已结束'],countdown:['Starting in','即将开始'],seconds:['s','秒'],
   peerWait:['Your friend is still studying.','好友还在学习。'],finished:['Session finished','共学结束'],cancelled:['Invite closed','邀请已关闭'],expired:['Invite expired','邀请已过期'],newSession:['New session','新一轮共学'],
@@ -49,7 +49,7 @@ window.CoStudy=(()=>{
   if(action!=='state'&&working)return null;
   if(action==='state'&&(polling||working))return null;
   const mutation=action!=='state';if(mutation)working=true;else polling=true;
-  const room=currentRoom();let input={action,...extra};
+  const room=currentRoom(),actorId=model?.self?.id;let input={action,...extra};
   if(mutation&&action!=='create'&&!input.roomId&&room)input.roomId=room.id;
   if(action==='state'&&selectedId&&!input.roomId)input.roomId=selectedId;
   if(['heartbeat','pause','resume','finish'].includes(action)&&gaps[input.sourceSessionId])input.uncertainInterval=true;
@@ -59,9 +59,30 @@ window.CoStudy=(()=>{
    else{input.requestId=uid();if(['ready','settings','start','accept','cancel','decline'].includes(action)&&room?.id===input.roomId&&Number.isFinite(room.version))input.expectedVersion=room.version;if(['pause','resume','finish'].includes(action)){const own=member(room);input.expectedControlVersion=Number(own?.controlVersion)||0;}pending.set(signature,{...input});}
   }
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+  if(mutation)render();
   try{
-   const response=await fetch('/api/co-study',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),signal:controller.signal});
-   let data;try{data=await response.json();}catch{throw Error('CO_STUDY_UNAVAILABLE');}
+   const post=async body=>{
+    const response=await fetch('/api/co-study',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
+    let data;try{data=await response.json();}catch{throw Error('CO_STUDY_UNAVAILABLE');}
+    return{response,data};
+   };
+   let {response,data}=await post(input);
+   // Both friends can press Ready before the next room poll. Retry that intent
+   // once when only the other member changed; never accept a changed mode/round
+   // or overwrite this member's change from another tab.
+   if(action==='ready'&&data?.error==='STALE_VERSION'&&room?.id===input.roomId){
+    const fresh=await post({action:'state',roomId:input.roomId}),latest=fresh.data?.room;
+    const before=room.members?.find(m=>m.id===actorId),after=latest?.members?.find(m=>m.id===actorId);
+    const sameContext=fresh.response.ok&&fresh.data?.self?.id===actorId&&latest?.id===room.id&&
+     ['ready','between_rounds'].includes(latest.status)&&
+     ['status','mode','roundId','roundIndex','hostId','guestId','plannedSeconds','maxRounds'].every(k=>latest[k]===room[k]);
+    const sameMember=before&&after&&after.status!=='left'&&
+     ['status','ready','task','shareTask'].every(k=>after[k]===before[k]);
+    if(sameContext&&sameMember&&Number.isSafeInteger(latest.version)){
+     input={...input,requestId:uid(),expectedVersion:latest.version};pending.set(signature,{...input});
+     ({response,data}=await post(input));
+    }
+   }
    if(!response.ok||data.error){const err=Error(data.error||'CO_STUDY_UNAVAILABLE');err.code=data.error;throw err;}
    if(!data.self?.id||!Array.isArray(data.rooms))throw Error('CO_STUDY_UNAVAILABLE');
    if(mutation)pending.delete(signature);if(input.uncertainInterval){delete gaps[input.sourceSessionId];persistGaps();}
@@ -81,37 +102,50 @@ window.CoStudy=(()=>{
  function schedule(){clearTimeout(pollTimer);if(disposed)return;const r=currentRoom();pollTimer=setTimeout(()=>refresh(),r&&!terminal.has(r.status)?5000:expanded?12000:30000);}
  async function refresh(){if(!root||disposed)return;if(!read().profileConfigured&&!expanded){schedule();return;}return request('state');}
  function button(id,key,action,disabled=false,cls=''){return `<button type="button" ${id?`id="${id}"`:''} data-co-action="${action}" class="${cls}" ${disabled?'disabled':''}>${esc(t(key))}</button>`;}
- function statusLabel(m){if(!m)return '';if(m.status==='studying'&&Number(m.lastSeen)&&now()-Number(m.lastSeen)>90000)return t('statusUnknown');return t(m.status);}
+ function statusLabel(m,room=currentRoom()){
+  if(!m)return '';
+  if(room?.status==='active'&&['studying','paused'].includes(m.status)){
+   if(Number(room.startsAt)>now())return t('starting');
+   if(m.id===model?.self?.id&&matchingSession(room))return t(read().session.status==='running'?'studying':'paused');
+   if(!connected||(Number(m.lastSeen)&&now()-Number(m.lastSeen)>90000))return t('statusUnknown');
+  }
+  return t(m.ready?'ready':m.status);
+ }
  function formatSeconds(seconds){const n=Math.max(0,Math.floor(Number(seconds)||0));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;}
  function render(){
   if(!root)return;const r=currentRoom(),me=member(r),s=read(),busy=working,invites=incoming(),d=draft(r),block=blockReason(r),isHost=r?.hostId===model?.self?.id;
   const focus=document.activeElement?.closest?.('#coStudyPanel')?{id:document.activeElement.id,start:document.activeElement.selectionStart,end:document.activeElement.selectionEnd}:null;
-  const headingDetail=invites.length?`${invites.length} ${t('inviteCount')}`:r&&!terminal.has(r.status)?`${r.roundIndex||1}/${r.maxRounds||2}`:'';
+  const headingDetail=invites.length?`${invites.length} ${t('inviteCount')}`:r?.status==='active'?t('roomActive'):r&&['ready','between_rounds'].includes(r.status)?`${(r.members||[]).filter(m=>m.ready&&m.status!=='left').length}/2 ${t('readyCount')}`:'';
   const toggle=$('coStudyToggle');toggle.innerHTML=`<span class="co-study-mark" aria-hidden="true">✦</span><span>${esc(t('title'))}</span>${headingDetail?`<b class="co-study-summary">${esc(headingDetail)}</b>`:''}`;toggle.setAttribute('aria-expanded',String(expanded));
   $('coStudyDialogTitle').textContent=t('title');$('coStudyClose').textContent='×';$('coStudyClose').setAttribute('aria-label',t('close'));
   let html='';
   if(failure)html+=`<div class="co-study-notice" role="status"><span>${esc(t(failure))}</span>${button('coStudyRetry',failure==='auth'?'connect':'retry',failure==='auth'?'friends':'refresh',busy)}</div>`;
   else if(!model)html+=`<p id="coStudyLoading">${esc(t('loading'))}</p>`;
-  html+=`<p id="coStudyStatus" class="co-study-feedback" role="status" aria-live="polite">${esc(notice||'')}</p>`;
+  html+=`<p id="coStudyStatus" class="co-study-feedback" role="status" aria-live="polite">${esc(notice||(busy?t('syncing'):''))}</p>`;
   if(invites.length)html+=`<section class="co-study-invitations"><h3>${esc(t('incoming'))}</h3>${invites.map(inv=>{const host=inv.members.find(m=>m.id===inv.hostId);return `<article class="co-study-invitation"><span><strong>${esc(host?.name||'Momo')}</strong><small>${esc(t(inv.mode==='challenge'?'challenge':'together'))} · ${esc(t('format'))}</small></span><div><button type="button" data-co-action="accept" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('accept'))}</button><button type="button" data-co-action="decline" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('decline'))}</button></div></article>`;}).join('')}</section>`;
   if(r){
-   const members=r.members||[],allReady=members.length===2&&members.every(m=>m.ready&&m.status!=='left'),phase=r.status;
+   const members=[...(r.members||[])].sort((a,b)=>Number(b.id===model?.self?.id)-Number(a.id===model?.self?.id)),readyCount=members.filter(m=>m.ready&&m.status!=='left').length,allReady=members.length===2&&readyCount===2,phase=r.status;
    html+=`<section class="co-study-room" data-co-room="${esc(r.id)}" data-co-phase="${esc(phase)}"><div class="co-study-room-heading"><h3>${esc(t(r.mode==='challenge'?'challenge':'together'))}</h3><span>${esc(t('round'))} ${r.roundIndex||1}/${r.maxRounds||2} · ${Math.round((r.plannedSeconds||1200)/60)} ${esc(t('minutes'))}</span></div>`;
    if(phase==='inviting')html+=`<p>${esc(t('waiting'))}</p>`;
-   html+=`<div class="co-study-members">${members.map(m=>`<article class="co-member" data-co-member="${esc(m.id)}"><canvas width="128" height="128" data-co-portrait="${esc(m.id)}" aria-label="${esc(m.name||'Momo')}"></canvas><div><strong>${esc(m.name||'Momo')} ${m.id===model?.self?.id?`<small>(${esc(t('you'))})</small>`:''}</strong><span class="co-member-status">${esc(statusLabel(m))}</span>${(m.id===model?.self?.id?d.task:m.shareTask&&m.task)?`<span class="co-member-task">${esc(m.id===model?.self?.id?d.task:m.task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||m.id===model?.self?.id&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`).join('')}</div>`;
+   html+=`<div class="co-study-members">${members.map(m=>{
+    const own=m.id===model?.self?.id,local=own&&matchingSession(r),elapsed=local?s.session.elapsed:m.elapsedSeconds,task=own?d.task:m.shareTask&&m.task;
+    const stale=!local&&['studying','paused'].includes(m.status)&&(!connected||Number(m.lastSeen)&&now()-Number(m.lastSeen)>90000);
+    return `<article class="co-member${own?' co-member-self':''}" data-co-member="${esc(m.id)}" data-co-status="${stale?'offline':local?(s.session.status==='running'?'studying':'paused'):m.status}"><div class="co-member-identity"><strong>${esc(m.name||'Momo')}</strong>${own?`<span class="co-member-you">${esc(t('you'))}</span>`:''}${m.id===r.hostId?`<small class="co-member-host">${esc(t('host'))}</small>`:''}</div><div class="co-member-stage"><canvas width="128" height="128" data-co-portrait="${esc(m.id)}" aria-label="${esc(m.name||'Momo')}${own?' · '+esc(t('you')):''}"></canvas></div><div class="co-member-details"><span class="co-member-status">${esc(statusLabel(m,r))}</span>${r.roundId?`<span class="co-member-time" data-co-time="${esc(m.id)}">${formatSeconds(elapsed)}<small> / ${formatSeconds(r.plannedSeconds)}</small></span>${!own?`<small class="co-member-time-label">${esc(t('lastSync'))}</small>`:local&&!connected?`<small class="co-member-time-label">${esc(t('localTime'))}</small>`:''}`:''}${task?`<span class="co-member-task" title="${esc(task)}">${esc(task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||own&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`;
+   }).join('')}</div>`;
    if(phase==='between_rounds')html+=`<div class="co-study-break">${d.breakEndsAt?`<span>${esc(t(now()<d.breakEndsAt?'breakTime':'breakDone'))}${now()<d.breakEndsAt?' · '+formatSeconds((d.breakEndsAt-now())/1000):''}</span>`:button('coStudyBreak','breakStart','break',false)}</div>`;
    if(['ready','between_rounds'].includes(phase)&&me?.status!=='left'){
-    html+=`<div class="co-study-preparation"><label for="coStudyTask">${esc(t('task'))}</label><input id="coStudyTask" maxlength="100" autocomplete="off" placeholder="${esc(t('taskPlaceholder'))}" value="${esc(d.task)}" ${me?.ready?'disabled':''}><label class="co-study-check"><input id="coStudyShare" type="checkbox" ${d.share?'checked':''} ${me?.ready?'disabled':''}>${esc(t('share'))}</label><label class="co-study-check"><input id="coStudyConsent" type="checkbox" ${d.consent?'checked':''} ${me?.ready?'disabled':''}>${esc(t('consent'))}</label>`;
+    html+=`<div id="coStudyReadiness" class="co-study-readiness${allReady?' is-ready':''}" role="status" aria-live="polite"><strong>${readyCount}/2 ${esc(t('readyCount'))}</strong>${allReady?`<span>${esc(t(isHost?'allReady':'waitHost'))}</span>`:me?.ready?`<span>${esc(t('waitReady'))}</span>`:''}</div><div class="co-study-preparation"><div class="co-study-fields" ${me?.ready?'hidden':''}><label for="coStudyTask">${esc(t('task'))}</label><input id="coStudyTask" maxlength="100" autocomplete="off" placeholder="${esc(t('taskPlaceholder'))}" value="${esc(d.task)}" ${me?.ready?'disabled':''}><label class="co-study-check"><input id="coStudyShare" type="checkbox" ${d.share?'checked':''} ${me?.ready?'disabled':''}>${esc(t('share'))}</label><label class="co-study-check"><input id="coStudyConsent" type="checkbox" ${d.consent?'checked':''} ${me?.ready?'disabled':''}>${esc(t('consent'))}</label>`;
     if(isHost&&!r.roundIndex)html+=`<label class="co-study-mode-label" for="coStudyRoomMode">${esc(t('mode'))}<select id="coStudyRoomMode" ${busy?'disabled':''}><option value="together" ${r.mode==='together'?'selected':''}>${esc(t('together'))}</option><option value="challenge" ${r.mode==='challenge'?'selected':''}>${esc(t('challenge'))}</option></select></label>`;
+    html+='</div>';
     if(block)html+=`<p class="co-study-warning">${esc(t(block))}</p>`;
-    html+=`<div class="co-study-actions">${button('coStudyReady',me?.ready?'unready':'ready','ready',busy||(!me?.ready&&!!block))}${isHost?button('coStudyStart','start','start',busy||!allReady||!!block,'co-primary'):''}</div></div>`;
+    html+=`<div class="co-study-actions">${button('coStudyReady',me?.ready?'unready':'ready','ready',busy||(!me?.ready&&!!block),!me?.ready?'co-primary':'')}${isHost?button('coStudyStart','start','start',busy||!allReady||!!block,allReady?'co-primary':''):''}</div></div>`;
    }
    if(phase==='active'){
     if(Number(r.startsAt)>now())html+=`<p class="co-study-countdown">${esc(t('countdown'))} <b id="coStudyCountdown">${Math.max(0,Math.ceil((r.startsAt-now())/1000))}</b> ${esc(t('seconds'))}</p>`;
     else if(matchingSession(r)||['studying','paused'].includes(me?.status)){
      if(block)html+=`<p class="co-study-warning">${esc(t(block))}</p>`;
      if(!matchingSession(r)&&!s.history?.some(h=>h.id===me.sourceSessionId))html+=`<p>${esc(t('recoverHint'))}</p>${button('coStudyRecover','recover','recover',busy||!!block,'co-primary')}`;
-     else if(matchingSession(r))html+=`<div class="co-study-actions">${button('coStudyPause',s.session.status==='running'?'pause':'resume','toggle',busy||!owned())}${button('coStudyEnd','end','finish',busy||!owned())}<span class="co-own-time">${formatSeconds(s.session.elapsed)} / ${formatSeconds(r.plannedSeconds)}</span></div>`;
+     else if(matchingSession(r))html+=`<div class="co-study-actions co-study-session-actions">${button('coStudyPause',s.session.status==='running'?'pause':'resume','toggle',busy||!owned(),'co-primary')}${button('coStudyEnd','end','finish',busy||!owned())}</div>`;
     }
     if(['review_pending','completed','stopped'].includes(me?.status)&&members.some(m=>m.id!==me.id&&['studying','paused'].includes(m.status)))html+=`<p>${esc(t('peerWait'))}</p>`;
    }
@@ -188,7 +222,11 @@ window.CoStudy=(()=>{
   if(name==='create'){if(blockReason(r)){notice=t(blockReason(r));render();return;}if(!d.friendId){notice=t('chooseRequired');render();return;}const data=await request('create',{friendId:d.friendId,mode:d.mode||'together'});if(data){expanded=true;savePrefs();render();}return;}
   if(name==='accept'||name==='decline'){const roomId=el.dataset.room;await request(name,{roomId});return;}
   if(name==='ready'){
-   const me=member(r);if(!me?.ready){if(blockReason(r)){notice=t(blockReason(r));render();return;}if(!d.consent){notice=t('consentRequired');render();return;}if(!d.task.trim()){notice=t('taskRequired');render();return;}}
+   const me=member(r);if(!me?.ready){
+    if(blockReason(r)){notice=t(blockReason(r));render();return;}
+    const missing=!d.task.trim()?['coStudyTask','taskRequired']:!d.consent?['coStudyConsent','consentRequired']:null;
+    if(missing){notice=t(missing[1]);render();const field=$(missing[0]);if(field){field.focus();field.setCustomValidity(notice);field.reportValidity();}return;}
+   }
    await request('ready',{ready:!me.ready,task:d.task.trim(),shareTask:!!d.share});return;
   }
   if(name==='start'){
@@ -219,8 +257,8 @@ window.CoStudy=(()=>{
   try{const prefs=JSON.parse(localStorage.getItem(PREF)||'{}');expanded=false;rulesOpen=!!prefs.rulesOpen;selectedId=typeof prefs.selectedId==='string'?prefs.selectedId:null;Object.assign(drafts,JSON.parse(localStorage.getItem(DRAFT)||'{}'));Object.assign(gaps,JSON.parse(localStorage.getItem(GAPS)||'{}'));}catch{}
   root.addEventListener('click',e=>{if(e.target.closest('#coStudyRulesToggle')){e.preventDefault();rulesOpen=!rulesOpen;savePrefs();render();return;}if(e.target.closest('#coStudyToggle')){action('toggle-panel',e.target);return;}const el=e.target.closest('[data-co-action]');if(el&&!el.disabled)action(el.dataset.coAction,el);});
   root.addEventListener('toggle',e=>{if(e.target.id==='coStudyRules'&&e.target.isConnected){rulesOpen=e.target.open;savePrefs();}},true);
-  root.addEventListener('input',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyTask')d.task=e.target.value;if(e.target.id==='coStudyReviewNote')d.note=e.target.value;persistDraft();});
-  root.addEventListener('change',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyShare')d.share=e.target.checked;if(e.target.id==='coStudyConsent')d.consent=e.target.checked;if(e.target.id==='coStudyFriend')d.friendId=e.target.value;if(e.target.id==='coStudyMode')d.mode=e.target.value;if(e.target.id==='coStudyReviewOutcome')d.reviewOutcome=e.target.value;if(e.target.id==='coStudyRoomMode')request('settings',{mode:e.target.value});persistDraft();});
+  root.addEventListener('input',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyTask'){d.task=e.target.value;e.target.setCustomValidity('');}if(e.target.id==='coStudyReviewNote')d.note=e.target.value;persistDraft();});
+  root.addEventListener('change',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyShare')d.share=e.target.checked;if(e.target.id==='coStudyConsent'){d.consent=e.target.checked;e.target.setCustomValidity('');}if(e.target.id==='coStudyFriend')d.friendId=e.target.value;if(e.target.id==='coStudyMode')d.mode=e.target.value;if(e.target.id==='coStudyReviewOutcome')d.reviewOutcome=e.target.value;if(e.target.id==='coStudyRoomMode')request('settings',{mode:e.target.value});persistDraft();});
   root.addEventListener('submit',e=>{if(e.target.id==='coStudyReviewForm'){e.preventDefault();action('review',e.target);}});
   window.addEventListener('eumo-language',()=>{lastRender='';notice='';render();});window.addEventListener('online',refresh);window.addEventListener('offline',()=>{if(matchingSession())markGap(member()?.sourceSessionId);connected=false;failure='offline';render();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});

@@ -8,6 +8,42 @@ from playwright.sync_api import sync_playwright,expect
 ROOT=Path(__file__).resolve().parents[1]
 KEY='loop-pet-soft-universe-v1'
 
+def check_mobile_focus(page):
+ # Overflow alone does not catch a timer pushed below a tall scene. The first
+ # screen must expose the task, readable timer and Start without scrolling.
+ for width,height in [(320,568),(390,844),(844,390)]:
+  page.set_viewport_size({'width':width,'height':height})
+  page.evaluate('window.scrollTo(0,0)');page.wait_for_timeout(180)
+  info=page.evaluate("""()=>({scrollWidth:document.documentElement.scrollWidth,scrollY,items:Object.fromEntries(['#taskInput','#timeDisplay','#startButton'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return[s,{top:r.top,bottom:r.bottom,left:r.left,right:r.right}]})),fonts:Object.fromEntries(['#taskInput','#moleChatInput'].map(s=>[s,parseFloat(getComputedStyle(document.querySelector(s)).fontSize)])),touch:[...document.querySelectorAll('#minusTime,#plusTime,#startButton,.focus-modes button,#gameShell .nav a,#gameShell .report-link')].map(e=>{const r=e.getBoundingClientRect();return{control:e.id||e.getAttribute('aria-label')||e.dataset.page||e.dataset.mode,width:r.width,height:r.height}})})""")
+  assert info['scrollWidth']<=width,(width,height,'mobile horizontal overflow',info)
+  assert info['scrollY']==0,(width,height,'first-screen assertion must start at the page top',info)
+  for selector,r in info['items'].items():
+   assert 0<=r['top']<r['bottom']<=height+1 and 0<=r['left']<r['right']<=width+1,(width,height,'mobile first-screen control',selector,r)
+  for selector,size in info['fonts'].items():assert size>=16,(width,height,'mobile editable text',selector,size)
+  assert len(info['touch'])>=8,('missing mobile touch controls',info)
+  for target in info['touch']:assert target['width']>=44 and target['height']>=44,(width,height,'mobile touch target',target)
+  # Exercise the actual timer at the smallest portrait and landscape sizes.
+  if (width,height) in [(320,568),(844,390)]:
+   page.locator('#taskInput').fill('Read one paragraph')
+   page.locator('#startButton').click();expect(page.locator('#timerLabel')).to_have_text('Running')
+   assert page.evaluate('state.session.status')=='running'
+   page.locator('#startButton').click();expect(page.locator('#timerLabel')).to_have_text('Paused')
+   assert page.evaluate('state.session.status')=='paused'
+   page.locator('#stopButton').click();page.locator('#confirmStop').click()
+   assert page.evaluate('state.session') is None
+ # A shortened viewport approximates reduced space only, not an actual phone
+ # keyboard. Editing remains visible and Start remains reachable by scrolling.
+ page.set_viewport_size({'width':390,'height':430})
+ page.evaluate('window.scrollTo(0,0)');page.locator('#taskInput').focus()
+ page.locator('#taskInput').fill('Continue this task')
+ assert page.locator('#taskInput').evaluate('e=>document.activeElement===e')
+ task=page.locator('#taskInput').bounding_box()
+ assert task['y']>=0 and task['y']+task['height']<=431,('focused task outside shortened viewport',task)
+ page.locator('#startButton').scroll_into_view_if_needed()
+ start=page.locator('#startButton').bounding_box()
+ assert start['y']>=0 and start['y']+start['height']<=431,('Start unreachable in shortened viewport',start)
+ assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+
 def run():
  server=ThreadingHTTPServer(('127.0.0.1',0),partial(SimpleHTTPRequestHandler,directory=str(ROOT)))
  Thread(target=server.serve_forever,daemon=True).start()
@@ -54,18 +90,19 @@ def run():
      page.locator('#stopButton').click();page.locator('#confirmStop').click()
     ctx.close()
    # Narrow screens retain usable window controls without horizontal overflow.
-   mobile=browser.new_page();mobile.add_init_script("localStorage.setItem('eumo-tour-v1','seen')");mobile.goto(url)
+   mobile=browser.new_page();mobile.on('pageerror',lambda e:errors.append(str(e)));mobile.add_init_script("localStorage.setItem('eumo-tour-v1','seen')");mobile.goto(url)
    for width in [320,390,768]:
     mobile.set_viewport_size({'width':width,'height':844})
     if mobile.locator('#setupScreen').is_visible():mobile.locator('#enterGame').click()
     expect(mobile.locator('#moleChatContent')).to_be_visible()
     assert mobile.evaluate('document.documentElement.scrollWidth<=innerWidth')
     mobile.locator('#toggleMoleChat').click();expect(mobile.locator('#moleChatContent')).to_be_hidden();mobile.locator('#toggleMoleChat').click()
+   check_mobile_focus(mobile)
    mobile.set_viewport_size({'width':390,'height':844});mobile.screenshot(path=str(ROOT/'docs/images/eumo-chat-mobile.png'),full_page=True)
    # The same window works from the bundled download with network disabled.
    offline=browser.new_context();offline.add_init_script("localStorage.setItem('eumo-tour-v1','seen')");download=offline.new_page();download.goto(url+'/dist/Eumo.html');download.locator('#enterGame').click();offline.set_offline(True)
    download.locator('#toggleMoleChat').click();expect(download.locator('#moleChatContent')).to_be_hidden();download.locator('#toggleMoleChat').click();expect(download.locator('#moleChatContent')).to_be_visible();offline.close()
    assert not errors,errors
-   browser.close();print('PASS: 13 desktop viewport/DPI combinations at browser 100%; idle/running/paused; full canvas, timer, Start/End and bottom controls + footer visible without page scrolling; aligned 2.55:1 panels; inset chat, keyboard collapse/expand without pausing, user-initiated sending, mobile/offline UI, compact timer gaps; undistorted canvas and readable digits.')
+   browser.close();print('PASS: 13 desktop viewport/DPI combinations at browser 100%; idle/running/paused; full canvas, timer, Start/End and bottom controls + footer visible without page scrolling; aligned 2.55:1 panels; inset chat, keyboard collapse/expand without pausing, user-initiated sending, mobile/offline UI, compact timer gaps; undistorted canvas and readable digits. Mobile 320x568/390x844/844x390 task, timer and Start fit the first screen; 16px editable text, 44px touch targets and portrait/landscape timer actions; shortened viewport retains focused task and scroll-reachable Start.')
  finally:server.shutdown();server.server_close()
 if __name__=='__main__':run()

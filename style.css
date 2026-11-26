@@ -356,3 +356,75 @@ dialog.friends-dialog{width:min(600px,calc(100% - 28px));max-width:600px;max-hei
 .home-drag-label{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;padding:5px 8px;background:var(--paper,#fff8e6);border:1px solid var(--line,#5d6e54);color:var(--text,#34483c);font-size:12px}
 
 .home-editor-hint{font-size:13px;line-height:1.6;color:var(--muted);margin:12px 0}.home-theme .home-theme-motion{font-size:12px}
+
+/* Phones start with the task and timer; the same mine and chat remain below. */
+@media (max-width: 959px) {
+ #focus .game-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+ #focus .game-layout > .control-panel { order: -1; padding: 0 12px 12px; }
+ #focus .control-panel > .control-heading { padding: 7px 0; line-height: 20px; }
+ #focus .control-panel > .task-label { margin: 7px 0 4px; line-height: 20px; }
+ #focus .control-panel > .task-input { min-height: 44px; padding: 8px 10px; font-size: 16px; line-height: 24px; scroll-margin-block: 16px; }
+ #focus .control-panel > .timer-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 6px; align-items: center; padding: 10px 0; }
+ #focus .control-panel .timer-digits { font-size: 44px; line-height: 1.15; letter-spacing: -1px; text-align: left; }
+ #focus .control-panel .duration-controls { margin: 0; gap: 6px; font-size: 13px; }
+ #focus .control-panel .duration-controls button { width: 44px; height: 44px; flex: 0 0 44px; }
+ #focus .control-panel .focus-modes { grid-column: 1 / -1; margin: 0; gap: 8px; }
+ #focus .control-panel .focus-modes button { min-height: 44px; padding: 6px 4px; }
+ #focus .control-panel #startButton { grid-column: 1 / -1; min-height: 48px; padding: 10px; }
+ #focus .control-panel #stopButton { grid-column: 1 / -1; justify-self: center; min-height: 44px; padding: 8px 12px; }
+ #focus .control-panel .mission-stats { padding: 10px 0; }
+ #focus .control-panel .mission-stats strong { margin-top: 4px; }
+ #focus .control-panel .depth-progress { padding: 10px 0 6px; }
+ #focus .mole-dialogue-space { height: 220px; min-height: 0; }
+ #gameShell .nav a, #gameShell .report-link { width: 44px; height: 44px; min-width: 44px; }
+ #focus .chat-window-button { width: 44px; height: 44px; }
+ #focus .mole-chat-titlebar { min-height: 48px; }
+ #focus .mole-chat-compose :is(input, button) { min-height: 44px; height: 44px; }
+ #focus .mole-chat-compose input, #chatDialog .chat-dialog-compose textarea,
+ #friendsDialog input, #setupScreen #petName { font-size: 16px; }
+ #focus .voice-field .chat-mic-button { width: 44px; height: 44px; min-width: 44px; top: 0; right: 0; }
+ #focus .mole-chat-compose .voice-field input { padding-right: 48px; }
+}
+
+@media (max-width: 700px) {
+ #gameShell > .header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; min-height: 0; height: auto; padding: 8px 0; }
+ #gameShell > .header .brand { grid-column: 1; grid-row: 1; }
+ #gameShell > .header .header-right { grid-column: 2; grid-row: 1; }
+ #gameShell > .header .nav { grid-column: 1 / -1; grid-row: 2; justify-content: center; gap: 8px; }
+ #gameShell #focus > .page-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 6px; padding: 10px 0 12px; }
+ #gameShell #focus > .page-heading h1 { font-size: 24px; }
+ #gameShell #focus > .page-heading #coStudyPanel { margin: 0; justify-self: center; }
+ #gameShell #focus > .page-heading #studyGuidance { margin: 0; justify-self: end; }
+ #gameShell #focus > .page-heading .focus-meta { grid-column: 1 / -1; justify-self: end; margin: 0; }
+ #gameShell #focus > .page-heading:has(.co-study-summary) { grid-template-columns: minmax(0, 1fr) auto; }
+ #gameShell #focus > .page-heading:has(.co-study-summary) #coStudyPanel { justify-self: end; }
+ #gameShell #focus > .page-heading:has(.co-study-summary) #studyGuidance { grid-column: 1 / -1; justify-self: start; }
+ /* Keep the colour preview, without making it the length of a second form. */
+ #setupScreen .setup-heading { margin: 14px 0; }
+ #setupScreen .setup-layout { gap: 14px; }
+ #setupScreen .character-stage { padding: 8px 8px 0; }
+ #setupScreen .character-frame { height: 144px; flex: none; }
+ #setupScreen .character-frame canvas { min-height: 0; height: 100%; width: 100%; object-fit: contain; }
+ #setupScreen .preview-ground { padding: 7px 1px; }
+ #setupScreen .setup-controls { padding: 14px; }
+ #setupScreen #petName { min-height: 44px; margin-top: 6px; padding: 8px 10px; }
+ #setupScreen .color-heading { margin: 6px 0 10px; }
+ #setupScreen .color-presets { gap: 8px; }
+ #setupScreen .color-swatch { min-height: 44px; max-height: 48px; aspect-ratio: auto; }
+ #setupScreen .custom-color-row { padding: 12px 0; }
+ #setupScreen .setup-buttons button { min-height: 48px; padding: 10px 16px; }
+}
+
+/* Short landscape keeps the mine beside the timer instead of enlarging it. */
+@media (min-width: 600px) and (max-width: 959px) and (max-height: 500px) {
+ #gameShell > .header { height: 58px; min-height: 58px; padding: 4px 0; display: flex; gap: 12px; }
+ #gameShell > .header .nav { gap: 6px; }
+ #gameShell #focus > .page-heading { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+ #gameShell #focus > .page-heading h1 { font-size: 24px; flex: none; }
+ #focus .game-layout { grid-template-columns: minmax(270px, .9fr) minmax(0, 1.1fr); gap: 12px; }
+ #focus .game-layout > .arcade-machine { padding: 8px 8px 0; }
+ #focus .screen-hud { padding: 5px 7px; }
+ #focus .control-panel > .control-heading { padding: 4px 0; }
+ #focus .control-panel > .task-label { margin-top: 4px; }
+ #focus .control-panel > .timer-card { padding-top: 6px; gap: 6px; }
+}

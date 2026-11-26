@@ -19,6 +19,13 @@ choose **Study together**, invite that friend, and accept in the other browser.
 Each person writes a task, confirms room-status sharing and selects **Ready**.
 The host can then choose **Start together**.
 
+Readiness is separate from starting the round. Two people can select Ready
+without waiting for the next room refresh: a stale request is retried once only
+when the room mode, round and that person's prior state are unchanged. Changing
+the mode still requires a fresh explicit Ready decision. A missing task or sharing
+confirmation focuses the required field. Separate browser profiles or devices
+are required for two identities; two tabs in the same browser share an identity.
+
 Local identities, friendships and shared sessions persist in `.eumo-local-db/`.
 Game progress stays in each browser's original local save. These local accounts
 are separate from hosted accounts. Do not delete either storage to update the app.
@@ -61,6 +68,17 @@ starts the existing session with a server-issued `sourceSessionId`; it does not
 create another ordinary reward ledger. `session.coStudy` and matching history
 metadata are optional additions to the existing save shape. Active shared rounds
 lock duration changes. Original single-tab progress ownership remains in force.
+The room shows the local person first, with two adjacent mole tiles, an explicit
+ready count and the host's start action. During a round, the local timer advances
+normally; the partner's time is labeled as its last confirmed synchronization.
+This build has no voice or video calls.
+
+On phones, the existing task and timer panel appears before the mine and chat,
+so Start is available on the first screen. Short landscape views place the timer
+beside the mine. Mobile navigation and main controls have 44px touch targets;
+editable fields use at least 16px text. Desktop layout and saved progress remain
+compatible. Reduced-height browser checks approximate available keyboard space,
+but do not substitute for a physical iOS or Android keyboard test.
 
 `study-guidance.js` and `.css` provide a small optional prompt popover, reusing the
 current language and style tokens. The existing four-step tour has revised copy.
@@ -80,10 +98,12 @@ Chat/transcription require their normal server configuration.
 ## Hosted migration and rollback
 
 Website publishing and database installation are separate steps. A Git-triggered
-Vercel release does not execute this migration. Until it is installed, shared
-study reports unavailable while the original solo flow remains usable. Management
-access checks returned Vercel 403 and Supabase 401 (invalid access token); the
-existing GitHub integration provides an alternate website publishing route.
+Vercel release does not execute this migration. On a new installation, shared
+study reports unavailable until the migration is applied. The production project
+was installed through Supabase SQL Editor and verified through its hosted API
+and two real browser contexts. The existing GitHub integration publishes the
+website. The separate management-token connection is not required for normal
+users to join a room.
 
 Before hosted deployment, back up the relevant database and apply
 `database/co_study.sql` **after** the existing `database/friends.sql` on the intended
@@ -104,6 +124,8 @@ tests. `python3 tests/test_co_study_browser.py` drives two real browser contexts
 through the existing app, actual APIs and PostgreSQL, using test-only clocks for
 twenty-minute rounds. It does not mock successful room responses. Browser
 screenshots and results are recorded outside the source tree.
+`python3 tests/test_co_study_ready_browser.py` reproduces two Ready clicks without
+an intervening room refresh and verifies the bounded retry and changed-mode guard.
 
 Existing reward, friend, save-ownership and device-progress regressions are also
 run. `python3 tests/test_viewport.py` checks the original desktop viewport fit and
@@ -131,5 +153,8 @@ TestFlight and native release publishing have not been completed by this change.
 - Existing optional onboarding passed, including skip/replay, keyboard, unchanged
   game state, both languages and offline operation. Prompt browser checks passed.
 - Standalone HTML and desktop web assets rebuilt. Persistent local server checked
-  across restart. Native installers, hosted Supabase and actual hardware remain
-  outside the verified results above.
+  across restart. Native installers and actual hardware remain outside these checks.
+- Hosted Supabase and two browser identities verified invite, join, ready, start,
+  independent pause/resume, early ending, private tasks and saved reviews. Early
+  endings earned no challenge point. A full twenty-minute production award has
+  not yet been tested; full-round rules are covered by the local test clock.
