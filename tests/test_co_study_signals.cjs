@@ -71,6 +71,9 @@ test('signals: concurrent duplicate and delayed retries retain one receipt and o
  const normal=(await database.db.query('select request_id from public.eumo_study_requests where actor_id=$1 and fingerprint<>$2 limit 1',[p.a.id,'wave:v1'])).rows[0].request_id;
  assert.equal((await api(h,p.a,wave(p.id,normal))).body.error,'REQUEST_REUSED');
  const upper=await api(h,p.a,{...first,roomId:p.id.toUpperCase(),requestId:first.requestId.toUpperCase()});assert.equal(upper.statusCode,200);
+ await write(p.a,'leave',{roomId:p.id});const next=await write(p.a,'create',{friendId:p.b.id,mode:'together'});assert(!next.error);await write(p.b,'accept',{roomId:next.room.id});
+ assert.equal((await api(h,p.a,wave(next.room.id,first.requestId))).body.error,'REQUEST_REUSED');
+ assert.equal((await database.db.query('select room_id from public.eumo_study_requests where actor_id=$1 and request_id=$2',[p.a.id,first.requestId])).rows[0].room_id,p.id);
 });
 
 test('signals: persistent cooldown survives API instances and waves expire without renewing on replay',async()=>{

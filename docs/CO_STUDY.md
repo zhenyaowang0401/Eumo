@@ -184,9 +184,14 @@ TestFlight and native release publishing have not been completed by this change.
 
 ### Shared-room update (2026-11-25)
 
-- 37 shared-study SQL/API, reaction and guidance checks passed.
+- 38 shared-study SQL/API, reaction and guidance checks passed.
 - Two-browser scene checks passed for real reaction delivery/expiry, stable canvas,
   independent pause, reduced motion, closing the room and local offline progress.
 - Ready concurrency and the full two-round progress/reward flow passed.
 - The thirteen desktop viewport cases and phone/short-landscape checks passed;
   existing reward equivalence checks passed. Portable and desktop assets rebuilt.
+- Production passed with two isolated browser identities: invite, join, consecutive
+  Ready clicks (including a real stale-version retry), received peer wave, start,
+  independent pause/resume and early-end reviews. Hosted scene assets match the
+  built sources. QA rooms and friendship were closed and the test profiles hidden.
+  The hosted smoke did not run a full twenty-minute award; local integration did.
