@@ -4,6 +4,7 @@ window.CoStudy=(()=>{
  const PREF='eumo-co-study-ui-v1',DRAFT='eumo-co-study-drafts-v1',GAPS='eumo-co-study-gaps-v1';
  const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const words={
+  wave:['Wave','招手'],waved:['Waved','已招手'],waveFailed:['Wave not sent. Try again.','招手未送达，请重试。'],waveLimit:['Wave limit reached. Try again later.','招手次数已达上限，请稍后再试。'],sharedRoom:['Shared study room','双人学习房间'],
   title:['Study together','共学'],open:['Open shared study','展开共学'],close:['Close shared study','关闭共学'],breakStart:['5-min break','休息 5 分钟'],breakTime:['Break','休息'],breakDone:['Ready when you are.','休息结束，准备后开始。'],
   friends:['Friends','好友'],choose:['Choose a friend','选择好友'],invite:['Invite','邀请'],together:['Together','一起学'],challenge:['Challenge','挑战'],mode:['Mode','模式'],format:['2 rounds · 20 min','2 轮 · 每轮 20 分钟'],
   incoming:['Invitations','邀请'],accept:['Join','加入'],decline:['Decline','拒绝'],cancel:['Cancel invite','取消邀请'],waiting:['Waiting for your friend…','等待好友加入…'],inviteInfo:['Invites expire in 5 minutes.','邀请 5 分钟后过期。'],
@@ -24,7 +25,7 @@ window.CoStudy=(()=>{
  const uid=()=>globalThis.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});
  const terminal=new Set(['finished','cancelled','expired']);
  let adapter,root,model=null,selectedId=null,expanded=false,rulesOpen=false,working=false,polling=false,notice='',failure='',connected=false,disposed=false,clockAt=0,clockBase=0,lastHeartbeat=0,lastSyncAction=0,autoStarting=false,timerActionInFlight=false,startedRounds=new Set(),dismissed=new Set(),lastRender='',lastRoomVersion=null;
- let pollTimer=null,tickTimer=null;const pending=new Map(),drafts={},gaps={};
+ let pollTimer=null,tickTimer=null,signalTimer=null,signalController=null,signalBusy=false,waveBusy=false,waveQueued=false,signalRoomId=null,signalSelfId=null,wavePending=null,signals=[];const pending=new Map(),drafts={},gaps={};
  function read(){try{return adapter?.read?.()||{};}catch{return {};}}
  function now(){return clockBase?clockBase+(performance.now()-clockAt):Date.now();}
  function savePrefs(){try{localStorage.setItem(PREF,JSON.stringify({expanded,selectedId,rulesOpen}));}catch{}}
@@ -43,6 +44,69 @@ window.CoStudy=(()=>{
  }
  function incoming(){return(model?.rooms||[]).filter(r=>r.status==='inviting'&&r.guestId===model?.self?.id&&!dismissed.has(r.id));}
  function friendList(){return(window.FriendsClient?.getPlayers?.()||[]).filter(f=>f.live&&f.profileId);}
+ // Reactions use their own request ledger; they never advance the round or timer.
+ function canSignal(room=currentRoom()){
+  return !!(expanded&&!document.hidden&&connected&&room&&['ready','active','between_rounds'].includes(room.status)&&room.members?.length===2&&room.members.every(m=>!['invited','left'].includes(m.status)));
+ }
+ function waveAt(){return Number(signals.find(v=>v.userId===model?.self?.id)?.at)||0;}
+ function syncSignals(){
+  const room=currentRoom(),selfId=model?.self?.id;
+  if(signalRoomId!==room?.id||signalSelfId!==selfId){
+   signalController?.abort();signalRoomId=room?.id||null;signalSelfId=selfId||null;signals=[];wavePending=null;waveQueued=false;
+  }
+  if(!canSignal(room)){clearTimeout(signalTimer);signalTimer=null;return;}
+  if(!signalTimer&&!signalBusy)signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(false);},200);
+ }
+ async function fetchSignals(wave=false){
+  const room=currentRoom(),actorId=model?.self?.id;
+  if(disposed||!canSignal(room))return;
+  if(signalBusy){if(wave&&!waveBusy){waveQueued=true;render();}return;}
+  if(wave&&now()-waveAt()<5000)return;
+  clearTimeout(signalTimer);signalTimer=null;signalBusy=true;waveBusy=wave;
+  const controller=new AbortController();signalController=controller;
+  const timeout=setTimeout(()=>controller.abort(),8000),roomId=room.id;
+  if(wave&&!wavePending)wavePending=uid();
+  const requestId=wavePending;
+  if(wave)render();
+  try{
+   const response=await fetch('/api/co-study',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:wave?'wave':'signal-state',roomId,...(wave?{requestId}:{})})});
+   const data=await response.json();
+   if(!response.ok||data.error)throw Error(data.error||'SIGNAL_UNAVAILABLE');
+   if(currentRoom()?.id!==roomId||model?.self?.id!==actorId)return;
+   if(data.self?.id!==actorId||data.roomId!==roomId||!Array.isArray(data.signals))throw Error('INVALID_SIGNAL');
+   const ids=new Set(room.members.map(m=>m.id));
+   signals=data.signals.filter(v=>ids.has(v.userId)&&v.type==='wave'&&typeof v.id==='string'&&Number.isFinite(v.at)&&v.at<=now()+1000&&now()-v.at<6000);
+   if(wave)wavePending=null;
+  }catch(error){
+   if(wave&&currentRoom()?.id===roomId&&model?.self?.id===actorId&&error.name!=='AbortError'){
+    notice=t(error.message==='WAVE_LIMITED'?'waveLimit':error.message==='RATE_LIMITED'||error.message==='REQUEST_LIMITED'?'rate':'waveFailed');
+    if(['INVALID_STATE','NOT_FRIENDS','ROOM_NOT_FOUND','UNAUTHORIZED'].includes(error.message))wavePending=null;
+   }else if(wave&&error.name==='AbortError'&&currentRoom()?.id===roomId)notice=t('waveFailed');
+  }finally{
+   clearTimeout(timeout);signalBusy=false;waveBusy=false;if(signalController===controller)signalController=null;
+   // Install the next poll before render, so render cannot create another timer.
+   if(!disposed&&canSignal()){
+    if(waveQueued){waveQueued=false;signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(true);},0);}
+    else signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(false);},2500);
+   }else waveQueued=false;
+   render();
+  }
+ }
+ function renderScene(room=currentRoom(),s=read()){
+  const canvas=$('coStudyScene');
+  if(!canvas||!room||!expanded){window.CoStudyScene?.stop();return;}
+  const members=[...(room.members||[])].sort((a,b)=>Number(b.id===model?.self?.id)-Number(a.id===model?.self?.id)).map(m=>{
+   const own=m.id===model?.self?.id,local=own&&matchingSession(room),friend=friendList().find(f=>f.profileId===m.id);
+   let state=local?(s.session.status==='running'?'studying':'paused'):m.ready?'ready':m.status;
+   if(room.status==='active'&&room.startsAt>now())state='ready';
+   else if(own&&state==='studying'&&!local)state='joined';
+   else if(!own&&['studying','paused'].includes(state)&&(!connected||!Number(m.lastSeen)||now()-Number(m.lastSeen)>90000))state='offline';
+   const signal=signals.find(v=>v.userId===m.id&&now()-v.at<6000);
+   return{id:m.id,name:m.name||'Momo',own,color:m.color||'#b784cf',equipped:own?s.equipped||[]:friend?.equipped||[],state,ready:!!m.ready,...(signal?{reaction:'wave',reactionAt:Date.now()-(now()-signal.at)}:{})};
+  });
+  window.CoStudyScene?.update(canvas,{roomId:room.id,members,phase:room.status,connected,visible:expanded&&!document.hidden});
+  const live=$('coStudyReactionStatus');if(live)live.textContent=members.filter(m=>m.reaction).map(m=>`${m.name}: ${t('wave')}`).join(' · ');
+ }
  function errorKey(code){if(['UNAUTHORIZED','FRIENDS_REQUIRED'].includes(code))return'auth';if(/NOT_CONFIGURED|MIGRATION/.test(code))return'notConfigured';if(/RATE|LIMIT/.test(code))return'rate';if(/NOT_FRIEND|FRIENDSHIP/.test(code))return'notFriend';if(/CONFLICT|VERSION|STALE|REQUEST_REUSED|MEMBER_BUSY|NOT_FOUND|INVALID_STATE|ROUND|EXPIRED/.test(code))return'conflict';return navigator.onLine===false?'offline':'unavailable';}
  async function request(action,extra={},opts={}){
   if(disposed)return null;
@@ -113,7 +177,7 @@ window.CoStudy=(()=>{
  }
  function formatSeconds(seconds){const n=Math.max(0,Math.floor(Number(seconds)||0));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;}
  function render(){
-  if(!root)return;const r=currentRoom(),me=member(r),s=read(),busy=working,invites=incoming(),d=draft(r),block=blockReason(r),isHost=r?.hostId===model?.self?.id;
+  if(!root||disposed)return;const r=currentRoom(),me=member(r),s=read(),busy=working,invites=incoming(),d=draft(r),block=blockReason(r),isHost=r?.hostId===model?.self?.id;
   const focus=document.activeElement?.closest?.('#coStudyPanel')?{id:document.activeElement.id,start:document.activeElement.selectionStart,end:document.activeElement.selectionEnd}:null;
   const headingDetail=invites.length?`${invites.length} ${t('inviteCount')}`:r?.status==='active'?t('roomActive'):r&&['ready','between_rounds'].includes(r.status)?`${(r.members||[]).filter(m=>m.ready&&m.status!=='left').length}/2 ${t('readyCount')}`:'';
   const toggle=$('coStudyToggle');toggle.innerHTML=`<span class="co-study-mark" aria-hidden="true">✦</span><span>${esc(t('title'))}</span>${headingDetail?`<b class="co-study-summary">${esc(headingDetail)}</b>`:''}`;toggle.setAttribute('aria-expanded',String(expanded));
@@ -125,13 +189,13 @@ window.CoStudy=(()=>{
   if(invites.length)html+=`<section class="co-study-invitations"><h3>${esc(t('incoming'))}</h3>${invites.map(inv=>{const host=inv.members.find(m=>m.id===inv.hostId);return `<article class="co-study-invitation"><span><strong>${esc(host?.name||'Momo')}</strong><small>${esc(t(inv.mode==='challenge'?'challenge':'together'))} · ${esc(t('format'))}</small></span><div><button type="button" data-co-action="accept" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('accept'))}</button><button type="button" data-co-action="decline" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('decline'))}</button></div></article>`;}).join('')}</section>`;
   if(r){
    const members=[...(r.members||[])].sort((a,b)=>Number(b.id===model?.self?.id)-Number(a.id===model?.self?.id)),readyCount=members.filter(m=>m.ready&&m.status!=='left').length,allReady=members.length===2&&readyCount===2,phase=r.status;
-   html+=`<section class="co-study-room" data-co-room="${esc(r.id)}" data-co-phase="${esc(phase)}"><div class="co-study-room-heading"><h3>${esc(t(r.mode==='challenge'?'challenge':'together'))}</h3><span>${esc(t('round'))} ${r.roundIndex||1}/${r.maxRounds||2} · ${Math.round((r.plannedSeconds||1200)/60)} ${esc(t('minutes'))}</span></div>`;
+   html+=`<section class="co-study-room" data-co-room="${esc(r.id)}" data-co-phase="${esc(phase)}"><div class="co-study-room-heading"><h3>${esc(t(r.mode==='challenge'?'challenge':'together'))}</h3><span>${esc(t('round'))} ${r.roundIndex||1}/${r.maxRounds||2} · ${Math.round((r.plannedSeconds||1200)/60)} ${esc(t('minutes'))}</span>${['ready','active','between_rounds'].includes(phase)?button('coStudyWave',now()-waveAt()<5000?'waved':'wave','wave',busy||waveBusy||waveQueued||!canSignal(r)||now()-waveAt()<5000,'co-study-wave'):''}</div>`;
    if(phase==='inviting')html+=`<p>${esc(t('waiting'))}</p>`;
-   html+=`<div class="co-study-members">${members.map(m=>{
+   html+=`<div class="co-study-stage"><canvas id="coStudyScene" width="640" height="320" role="img" aria-label="${esc(t('sharedRoom'))}"></canvas><span id="coStudyReactionStatus" class="sr-only" role="status" aria-live="polite"></span><div class="co-study-members co-study-room-roster">${members.map(m=>{
     const own=m.id===model?.self?.id,local=own&&matchingSession(r),elapsed=local?s.session.elapsed:m.elapsedSeconds,task=own?d.task:m.shareTask&&m.task;
     const stale=!local&&['studying','paused'].includes(m.status)&&(!connected||Number(m.lastSeen)&&now()-Number(m.lastSeen)>90000);
-    return `<article class="co-member${own?' co-member-self':''}" data-co-member="${esc(m.id)}" data-co-status="${stale?'offline':local?(s.session.status==='running'?'studying':'paused'):m.status}"><div class="co-member-identity"><strong>${esc(m.name||'Momo')}</strong>${own?`<span class="co-member-you">${esc(t('you'))}</span>`:''}${m.id===r.hostId?`<small class="co-member-host">${esc(t('host'))}</small>`:''}</div><div class="co-member-stage"><canvas width="128" height="128" data-co-portrait="${esc(m.id)}" aria-label="${esc(m.name||'Momo')}${own?' · '+esc(t('you')):''}"></canvas></div><div class="co-member-details"><span class="co-member-status">${esc(statusLabel(m,r))}</span>${r.roundId?`<span class="co-member-time" data-co-time="${esc(m.id)}">${formatSeconds(elapsed)}<small> / ${formatSeconds(r.plannedSeconds)}</small></span>${!own?`<small class="co-member-time-label">${esc(t('lastSync'))}</small>`:local&&!connected?`<small class="co-member-time-label">${esc(t('localTime'))}</small>`:''}`:''}${task?`<span class="co-member-task" title="${esc(task)}">${esc(task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||own&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`;
-   }).join('')}</div>`;
+    return `<article class="co-member${own?' co-member-self':''}" data-co-member="${esc(m.id)}" data-co-status="${stale?'offline':local?(s.session.status==='running'?'studying':'paused'):m.status}"><div class="co-member-identity"><strong>${esc(m.name||'Momo')}</strong>${own?`<span class="co-member-you">${esc(t('you'))}</span>`:''}${m.id===r.hostId?`<small class="co-member-host">${esc(t('host'))}</small>`:''}</div><div class="co-member-details"><span class="co-member-status">${esc(statusLabel(m,r))}</span>${r.roundId?`<span class="co-member-time" data-co-time="${esc(m.id)}">${formatSeconds(elapsed)}<small> / ${formatSeconds(r.plannedSeconds)}</small></span>${!own?`<small class="co-member-time-label">${esc(t('lastSync'))}</small>`:local&&!connected?`<small class="co-member-time-label">${esc(t('localTime'))}</small>`:''}`:''}${task?`<span class="co-member-task" title="${esc(task)}">${esc(task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||own&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`;
+   }).join('')}</div></div><div class="co-study-controls">`;
    if(phase==='between_rounds')html+=`<div class="co-study-break">${d.breakEndsAt?`<span>${esc(t(now()<d.breakEndsAt?'breakTime':'breakDone'))}${now()<d.breakEndsAt?' · '+formatSeconds((d.breakEndsAt-now())/1000):''}</span>`:button('coStudyBreak','breakStart','break',false)}</div>`;
    if(['ready','between_rounds'].includes(phase)&&me?.status!=='left'){
     html+=`<div id="coStudyReadiness" class="co-study-readiness${allReady?' is-ready':''}" role="status" aria-live="polite"><strong>${readyCount}/2 ${esc(t('readyCount'))}</strong>${allReady?`<span>${esc(t(isHost?'allReady':'waitHost'))}</span>`:me?.ready?`<span>${esc(t('waitReady'))}</span>`:''}</div><div class="co-study-preparation"><div class="co-study-fields" ${me?.ready?'hidden':''}><label for="coStudyTask">${esc(t('task'))}</label><input id="coStudyTask" maxlength="100" autocomplete="off" placeholder="${esc(t('taskPlaceholder'))}" value="${esc(d.task)}" ${me?.ready?'disabled':''}><label class="co-study-check"><input id="coStudyShare" type="checkbox" ${d.share?'checked':''} ${me?.ready?'disabled':''}>${esc(t('share'))}</label><label class="co-study-check"><input id="coStudyConsent" type="checkbox" ${d.consent?'checked':''} ${me?.ready?'disabled':''}>${esc(t('consent'))}</label>`;
@@ -155,7 +219,7 @@ window.CoStudy=(()=>{
    }
    if(terminal.has(phase))html+=`<div class="co-study-actions"><strong>${esc(t(phase==='finished'?'finished':phase))}</strong>${button('coStudyNew','newSession','new',busy)}</div>`;
    else html+=`<div class="co-study-footer">${phase==='inviting'&&isHost?button('coStudyCancel','cancel','cancel',busy):button('coStudyLeave','leave','leave',busy)}</div>`;
-   html+='</section>';
+   html+='</div></section>';
   }else if(model?.self){
    const friends=friendList();html+=`<div class="co-study-create">`;
    if(!friends.length)html+=`<p>${esc(t('empty'))}</p>${button('coStudyFriends','friends','friends')}`;
@@ -165,9 +229,14 @@ window.CoStudy=(()=>{
   if(model?.self)html+=`<details id="coStudyRules" class="co-study-rules" ${rulesOpen?'open':''}><summary id="coStudyRulesToggle">${esc(t('rules'))}</summary><div><p>${esc(t('format'))}. ${esc(t('inviteInfo'))} ${esc(t('roomShare'))}</p><p>${esc(t('privacy'))}</p><p>${esc(t('timingHelp'))}</p>${r?.mode==='challenge'||!r?`<p>${esc(t('pointsHelp'))}</p>`:''}</div></details>`;
   const dialog=$('coStudyDialog'),body=$('coStudyBody');
   if(expanded&&!dialog.open)dialog.showModal();else if(!expanded&&dialog.open)dialog.close();
-  if(html===lastRender)return;lastRender=html;const scrollTop=body.scrollTop;body.innerHTML=html;body.scrollTop=scrollTop;
+  syncSignals();
+  if(html===lastRender){renderScene(r,s);return;}
+  lastRender=html;const scrollTop=body.scrollTop,scene=$('coStudyScene');body.innerHTML=html;
+  // Keep a single canvas across one-second timer/form updates.
+  if(scene&&$('coStudyScene'))$('coStudyScene').replaceWith(scene);
+  body.scrollTop=scrollTop;
   if(focus?.id){const el=$(focus.id);if(el&&!el.disabled){el.focus({preventScroll:true});try{el.setSelectionRange(focus.start,focus.end);}catch{}}}
-  root.querySelectorAll('[data-co-portrait]').forEach(canvas=>{const m=r.members.find(m=>m.id===canvas.dataset.coPortrait),friend=friendList().find(f=>f.profileId===m.id),own=m.id===model.self.id;try{window.PixelArt?.drawPortrait(canvas,{profile:{color:m.color||'#b784cf'},equipped:own?(s.equipped||[]):(friend?.equipped||[])});}catch{}});
+  renderScene(r,s);
  }
  async function startLocal(room,explicit=false){
   if(autoStarting||!room?.roundId||Number(room.startsAt)>now())return false;
@@ -217,6 +286,7 @@ window.CoStudy=(()=>{
   if(name==='close-panel'){expanded=false;savePrefs();render();return;}
   if(name==='friends'){expanded=false;savePrefs();render();adapter.openFriends?.();return;}
   if(name==='break'){d.breakId=r.id+':'+r.roundId;d.breakEndsAt=now()+300000;persistDraft();render();return;}
+  if(name==='wave'){await fetchSignals(true);return;}
   if(name==='refresh'){window.FriendsClient?.activate?.();await refresh();return;}
   if(name==='new'){if(r)dismissed.add(r.id);selectedId=null;if(model)model.room=null;savePrefs();lastRender='';render();return;}
   if(name==='create'){if(blockReason(r)){notice=t(blockReason(r));render();return;}if(!d.friendId){notice=t('chooseRequired');render();return;}const data=await request('create',{friendId:d.friendId,mode:d.mode||'together'});if(data){expanded=true;savePrefs();render();}return;}
@@ -261,10 +331,10 @@ window.CoStudy=(()=>{
   root.addEventListener('change',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyShare')d.share=e.target.checked;if(e.target.id==='coStudyConsent'){d.consent=e.target.checked;e.target.setCustomValidity('');}if(e.target.id==='coStudyFriend')d.friendId=e.target.value;if(e.target.id==='coStudyMode')d.mode=e.target.value;if(e.target.id==='coStudyReviewOutcome')d.reviewOutcome=e.target.value;if(e.target.id==='coStudyRoomMode')request('settings',{mode:e.target.value});persistDraft();});
   root.addEventListener('submit',e=>{if(e.target.id==='coStudyReviewForm'){e.preventDefault();action('review',e.target);}});
   window.addEventListener('eumo-language',()=>{lastRender='';notice='';render();});window.addEventListener('online',refresh);window.addEventListener('offline',()=>{if(matchingSession())markGap(member()?.sourceSessionId);connected=false;failure='offline';render();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  document.addEventListener('visibilitychange',()=>{render();if(!document.hidden)refresh();});
   tickTimer=setInterval(()=>{const r=currentRoom();if(!root)return;if(r?.status==='active'&&r.roundId&&lastRoomVersion?.roomId===r.id&&lastRoomVersion.roundId!==r.roundId){lastRoomVersion={roomId:r.id,roundId:r.roundId};scheduleStart(r);}else if(r&&!terminal.has(r.status)&&r.status!=='active')lastRoomVersion={roomId:r.id,roundId:null};render();reconcile();},1000);
   render();setTimeout(refresh,150);schedule();
  }
  function snapshot(){const room=currentRoom(),d=draft(room);return model?JSON.parse(JSON.stringify({...model,room,break:room?.status==='between_rounds'&&d.breakEndsAt?{breakId:d.breakId,breakEndsAt:d.breakEndsAt}:null,ui:{busy:working||timerActionInFlight,polling,connected,expanded}})):null;}
- return{init,notify,refresh,handleTimerAction,open(){if(!root)return;expanded=true;savePrefs();render();refresh();},getState:snapshot,snapshot,getRoom:()=>currentRoom()?JSON.parse(JSON.stringify(currentRoom())):null,dispose(){disposed=true;clearTimeout(pollTimer);clearInterval(tickTimer);}};
+ return{init,notify,refresh,handleTimerAction,open(){if(!root)return;expanded=true;savePrefs();render();refresh();},getState:snapshot,snapshot,getRoom:()=>currentRoom()?JSON.parse(JSON.stringify(currentRoom())):null,dispose(){disposed=true;clearTimeout(pollTimer);clearInterval(tickTimer);clearTimeout(signalTimer);signalController?.abort();window.CoStudyScene?.dispose();}};
 })();

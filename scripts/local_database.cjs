@@ -24,6 +24,35 @@ async function profileRest(db,url,method,body){
  return (await db.query('select id,snapshot from public.eumo_friend_profiles where '+where.join(' and '),args)).rows;
 }
 
+async function studyRequestRest(db,url,method,body){
+ const q=url.searchParams,columns='actor_id,request_id,fingerprint,room_id,created_at';
+ if(method==='POST'){
+  if(q.get('on_conflict')!=='actor_id,request_id'||body.fingerprint!=='wave:v1')throw Error('Unsupported local signal receipt');
+  return (await db.query('insert into public.eumo_study_requests ('+columns+') values ($1,$2,$3,$4,$5::timestamptz) on conflict (actor_id,request_id) do nothing returning '+columns,[body.actor_id,body.request_id,body.fingerprint,body.room_id,body.created_at])).rows;
+ }
+ if(method!=='GET')throw Error('Unsupported local signal operation');
+ const where=[],args=[];
+ for(const column of ['actor_id','request_id','fingerprint','room_id']){
+  const value=q.get(column);if(!value)continue;
+  if(value.startsWith('eq.')){args.push(value.slice(3));where.push(column+'=$'+args.length);}
+  else if(column==='actor_id'&&value.startsWith('in.(')&&value.endsWith(')')){args.push(value.slice(4,-1).split(','));where.push(column+'=any($'+args.length+'::uuid[])');}
+  else throw Error('Unsupported local signal filter');
+ }
+ if(!q.get('actor_id')&&!q.get('room_id'))throw Error('Scoped signal query required');
+ const created=q.get('created_at');
+ if(created){const match=/^(gt|gte)\.(.+)$/.exec(created);if(!match)throw Error('Unsupported local timestamp filter');args.push(match[2]);where.push('created_at'+(match[1]==='gt'?'>':'>=')+'$'+args.length+'::timestamptz');}
+ if(q.has('order')&&q.get('order')!=='created_at.desc')throw Error('Unsupported local signal order');
+ const limit=Number(q.get('limit')||24);if(!Number.isInteger(limit)||limit<1||limit>100)throw Error('Invalid local signal limit');
+ args.push(limit);
+ return (await db.query('select '+columns+' from public.eumo_study_requests where '+where.join(' and ')+(q.has('order')?' order by created_at desc':'')+' limit $'+args.length,args)).rows;
+}
+
+async function friendLinkRest(db,url,method){
+ const pair=url.searchParams.get('pair_key'),status=url.searchParams.get('status');
+ if(method!=='GET'||!pair?.startsWith('eq.')||status!=='eq.accepted')throw Error('Scoped accepted-friend query required');
+ return (await db.query('select id from public.eumo_friend_links where pair_key=$1 and status=$2 limit 1',[pair.slice(3),'accepted'])).rows;
+}
+
 async function openLocalDatabase(directory){
  const db=new PGlite(directory);await db.waitReady;
  try{
@@ -53,6 +82,8 @@ async function openLocalDatabase(directory){
      const r=await tx.query('select public.eumo_co_study_action($1,$2,$3::jsonb,$4::timestamptz) as result',[body.p_token_hash,body.p_action,JSON.stringify(body.p_payload||{}),body.p_now]);return r.rows[0].result;
     }
     if(url.pathname==='/rest/v1/eumo_friend_profiles')return profileRest(tx,url,method,body);
+    if(url.pathname==='/rest/v1/eumo_friend_links')return friendLinkRest(tx,url,method);
+    if(url.pathname==='/rest/v1/eumo_study_requests')return studyRequestRest(tx,url,method,body);
     throw Error('Unsupported local database operation');
    });
    return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});

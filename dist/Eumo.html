@@ -1652,6 +1652,89 @@ body[data-period="night"]:has(#home:not([hidden])) .painted-backdrop{opacity:.09
  .co-study-members{margin-bottom:6px}
 }
 
+/* One shared room, with the people in the scene and a quiet status strip. */
+#coStudyDialog:has(.co-study-stage){width:min(960px,calc(100vw - 32px))}
+#coStudyBody:has(.co-study-stage){padding:12px 14px}
+.co-study-room:has(.co-study-stage) .co-study-room-heading{align-items:center;gap:10px;margin-bottom:10px}
+.co-study-room:has(.co-study-stage) .co-study-room-heading>span{margin-left:auto}
+.co-study-panel .co-study-wave{min-width:44px;min-height:44px;padding:5px 10px;font-size:18px;line-height:1;flex:none}
+.co-study-stage{position:relative;isolation:isolate;min-width:0;border:2px solid var(--edge);background:var(--board);box-shadow:inset 1px 1px var(--window-highlight);margin-bottom:10px}
+#coStudyScene{display:block;width:100%;height:auto;object-fit:contain;object-position:center;image-rendering:pixelated;background:var(--board)}
+.co-study-members.co-study-room-roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;background:var(--panel);border-top:2px solid var(--edge)}
+.co-study-room-roster .co-member{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 12px;border:0;background:transparent;box-shadow:none}
+.co-study-room-roster .co-member+.co-member{border-left:1px solid var(--edge-soft)}
+.co-study-room-roster .co-member-self{background:var(--raised)}
+.co-study-room-roster .co-member .co-member-identity{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:4px 6px;height:auto;min-height:22px}
+.co-study-room-roster .co-member-identity strong{font-size:17px}
+.co-study-room-roster .co-member-host{grid-column:auto;min-height:0;font-size:12px;white-space:nowrap}
+.co-study-room-roster .co-member .co-member-details{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 8px;text-align:left}
+.co-study-room-roster .co-member-status{grid-column:1;grid-row:1;font-size:14px}
+.co-study-room-roster .co-member-points{grid-column:2;grid-row:1;font-size:13px;text-align:right}
+.co-study-room-roster .co-member-time{grid-column:1;grid-row:2;font-size:21px;line-height:1.15}
+.co-study-room-roster .co-member-time small{font-size:12px}
+.co-study-room-roster .co-member-time-label{grid-column:2;grid-row:2;font-size:12px;text-align:right;white-space:nowrap}
+.co-study-room-roster .co-member-task{grid-column:1/-1;grid-row:3;font-size:13px;line-height:1.3}
+.co-study-controls{min-width:0}
+.co-study-controls .co-study-readiness{margin:0 0 8px;padding:0 0 6px}
+.co-study-controls .co-study-preparation{max-width:none;padding:8px 10px;border:1px solid var(--edge-soft);background:var(--raised)}
+.co-study-controls .co-study-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.6fr);gap:6px 14px;align-items:center;position:relative}
+.co-study-controls .co-study-fields>label[for=coStudyTask]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.co-study-controls .co-study-fields>#coStudyTask{grid-column:1;grid-row:1;margin:0}
+.co-study-controls .co-study-fields:not(:has(#coStudyRoomMode))>#coStudyTask{grid-column:1/-1}
+.co-study-controls .co-study-mode-label{grid-column:2;grid-row:1;display:flex;flex-direction:row;gap:8px;margin:0!important;font-size:14px}
+.co-study-controls .co-study-mode-label select{max-width:none;flex:1;min-width:0}
+.co-study-controls .co-study-check{margin:2px 0;font-size:14px;line-height:1.3}
+.co-study-controls label:has(#coStudyShare){grid-column:1;grid-row:2}
+.co-study-controls label:has(#coStudyConsent){grid-column:2;grid-row:2}
+.co-study-controls .co-study-preparation:has(.co-study-fields[hidden]){padding:0;border:0;background:transparent}
+.co-study-controls .co-study-actions{justify-content:center;margin:8px 0 4px;gap:8px}
+.co-study-controls .co-study-actions>button{min-width:112px}
+.co-study-controls .co-study-footer{margin-top:8px;padding-top:6px}
+.co-study-controls .co-study-review{margin:8px 0;padding:10px}
+.co-study-controls .co-review-summary{margin:8px 0}
+.co-study-controls .co-study-countdown{padding:6px 0;background:var(--selected);border:1px solid var(--edge-soft)}
+#coStudyBody:has(.co-study-stage)>.co-study-rules{margin-top:8px;padding-top:4px}
+@media(max-width:700px){
+ #coStudyDialog:has(.co-study-stage){width:calc(100vw - 16px);max-width:calc(100vw - 16px)}
+ #coStudyBody:has(.co-study-stage){padding:8px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading{gap:6px;margin-bottom:8px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading h3{font-size:17px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading>span{font-size:12px;line-height:1.2}
+ .co-study-panel .co-study-wave{min-width:44px;padding:4px 7px;font-size:17px}
+ .co-study-stage{margin-bottom:8px}
+ #coStudyScene{min-height:160px;max-height:250px}
+ .co-study-room-roster .co-member{padding:6px 7px;gap:3px}
+ .co-study-room-roster .co-member .co-member-identity{min-height:20px;gap:3px}
+ .co-study-room-roster .co-member-identity strong{font-size:15px}
+ .co-study-room-roster .co-member-you{font-size:11px;padding:2px 3px}
+ .co-study-room-roster .co-member-host{font-size:11px}
+ .co-study-room-roster .co-member .co-member-details{grid-template-columns:minmax(0,1fr) 44px;gap:2px 4px}
+ .co-study-room-roster .co-member-status{font-size:13px}
+ .co-study-room-roster .co-member-status::before{margin-right:4px;width:4px;height:4px}
+ .co-study-room-roster .co-member-time{font-size:18px}
+ .co-study-room-roster .co-member-time small{font-size:11px}
+ .co-study-room-roster .co-member-time-label{font-size:11px!important}
+ .co-study-room-roster .co-member-task,.co-study-room-roster .co-member-points{font-size:12px}
+ .co-study-controls .co-study-preparation{padding:7px}
+ .co-study-controls .co-study-fields{grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:6px 8px}
+ .co-study-controls .co-study-fields>#coStudyTask{grid-column:1/-1;grid-row:1}
+ .co-study-controls .co-study-mode-label{grid-column:2;grid-row:2;gap:5px;font-size:13px}
+ .co-study-controls .co-study-mode-label select{padding:6px 4px}
+ .co-study-controls label:has(#coStudyShare){grid-column:1;grid-row:2}
+ .co-study-controls label:has(#coStudyConsent){grid-column:1/-1;grid-row:3}
+ .co-study-controls .co-study-actions>button{min-width:0;flex:1}
+ .co-study-controls .co-study-footer{margin-top:6px;padding-top:6px}
+}
+@media(max-height:600px) and (min-width:701px){
+ #coStudyScene{max-height:210px}
+ .co-study-room-roster .co-member{padding:5px 10px}
+}
+@media(max-width:959px),(pointer:coarse){
+ #coStudyDialog button{min-height:44px}
+ .co-study-heading #coStudyClose{min-height:44px;min-width:44px}
+ .co-study-panel input:not([type=checkbox]),.co-study-panel select{font-size:16px}
+}
+
 /* Header-sized entry; optional cues float without resizing the mine or timer. */
 .study-guidance{margin:0;position:relative;display:inline-flex;align-items:center;color:var(--text);font:inherit;min-width:0}
 .study-guidance button{font:inherit;line-height:1.3;min-height:32px;white-space:normal;overflow-wrap:anywhere;padding:6px 10px;border:1px solid var(--edge,var(--line));background:var(--button,var(--panel));color:var(--text);box-shadow:inset 1px 1px var(--window-highlight,var(--panel)),1px 1px var(--button-shadow,var(--line))}
@@ -4605,12 +4688,171 @@ window.DesktopUpdates=(()=>{
 });
 
 </script><script>
+/* The shared study room reuses Eumo's existing burrow and dressed mole artwork. */
+'use strict';
+window.CoStudyScene=(()=>{
+ const W=640,H=320,portraits=new Map(),backdrops=new Map();
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ const absent=new Set(['invited','left']),dimmed=new Set(['offline','disconnected']);
+ let canvas=null,model=null,raf=0,expiryTimer=0,lastPaint=0,frames=0,disposed=false;
+ const rect=(c,x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));};
+ const validColor=color=>/^#[a-f0-9]{6}$/i.test(color||'')?color:'#b784cf';
+ const bounded=(cache,key,value,limit)=>{if(cache.size>=limit)cache.delete(cache.keys().next().value);cache.set(key,value);return value;};
+ function world(){return window.WorldClock?.snapshot?.()||{period:'day',sky:'#88bdca',skyLow:'#c8dfce',cloud:'#fff8df',cloudBack:'#d9e7d8',mountain:'#789a6d',grass:'#9fb94e',grassShadow:'#587747',sun:'#f7ce58'};}
+ function background(t){
+  const key=t.period+':'+t.sky;if(backdrops.has(key))return backdrops.get(key);
+  const result=document.createElement('canvas');result.width=W;result.height=H;
+  const c=result.getContext('2d');c.imageSmoothingEnabled=false;
+  const theme=window.HomeCatalog?.themes?.find(theme=>theme.id==='cave')||{id:'cave'};
+  if(window.HomeScenery?.paint){
+   // Decorate our own copy: HomeScenery.paint() returns a shared cached asset.
+   const room=document.createElement('canvas');room.width=640;room.height=360;
+   const r=room.getContext('2d');r.imageSmoothingEnabled=false;
+   r.drawImage(HomeScenery.paint(theme,t),0,0);
+   HomeScenery.glow?.(r,'hangingLantern',{x:273,y:225},t);
+   HomeScenery.drawDecor?.(r,'archedWindow',{x:215,y:231},t);
+   HomeScenery.drawDecor?.(r,'herbShelf',{x:105,y:268},t);
+   HomeScenery.drawDecor?.(r,'hangingLantern',{x:273,y:225},t);
+   // Enlarge the existing living room, keeping its floor and both seats visible.
+   c.drawImage(room,52,172,320,160,0,0,W,H);
+  }else{
+   rect(c,0,0,W,H,'#76664d');rect(c,34,22,572,274,'#e9dfb9');
+   rect(c,34,274,572,22,'#c8b78e');
+  }
+  // One long rug and table unite the two places in the same room.
+  rect(c,105,281,430,23,'#9e7d59');rect(c,113,284,414,16,'#c6a67b');
+  rect(c,126,288,388,2,'#ead6ad');rect(c,126,295,388,2,'#ead6ad');
+  for(let x=117;x<530;x+=18)rect(c,x,282,2,20,'#a5815c');
+  return bounded(backdrops,key,result,4);
+ }
+ function portrait(member){
+  const equipped=Array.isArray(member.equipped)?member.equipped.filter(id=>typeof id==='string').slice(0,8):[];
+  const color=validColor(member.color),key=color+':'+equipped.join(',');
+  if(portraits.has(key))return portraits.get(key);
+  const sprite=document.createElement('canvas');sprite.width=128;sprite.height=128;
+  const c=sprite.getContext('2d');c.imageSmoothingEnabled=false;
+  if(window.PixelArt?.drawPortrait)PixelArt.drawPortrait(sprite,{profile:{color},equipped});
+  else if(window.MoleArt?.paint){c.save();c.translate(23,40);c.scale(3,3);MoleArt.paint(c,{color});c.restore();}
+  return bounded(portraits,key,sprite,24);
+ }
+ function chair(c,x){
+  rect(c,x-45,177,90,72,'#795b40');rect(c,x-40,181,80,61,'#b38b61');
+  rect(c,x-36,186,72,39,'#8d9e78');rect(c,x-32,189,64,3,'#b4be95');
+  rect(c,x-45,239,90,12,'#634c38');rect(c,x-40,250,10,43,'#795b40');
+  rect(c,x+30,250,10,43,'#795b40');
+ }
+ function table(c){
+  rect(c,102,220,436,5,'#795b40');rect(c,98,225,444,14,'#a37c56');
+  rect(c,100,225,440,4,'#e0bd8b');rect(c,111,230,416,2,'#bb986b');
+  rect(c,118,239,404,17,'#795b40');rect(c,122,241,396,9,'#b38c61');
+  rect(c,132,251,14,47,'#795b40');rect(c,135,253,4,43,'#c5a173');
+  rect(c,494,251,14,47,'#795b40');rect(c,497,253,4,43,'#c5a173');
+  rect(c,145,286,350,6,'#795b40');
+  // A small shared lamp between the two workspaces, matching the home palette.
+  rect(c,310,214,22,4,'#795b40');rect(c,319,190,4,25,'#a37c56');
+  rect(c,305,175,32,18,'#c9a56e');rect(c,308,171,26,5,'#efd6a1');
+  rect(c,308,178,26,12,'#f7e6ba');rect(c,305,190,32,3,'#a37c56');
+ }
+ function papers(c,x,state,frame,motion){
+  // These are desk props, not evidence that a task has been completed.
+  rect(c,x-34,216,67,5,'#795b40');rect(c,x-33,205,31,12,'#f4e9c9');
+  rect(c,x,205,32,12,'#fff6dc');rect(c,x-2,205,2,13,'#ccb991');
+  for(let line=0;line<3;line++){rect(c,x-26,208+line*3,18,1,'#b8b495');rect(c,x+6,208+line*3,18,1,'#b8b495');}
+  const working=state==='studying',n=working&&motion?Math.floor(frame/3)%3:0;
+  const px=x+17+(working?n:7),py=working?202+n:211;
+  for(let k=0;k<6;k++)rect(c,px+k,py-k,3,3,k<1?'#5b4b3a':k>4?'#bd8674':'#d8b76d');
+  if(state==='paused'){
+   rect(c,x+42,205,13,12,'#8ca8a4');rect(c,x+44,204,9,2,'#d6e1c7');
+   rect(c,x+55,208,4,6,'#8ca8a4');rect(c,x+56,209,2,3,'#e9dfb9');
+  }
+ }
+ function waveVisible(member,epoch){
+  const at=Number(member.reactionAt),age=epoch-at;
+  return member.reaction==='wave'&&Number.isFinite(at)&&at>0&&age>=-2000&&age<6000&&!absent.has(member.state)&&!dimmed.has(member.state);
+ }
+ function wave(c,x,y,motion,frame){
+  const bob=motion?Math.round(Math.sin(frame*.45)):0;y+=bob;
+  rect(c,x-26,y,52,31,'#795b40');rect(c,x-24,y+2,48,27,'#fff5d8');
+  rect(c,x-5,y+31,10,3,'#795b40');rect(c,x-3,y+29,6,3,'#fff5d8');
+  // Pixel hand: a real user-triggered wave, never an automatic presence cue.
+  const sway=motion?(Math.floor(frame/3)%2)*2:0;
+  rect(c,x-8+sway,y+12,18,12,'#d69978');rect(c,x-6+sway,y+10,14,13,'#f0bd98');
+  rect(c,x-8+sway,y+6,3,10,'#f0bd98');rect(c,x-3+sway,y+4,3,11,'#f0bd98');
+  rect(c,x+2+sway,y+5,3,10,'#f0bd98');rect(c,x+7+sway,y+8,3,10,'#f0bd98');
+  rect(c,x-13+sway,y+14,6,4,'#f0bd98');
+ }
+ function canPaint(){return !!(canvas&&model?.visible&&canvas.isConnected&&!document.hidden&&!disposed);}
+ function canAnimate(){return canPaint()&&!reduced.matches;}
+ function setRunning(value){if(canvas)canvas.dataset.sceneRunning=String(value);}
+ function paint(stamp=performance.now()){
+  if(!canPaint())return;
+  const c=canvas.getContext('2d');if(!c)return;
+  c.setTransform(1,0,0,1,0,0);c.imageSmoothingEnabled=false;c.clearRect(0,0,W,H);
+  c.drawImage(background(world()),0,0);
+  const motion=!reduced.matches,frame=motion?Math.floor(stamp/125):0,epoch=Date.now();
+  const members=(model.members||[]).slice(0,2).map(member=>!member.own&&model.connected===false&&!absent.has(member.state)?{...member,state:'offline'}:member).sort((a,b)=>Number(!!b.own)-Number(!!a.own));
+  const places=[208,432];
+  for(const x of places)chair(c,x);
+  members.forEach((member,index)=>{
+   if(absent.has(member.state))return;
+   const x=places[index],offline=dimmed.has(member.state),paused=member.state==='paused';
+   // Idle breathing is purely cosmetic. Only a verified studying state moves
+   // the pencil; no animation changes time, rewards or a member's status.
+   const bob=motion&&!offline?Math.round(Math.sin(stamp/(paused?2300:1700)+index)*1):0;
+   c.save();if(offline)c.globalAlpha=.3;
+   c.drawImage(portrait(member),x-96,35+bob+(paused?3:0),192,192);c.restore();
+   if(waveVisible(member,epoch))wave(c,x,index===0?12:20,motion,frame);
+  });
+  table(c);
+  members.forEach((member,index)=>{
+   if(absent.has(member.state))return;
+   c.save();if(dimmed.has(member.state))c.globalAlpha=.4;
+   papers(c,places[index],member.state,frame,motion&&!dimmed.has(member.state));c.restore();
+  });
+  frames++;canvas.dataset.sceneFrame=String(frames);
+  canvas.dataset.scenePhase=String(model.phase||'ready');
+ }
+ function scheduleExpiry(){
+  clearTimeout(expiryTimer);expiryTimer=0;if(!canPaint())return;
+  const epoch=Date.now(),ends=(model.members||[]).filter(member=>waveVisible(member,epoch)).map(member=>Number(member.reactionAt)+6000-epoch).filter(ms=>ms>0);
+  if(ends.length)expiryTimer=setTimeout(()=>{expiryTimer=0;paint();scheduleExpiry();},Math.min(...ends)+20);
+ }
+ function tick(stamp){
+  raf=0;if(!canAnimate()){setRunning(false);return;}
+  if(stamp-lastPaint>=125){lastPaint=stamp;paint(stamp);}
+  setRunning(true);raf=requestAnimationFrame(tick);
+ }
+ function halt(){if(raf)cancelAnimationFrame(raf);raf=0;clearTimeout(expiryTimer);expiryTimer=0;setRunning(false);}
+ function resume(){
+  halt();if(!canPaint())return;paint();scheduleExpiry();
+  if(canAnimate()){lastPaint=performance.now();setRunning(true);raf=requestAnimationFrame(tick);}
+ }
+ function update(nextCanvas,nextModel){
+  if(disposed||!nextCanvas?.getContext)return;
+  const changed=canvas!==nextCanvas;if(changed){halt();canvas=nextCanvas;}
+  model={...nextModel,members:Array.isArray(nextModel?.members)?nextModel.members.map(member=>({...member,equipped:Array.isArray(member.equipped)?[...member.equipped]:[]})):[]};
+  if(canvas.width!==W)canvas.width=W;if(canvas.height!==H)canvas.height=H;
+  if(!canvas.hasAttribute('role'))canvas.setAttribute('role','img');
+  if(!canvas.hasAttribute('aria-label'))canvas.setAttribute('aria-label','Shared study room');
+  if(!canPaint()){halt();return;}
+  if(!canAnimate()){halt();paint();scheduleExpiry();return;}
+  paint();scheduleExpiry();
+  if(canAnimate()&&!raf){lastPaint=performance.now();setRunning(true);raf=requestAnimationFrame(tick);}
+ }
+ function stop(){halt();if(model)model={...model,visible:false};}
+ function dispose(){stop();disposed=true;canvas=null;model=null;portraits.clear();backdrops.clear();document.removeEventListener('visibilitychange',resume);reduced.removeEventListener?.('change',resume);window.removeEventListener('eumo-appearance',resume);}
+ document.addEventListener('visibilitychange',resume);reduced.addEventListener?.('change',resume);window.addEventListener('eumo-appearance',resume);
+ return {update,stop,dispose};
+})();
+
+</script><script>
 /* Incremental shared-study UI. The existing app owns personal time, rewards and saves. */
 'use strict';
 window.CoStudy=(()=>{
  const PREF='eumo-co-study-ui-v1',DRAFT='eumo-co-study-drafts-v1',GAPS='eumo-co-study-gaps-v1';
  const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const words={
+  wave:['Wave','招手'],waved:['Waved','已招手'],waveFailed:['Wave not sent. Try again.','招手未送达，请重试。'],waveLimit:['Wave limit reached. Try again later.','招手次数已达上限，请稍后再试。'],sharedRoom:['Shared study room','双人学习房间'],
   title:['Study together','共学'],open:['Open shared study','展开共学'],close:['Close shared study','关闭共学'],breakStart:['5-min break','休息 5 分钟'],breakTime:['Break','休息'],breakDone:['Ready when you are.','休息结束，准备后开始。'],
   friends:['Friends','好友'],choose:['Choose a friend','选择好友'],invite:['Invite','邀请'],together:['Together','一起学'],challenge:['Challenge','挑战'],mode:['Mode','模式'],format:['2 rounds · 20 min','2 轮 · 每轮 20 分钟'],
   incoming:['Invitations','邀请'],accept:['Join','加入'],decline:['Decline','拒绝'],cancel:['Cancel invite','取消邀请'],waiting:['Waiting for your friend…','等待好友加入…'],inviteInfo:['Invites expire in 5 minutes.','邀请 5 分钟后过期。'],
@@ -4631,7 +4873,7 @@ window.CoStudy=(()=>{
  const uid=()=>globalThis.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16);});
  const terminal=new Set(['finished','cancelled','expired']);
  let adapter,root,model=null,selectedId=null,expanded=false,rulesOpen=false,working=false,polling=false,notice='',failure='',connected=false,disposed=false,clockAt=0,clockBase=0,lastHeartbeat=0,lastSyncAction=0,autoStarting=false,timerActionInFlight=false,startedRounds=new Set(),dismissed=new Set(),lastRender='',lastRoomVersion=null;
- let pollTimer=null,tickTimer=null;const pending=new Map(),drafts={},gaps={};
+ let pollTimer=null,tickTimer=null,signalTimer=null,signalController=null,signalBusy=false,waveBusy=false,waveQueued=false,signalRoomId=null,signalSelfId=null,wavePending=null,signals=[];const pending=new Map(),drafts={},gaps={};
  function read(){try{return adapter?.read?.()||{};}catch{return {};}}
  function now(){return clockBase?clockBase+(performance.now()-clockAt):Date.now();}
  function savePrefs(){try{localStorage.setItem(PREF,JSON.stringify({expanded,selectedId,rulesOpen}));}catch{}}
@@ -4650,6 +4892,69 @@ window.CoStudy=(()=>{
  }
  function incoming(){return(model?.rooms||[]).filter(r=>r.status==='inviting'&&r.guestId===model?.self?.id&&!dismissed.has(r.id));}
  function friendList(){return(window.FriendsClient?.getPlayers?.()||[]).filter(f=>f.live&&f.profileId);}
+ // Reactions use their own request ledger; they never advance the round or timer.
+ function canSignal(room=currentRoom()){
+  return !!(expanded&&!document.hidden&&connected&&room&&['ready','active','between_rounds'].includes(room.status)&&room.members?.length===2&&room.members.every(m=>!['invited','left'].includes(m.status)));
+ }
+ function waveAt(){return Number(signals.find(v=>v.userId===model?.self?.id)?.at)||0;}
+ function syncSignals(){
+  const room=currentRoom(),selfId=model?.self?.id;
+  if(signalRoomId!==room?.id||signalSelfId!==selfId){
+   signalController?.abort();signalRoomId=room?.id||null;signalSelfId=selfId||null;signals=[];wavePending=null;waveQueued=false;
+  }
+  if(!canSignal(room)){clearTimeout(signalTimer);signalTimer=null;return;}
+  if(!signalTimer&&!signalBusy)signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(false);},200);
+ }
+ async function fetchSignals(wave=false){
+  const room=currentRoom(),actorId=model?.self?.id;
+  if(disposed||!canSignal(room))return;
+  if(signalBusy){if(wave&&!waveBusy){waveQueued=true;render();}return;}
+  if(wave&&now()-waveAt()<5000)return;
+  clearTimeout(signalTimer);signalTimer=null;signalBusy=true;waveBusy=wave;
+  const controller=new AbortController();signalController=controller;
+  const timeout=setTimeout(()=>controller.abort(),8000),roomId=room.id;
+  if(wave&&!wavePending)wavePending=uid();
+  const requestId=wavePending;
+  if(wave)render();
+  try{
+   const response=await fetch('/api/co-study',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:wave?'wave':'signal-state',roomId,...(wave?{requestId}:{})})});
+   const data=await response.json();
+   if(!response.ok||data.error)throw Error(data.error||'SIGNAL_UNAVAILABLE');
+   if(currentRoom()?.id!==roomId||model?.self?.id!==actorId)return;
+   if(data.self?.id!==actorId||data.roomId!==roomId||!Array.isArray(data.signals))throw Error('INVALID_SIGNAL');
+   const ids=new Set(room.members.map(m=>m.id));
+   signals=data.signals.filter(v=>ids.has(v.userId)&&v.type==='wave'&&typeof v.id==='string'&&Number.isFinite(v.at)&&v.at<=now()+1000&&now()-v.at<6000);
+   if(wave)wavePending=null;
+  }catch(error){
+   if(wave&&currentRoom()?.id===roomId&&model?.self?.id===actorId&&error.name!=='AbortError'){
+    notice=t(error.message==='WAVE_LIMITED'?'waveLimit':error.message==='RATE_LIMITED'||error.message==='REQUEST_LIMITED'?'rate':'waveFailed');
+    if(['INVALID_STATE','NOT_FRIENDS','ROOM_NOT_FOUND','UNAUTHORIZED'].includes(error.message))wavePending=null;
+   }else if(wave&&error.name==='AbortError'&&currentRoom()?.id===roomId)notice=t('waveFailed');
+  }finally{
+   clearTimeout(timeout);signalBusy=false;waveBusy=false;if(signalController===controller)signalController=null;
+   // Install the next poll before render, so render cannot create another timer.
+   if(!disposed&&canSignal()){
+    if(waveQueued){waveQueued=false;signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(true);},0);}
+    else signalTimer=setTimeout(()=>{signalTimer=null;fetchSignals(false);},2500);
+   }else waveQueued=false;
+   render();
+  }
+ }
+ function renderScene(room=currentRoom(),s=read()){
+  const canvas=$('coStudyScene');
+  if(!canvas||!room||!expanded){window.CoStudyScene?.stop();return;}
+  const members=[...(room.members||[])].sort((a,b)=>Number(b.id===model?.self?.id)-Number(a.id===model?.self?.id)).map(m=>{
+   const own=m.id===model?.self?.id,local=own&&matchingSession(room),friend=friendList().find(f=>f.profileId===m.id);
+   let state=local?(s.session.status==='running'?'studying':'paused'):m.ready?'ready':m.status;
+   if(room.status==='active'&&room.startsAt>now())state='ready';
+   else if(own&&state==='studying'&&!local)state='joined';
+   else if(!own&&['studying','paused'].includes(state)&&(!connected||!Number(m.lastSeen)||now()-Number(m.lastSeen)>90000))state='offline';
+   const signal=signals.find(v=>v.userId===m.id&&now()-v.at<6000);
+   return{id:m.id,name:m.name||'Momo',own,color:m.color||'#b784cf',equipped:own?s.equipped||[]:friend?.equipped||[],state,ready:!!m.ready,...(signal?{reaction:'wave',reactionAt:Date.now()-(now()-signal.at)}:{})};
+  });
+  window.CoStudyScene?.update(canvas,{roomId:room.id,members,phase:room.status,connected,visible:expanded&&!document.hidden});
+  const live=$('coStudyReactionStatus');if(live)live.textContent=members.filter(m=>m.reaction).map(m=>`${m.name}: ${t('wave')}`).join(' · ');
+ }
  function errorKey(code){if(['UNAUTHORIZED','FRIENDS_REQUIRED'].includes(code))return'auth';if(/NOT_CONFIGURED|MIGRATION/.test(code))return'notConfigured';if(/RATE|LIMIT/.test(code))return'rate';if(/NOT_FRIEND|FRIENDSHIP/.test(code))return'notFriend';if(/CONFLICT|VERSION|STALE|REQUEST_REUSED|MEMBER_BUSY|NOT_FOUND|INVALID_STATE|ROUND|EXPIRED/.test(code))return'conflict';return navigator.onLine===false?'offline':'unavailable';}
  async function request(action,extra={},opts={}){
   if(disposed)return null;
@@ -4720,7 +5025,7 @@ window.CoStudy=(()=>{
  }
  function formatSeconds(seconds){const n=Math.max(0,Math.floor(Number(seconds)||0));return `${Math.floor(n/60)}:${String(n%60).padStart(2,'0')}`;}
  function render(){
-  if(!root)return;const r=currentRoom(),me=member(r),s=read(),busy=working,invites=incoming(),d=draft(r),block=blockReason(r),isHost=r?.hostId===model?.self?.id;
+  if(!root||disposed)return;const r=currentRoom(),me=member(r),s=read(),busy=working,invites=incoming(),d=draft(r),block=blockReason(r),isHost=r?.hostId===model?.self?.id;
   const focus=document.activeElement?.closest?.('#coStudyPanel')?{id:document.activeElement.id,start:document.activeElement.selectionStart,end:document.activeElement.selectionEnd}:null;
   const headingDetail=invites.length?`${invites.length} ${t('inviteCount')}`:r?.status==='active'?t('roomActive'):r&&['ready','between_rounds'].includes(r.status)?`${(r.members||[]).filter(m=>m.ready&&m.status!=='left').length}/2 ${t('readyCount')}`:'';
   const toggle=$('coStudyToggle');toggle.innerHTML=`<span class="co-study-mark" aria-hidden="true">✦</span><span>${esc(t('title'))}</span>${headingDetail?`<b class="co-study-summary">${esc(headingDetail)}</b>`:''}`;toggle.setAttribute('aria-expanded',String(expanded));
@@ -4732,13 +5037,13 @@ window.CoStudy=(()=>{
   if(invites.length)html+=`<section class="co-study-invitations"><h3>${esc(t('incoming'))}</h3>${invites.map(inv=>{const host=inv.members.find(m=>m.id===inv.hostId);return `<article class="co-study-invitation"><span><strong>${esc(host?.name||'Momo')}</strong><small>${esc(t(inv.mode==='challenge'?'challenge':'together'))} · ${esc(t('format'))}</small></span><div><button type="button" data-co-action="accept" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('accept'))}</button><button type="button" data-co-action="decline" data-room="${esc(inv.id)}" ${busy?'disabled':''}>${esc(t('decline'))}</button></div></article>`;}).join('')}</section>`;
   if(r){
    const members=[...(r.members||[])].sort((a,b)=>Number(b.id===model?.self?.id)-Number(a.id===model?.self?.id)),readyCount=members.filter(m=>m.ready&&m.status!=='left').length,allReady=members.length===2&&readyCount===2,phase=r.status;
-   html+=`<section class="co-study-room" data-co-room="${esc(r.id)}" data-co-phase="${esc(phase)}"><div class="co-study-room-heading"><h3>${esc(t(r.mode==='challenge'?'challenge':'together'))}</h3><span>${esc(t('round'))} ${r.roundIndex||1}/${r.maxRounds||2} · ${Math.round((r.plannedSeconds||1200)/60)} ${esc(t('minutes'))}</span></div>`;
+   html+=`<section class="co-study-room" data-co-room="${esc(r.id)}" data-co-phase="${esc(phase)}"><div class="co-study-room-heading"><h3>${esc(t(r.mode==='challenge'?'challenge':'together'))}</h3><span>${esc(t('round'))} ${r.roundIndex||1}/${r.maxRounds||2} · ${Math.round((r.plannedSeconds||1200)/60)} ${esc(t('minutes'))}</span>${['ready','active','between_rounds'].includes(phase)?button('coStudyWave',now()-waveAt()<5000?'waved':'wave','wave',busy||waveBusy||waveQueued||!canSignal(r)||now()-waveAt()<5000,'co-study-wave'):''}</div>`;
    if(phase==='inviting')html+=`<p>${esc(t('waiting'))}</p>`;
-   html+=`<div class="co-study-members">${members.map(m=>{
+   html+=`<div class="co-study-stage"><canvas id="coStudyScene" width="640" height="320" role="img" aria-label="${esc(t('sharedRoom'))}"></canvas><span id="coStudyReactionStatus" class="sr-only" role="status" aria-live="polite"></span><div class="co-study-members co-study-room-roster">${members.map(m=>{
     const own=m.id===model?.self?.id,local=own&&matchingSession(r),elapsed=local?s.session.elapsed:m.elapsedSeconds,task=own?d.task:m.shareTask&&m.task;
     const stale=!local&&['studying','paused'].includes(m.status)&&(!connected||Number(m.lastSeen)&&now()-Number(m.lastSeen)>90000);
-    return `<article class="co-member${own?' co-member-self':''}" data-co-member="${esc(m.id)}" data-co-status="${stale?'offline':local?(s.session.status==='running'?'studying':'paused'):m.status}"><div class="co-member-identity"><strong>${esc(m.name||'Momo')}</strong>${own?`<span class="co-member-you">${esc(t('you'))}</span>`:''}${m.id===r.hostId?`<small class="co-member-host">${esc(t('host'))}</small>`:''}</div><div class="co-member-stage"><canvas width="128" height="128" data-co-portrait="${esc(m.id)}" aria-label="${esc(m.name||'Momo')}${own?' · '+esc(t('you')):''}"></canvas></div><div class="co-member-details"><span class="co-member-status">${esc(statusLabel(m,r))}</span>${r.roundId?`<span class="co-member-time" data-co-time="${esc(m.id)}">${formatSeconds(elapsed)}<small> / ${formatSeconds(r.plannedSeconds)}</small></span>${!own?`<small class="co-member-time-label">${esc(t('lastSync'))}</small>`:local&&!connected?`<small class="co-member-time-label">${esc(t('localTime'))}</small>`:''}`:''}${task?`<span class="co-member-task" title="${esc(task)}">${esc(task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||own&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`;
-   }).join('')}</div>`;
+    return `<article class="co-member${own?' co-member-self':''}" data-co-member="${esc(m.id)}" data-co-status="${stale?'offline':local?(s.session.status==='running'?'studying':'paused'):m.status}"><div class="co-member-identity"><strong>${esc(m.name||'Momo')}</strong>${own?`<span class="co-member-you">${esc(t('you'))}</span>`:''}${m.id===r.hostId?`<small class="co-member-host">${esc(t('host'))}</small>`:''}</div><div class="co-member-details"><span class="co-member-status">${esc(statusLabel(m,r))}</span>${r.roundId?`<span class="co-member-time" data-co-time="${esc(m.id)}">${formatSeconds(elapsed)}<small> / ${formatSeconds(r.plannedSeconds)}</small></span>${!own?`<small class="co-member-time-label">${esc(t('lastSync'))}</small>`:local&&!connected?`<small class="co-member-time-label">${esc(t('localTime'))}</small>`:''}`:''}${task?`<span class="co-member-task" title="${esc(task)}">${esc(task)}</span>`:''}${r.mode==='challenge'?`<span class="co-member-points">${Number(m.points)||0} ${esc(t('points'))}${(m.verification==='pending_verification'||own&&gaps[m.sourceSessionId])?` · ${esc(t('unverified'))}`:''}</span>`:''}</div></article>`;
+   }).join('')}</div></div><div class="co-study-controls">`;
    if(phase==='between_rounds')html+=`<div class="co-study-break">${d.breakEndsAt?`<span>${esc(t(now()<d.breakEndsAt?'breakTime':'breakDone'))}${now()<d.breakEndsAt?' · '+formatSeconds((d.breakEndsAt-now())/1000):''}</span>`:button('coStudyBreak','breakStart','break',false)}</div>`;
    if(['ready','between_rounds'].includes(phase)&&me?.status!=='left'){
     html+=`<div id="coStudyReadiness" class="co-study-readiness${allReady?' is-ready':''}" role="status" aria-live="polite"><strong>${readyCount}/2 ${esc(t('readyCount'))}</strong>${allReady?`<span>${esc(t(isHost?'allReady':'waitHost'))}</span>`:me?.ready?`<span>${esc(t('waitReady'))}</span>`:''}</div><div class="co-study-preparation"><div class="co-study-fields" ${me?.ready?'hidden':''}><label for="coStudyTask">${esc(t('task'))}</label><input id="coStudyTask" maxlength="100" autocomplete="off" placeholder="${esc(t('taskPlaceholder'))}" value="${esc(d.task)}" ${me?.ready?'disabled':''}><label class="co-study-check"><input id="coStudyShare" type="checkbox" ${d.share?'checked':''} ${me?.ready?'disabled':''}>${esc(t('share'))}</label><label class="co-study-check"><input id="coStudyConsent" type="checkbox" ${d.consent?'checked':''} ${me?.ready?'disabled':''}>${esc(t('consent'))}</label>`;
@@ -4762,7 +5067,7 @@ window.CoStudy=(()=>{
    }
    if(terminal.has(phase))html+=`<div class="co-study-actions"><strong>${esc(t(phase==='finished'?'finished':phase))}</strong>${button('coStudyNew','newSession','new',busy)}</div>`;
    else html+=`<div class="co-study-footer">${phase==='inviting'&&isHost?button('coStudyCancel','cancel','cancel',busy):button('coStudyLeave','leave','leave',busy)}</div>`;
-   html+='</section>';
+   html+='</div></section>';
   }else if(model?.self){
    const friends=friendList();html+=`<div class="co-study-create">`;
    if(!friends.length)html+=`<p>${esc(t('empty'))}</p>${button('coStudyFriends','friends','friends')}`;
@@ -4772,9 +5077,14 @@ window.CoStudy=(()=>{
   if(model?.self)html+=`<details id="coStudyRules" class="co-study-rules" ${rulesOpen?'open':''}><summary id="coStudyRulesToggle">${esc(t('rules'))}</summary><div><p>${esc(t('format'))}. ${esc(t('inviteInfo'))} ${esc(t('roomShare'))}</p><p>${esc(t('privacy'))}</p><p>${esc(t('timingHelp'))}</p>${r?.mode==='challenge'||!r?`<p>${esc(t('pointsHelp'))}</p>`:''}</div></details>`;
   const dialog=$('coStudyDialog'),body=$('coStudyBody');
   if(expanded&&!dialog.open)dialog.showModal();else if(!expanded&&dialog.open)dialog.close();
-  if(html===lastRender)return;lastRender=html;const scrollTop=body.scrollTop;body.innerHTML=html;body.scrollTop=scrollTop;
+  syncSignals();
+  if(html===lastRender){renderScene(r,s);return;}
+  lastRender=html;const scrollTop=body.scrollTop,scene=$('coStudyScene');body.innerHTML=html;
+  // Keep a single canvas across one-second timer/form updates.
+  if(scene&&$('coStudyScene'))$('coStudyScene').replaceWith(scene);
+  body.scrollTop=scrollTop;
   if(focus?.id){const el=$(focus.id);if(el&&!el.disabled){el.focus({preventScroll:true});try{el.setSelectionRange(focus.start,focus.end);}catch{}}}
-  root.querySelectorAll('[data-co-portrait]').forEach(canvas=>{const m=r.members.find(m=>m.id===canvas.dataset.coPortrait),friend=friendList().find(f=>f.profileId===m.id),own=m.id===model.self.id;try{window.PixelArt?.drawPortrait(canvas,{profile:{color:m.color||'#b784cf'},equipped:own?(s.equipped||[]):(friend?.equipped||[])});}catch{}});
+  renderScene(r,s);
  }
  async function startLocal(room,explicit=false){
   if(autoStarting||!room?.roundId||Number(room.startsAt)>now())return false;
@@ -4824,6 +5134,7 @@ window.CoStudy=(()=>{
   if(name==='close-panel'){expanded=false;savePrefs();render();return;}
   if(name==='friends'){expanded=false;savePrefs();render();adapter.openFriends?.();return;}
   if(name==='break'){d.breakId=r.id+':'+r.roundId;d.breakEndsAt=now()+300000;persistDraft();render();return;}
+  if(name==='wave'){await fetchSignals(true);return;}
   if(name==='refresh'){window.FriendsClient?.activate?.();await refresh();return;}
   if(name==='new'){if(r)dismissed.add(r.id);selectedId=null;if(model)model.room=null;savePrefs();lastRender='';render();return;}
   if(name==='create'){if(blockReason(r)){notice=t(blockReason(r));render();return;}if(!d.friendId){notice=t('chooseRequired');render();return;}const data=await request('create',{friendId:d.friendId,mode:d.mode||'together'});if(data){expanded=true;savePrefs();render();}return;}
@@ -4868,12 +5179,12 @@ window.CoStudy=(()=>{
   root.addEventListener('change',e=>{const d=draft(currentRoom());if(e.target.id==='coStudyShare')d.share=e.target.checked;if(e.target.id==='coStudyConsent'){d.consent=e.target.checked;e.target.setCustomValidity('');}if(e.target.id==='coStudyFriend')d.friendId=e.target.value;if(e.target.id==='coStudyMode')d.mode=e.target.value;if(e.target.id==='coStudyReviewOutcome')d.reviewOutcome=e.target.value;if(e.target.id==='coStudyRoomMode')request('settings',{mode:e.target.value});persistDraft();});
   root.addEventListener('submit',e=>{if(e.target.id==='coStudyReviewForm'){e.preventDefault();action('review',e.target);}});
   window.addEventListener('eumo-language',()=>{lastRender='';notice='';render();});window.addEventListener('online',refresh);window.addEventListener('offline',()=>{if(matchingSession())markGap(member()?.sourceSessionId);connected=false;failure='offline';render();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  document.addEventListener('visibilitychange',()=>{render();if(!document.hidden)refresh();});
   tickTimer=setInterval(()=>{const r=currentRoom();if(!root)return;if(r?.status==='active'&&r.roundId&&lastRoomVersion?.roomId===r.id&&lastRoomVersion.roundId!==r.roundId){lastRoomVersion={roomId:r.id,roundId:r.roundId};scheduleStart(r);}else if(r&&!terminal.has(r.status)&&r.status!=='active')lastRoomVersion={roomId:r.id,roundId:null};render();reconcile();},1000);
   render();setTimeout(refresh,150);schedule();
  }
  function snapshot(){const room=currentRoom(),d=draft(room);return model?JSON.parse(JSON.stringify({...model,room,break:room?.status==='between_rounds'&&d.breakEndsAt?{breakId:d.breakId,breakEndsAt:d.breakEndsAt}:null,ui:{busy:working||timerActionInFlight,polling,connected,expanded}})):null;}
- return{init,notify,refresh,handleTimerAction,open(){if(!root)return;expanded=true;savePrefs();render();refresh();},getState:snapshot,snapshot,getRoom:()=>currentRoom()?JSON.parse(JSON.stringify(currentRoom())):null,dispose(){disposed=true;clearTimeout(pollTimer);clearInterval(tickTimer);}};
+ return{init,notify,refresh,handleTimerAction,open(){if(!root)return;expanded=true;savePrefs();render();refresh();},getState:snapshot,snapshot,getRoom:()=>currentRoom()?JSON.parse(JSON.stringify(currentRoom())):null,dispose(){disposed=true;clearTimeout(pollTimer);clearInterval(tickTimer);clearTimeout(signalTimer);signalController?.abort();window.CoStudyScene?.dispose();}};
 })();
 
 </script><script>

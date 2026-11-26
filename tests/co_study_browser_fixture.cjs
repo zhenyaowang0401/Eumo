@@ -8,6 +8,7 @@ const http = require('node:http');
 const path = require('node:path');
 const {createDatabase} = require('./friends_database.cjs');
 const {profileRest} = require('./friends_rest_transport.cjs');
+const {requestRest, friendLinkRest} = require('./co_study_signal_transport.cjs');
 const root = path.resolve(__dirname, '..');
 const key = 'fixture-service-role-key';
 const types = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff': 'font/woff', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.wav': 'audio/wav'};
@@ -22,6 +23,9 @@ async function body(req) {
   const {db, rpc} = await createDatabase();
   await db.exec(fs.readFileSync(path.join(root, 'database/co_study.sql'), 'utf8'));
   let clock = Date.now(), friends, coStudy;
+  // Scene tests exercise animation and short-lived signals in wall-clock time.
+  // The original browser flow keeps its controllable clock for full rounds.
+  const now = process.argv.includes('--real-time') ? Date.now : () => clock;
   const server = http.createServer(async (req, res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
     try {
@@ -31,7 +35,7 @@ async function body(req) {
           if (!Number.isSafeInteger(input.advanceMs) || input.advanceMs < 0) return json(res, 400, {error: 'INVALID_CLOCK'});
           clock += input.advanceMs;
         }
-        return json(res, 200, {now: clock});
+        return json(res, 200, {now: now()});
       }
       if (pathname === '/api/friends') return friends(req, res);
       if (pathname === '/api/co-study') return coStudy(req, res);
@@ -48,6 +52,8 @@ async function body(req) {
           return json(res, 200, result);
         }
         if (pathname === '/rest/v1/eumo_friend_profiles') return json(res, 200, await profileRest(db, req.url, req.method, input));
+        if (pathname === '/rest/v1/eumo_study_requests') return json(res, 200, await requestRest(db, req.url, req.method, input));
+        if (pathname === '/rest/v1/eumo_friend_links') return json(res, 200, await friendLinkRest(db, req.url, req.method));
         return json(res, 404, {error: 'NOT_FOUND'});
       }
       if (!['GET', 'HEAD'].includes(req.method) || pathname.split('/').some(p => p.startsWith('.')) || /^\/(ai|api|database|scripts|tests)(\/|$)/.test(pathname)) return json(res, 404, {error: 'NOT_FOUND'});
@@ -66,8 +72,8 @@ async function body(req) {
   server.listen(0, '127.0.0.1', () => {
     const url = 'http://127.0.0.1:' + server.address().port;
     const env = {SUPABASE_URL: url, SUPABASE_SERVICE_ROLE_KEY: key};
-    friends = require('../api/friends.js').createHandler({env, now: () => clock});
-    coStudy = require('../api/co-study.js').createHandler({env, now: () => clock});
+    friends = require('../api/friends.js').createHandler({env, now});
+    coStudy = require('../api/co-study.js').createHandler({env, now});
     console.log('Co-study fixture: ' + url);
   });
   process.on('SIGTERM', () => server.close(() => db.close().then(() => process.exit(0))));

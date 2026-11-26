@@ -68,10 +68,20 @@ starts the existing session with a server-issued `sourceSessionId`; it does not
 create another ordinary reward ledger. `session.coStudy` and matching history
 metadata are optional additions to the existing save shape. Active shared rounds
 lock duration changes. Original single-tab progress ownership remains in force.
-The room shows the local person first, with two adjacent mole tiles, an explicit
-ready count and the host's start action. During a round, the local timer advances
-normally; the partner's time is labeled as its last confirmed synchronization.
-This build has no voice or video calls.
+The room places both original, dressed mole characters at one table in a shared
+burrow. A shallow roster below the scene shows names, status and time; preparation
+and session controls sit underneath. The local person remains on the left. Only
+an actual running local timer or a fresh server study state animates desk work;
+idle breathing is decorative. Pausing changes the pose, invited/left seats are
+empty, and a disconnected partner is faded. The partner's time remains labeled
+as its last confirmed synchronization. This build has no voice or video calls.
+
+Wave sends a real, authenticated reaction to the invited friend. It appears for
+six seconds, with a five-second send cooldown; open, visible rooms poll for it
+every 2.5 seconds. It does not change readiness, room versions, elapsed time or
+rewards. Closing the room or hiding the tab stops scene animation and reaction
+polling. Reduced-motion preferences keep the scene and reaction bubble still.
+The same canvas survives timer and form updates, preserving visual continuity.
 
 On phones, the existing task and timer panel appears before the mine and chat,
 so Start is available on the first screen. Short landscape views place the timer
@@ -88,7 +98,16 @@ checks. `database/co_study.sql` adds three isolated tables: `eumo_study_rooms`,
 `eumo_study_requests` and `eumo_study_awards`. A server-only SQL RPC serializes room
 transitions, authenticates membership and friendship, checks round/control
 versions and enforces unique participation awards. Browser roles have no direct
-table or RPC access. This is a small two-person pilot, not a high-scale matchmaker.
+table or RPC access. The API's `wave` and `signal-state` actions reuse the existing
+request ledger with reserved `wave:v1` receipts; they require room membership,
+accepted friendship and both people having joined. Only reaction IDs, sender IDs
+and server timestamps are returned. Retrying the same request cannot renew an old
+wave or overwrite another action's receipt. This addition needs no new migration.
+Reaction polling has a separate request budget from timer controls. Cosmetic
+waves are capped at 60 per person per hour to leave room for core session
+requests. The five-second database lookup is a best-effort cooldown; neither it
+nor the hourly check is an atomic distributed quota. This is a small
+two-person pilot, not a high-scale matchmaker.
 
 `dev:local` runs the same API handlers and SQL against persistent embedded
 PostgreSQL. It does not seed demonstration friends or replace permission checks.
@@ -126,6 +145,10 @@ twenty-minute rounds. It does not mock successful room responses. Browser
 screenshots and results are recorded outside the source tree.
 `python3 tests/test_co_study_ready_browser.py` reproduces two Ready clicks without
 an intervening room refresh and verifies the bounded retry and changed-mode guard.
+`python3 tests/test_co_study_scene_browser.py` checks the shared scene and real
+reactions in two browser identities, along with animation lifecycle and mobile
+layouts. `node --test tests/test_co_study_signals.cjs` covers reaction authorization,
+receipt replay, expiry and independence from room transitions.
 
 Existing reward, friend, save-ownership and device-progress regressions are also
 run. `python3 tests/test_viewport.py` checks the original desktop viewport fit and
@@ -158,3 +181,12 @@ TestFlight and native release publishing have not been completed by this change.
   independent pause/resume, early ending, private tasks and saved reviews. Early
   endings earned no challenge point. A full twenty-minute production award has
   not yet been tested; full-round rules are covered by the local test clock.
+
+### Shared-room update (2026-11-25)
+
+- 37 shared-study SQL/API, reaction and guidance checks passed.
+- Two-browser scene checks passed for real reaction delivery/expiry, stable canvas,
+  independent pause, reduced motion, closing the room and local offline progress.
+- Ready concurrency and the full two-round progress/reward flow passed.
+- The thirteen desktop viewport cases and phone/short-landscape checks passed;
+  existing reward equivalence checks passed. Portable and desktop assets rebuilt.

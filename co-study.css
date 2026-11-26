@@ -82,3 +82,86 @@
  .co-member canvas{width:56px;height:56px}
  .co-study-members{margin-bottom:6px}
 }
+
+/* One shared room, with the people in the scene and a quiet status strip. */
+#coStudyDialog:has(.co-study-stage){width:min(960px,calc(100vw - 32px))}
+#coStudyBody:has(.co-study-stage){padding:12px 14px}
+.co-study-room:has(.co-study-stage) .co-study-room-heading{align-items:center;gap:10px;margin-bottom:10px}
+.co-study-room:has(.co-study-stage) .co-study-room-heading>span{margin-left:auto}
+.co-study-panel .co-study-wave{min-width:44px;min-height:44px;padding:5px 10px;font-size:18px;line-height:1;flex:none}
+.co-study-stage{position:relative;isolation:isolate;min-width:0;border:2px solid var(--edge);background:var(--board);box-shadow:inset 1px 1px var(--window-highlight);margin-bottom:10px}
+#coStudyScene{display:block;width:100%;height:auto;object-fit:contain;object-position:center;image-rendering:pixelated;background:var(--board)}
+.co-study-members.co-study-room-roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0;background:var(--panel);border-top:2px solid var(--edge)}
+.co-study-room-roster .co-member{display:flex;flex-direction:column;align-items:stretch;gap:4px;padding:8px 12px;border:0;background:transparent;box-shadow:none}
+.co-study-room-roster .co-member+.co-member{border-left:1px solid var(--edge-soft)}
+.co-study-room-roster .co-member-self{background:var(--raised)}
+.co-study-room-roster .co-member .co-member-identity{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:4px 6px;height:auto;min-height:22px}
+.co-study-room-roster .co-member-identity strong{font-size:17px}
+.co-study-room-roster .co-member-host{grid-column:auto;min-height:0;font-size:12px;white-space:nowrap}
+.co-study-room-roster .co-member .co-member-details{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:2px 8px;text-align:left}
+.co-study-room-roster .co-member-status{grid-column:1;grid-row:1;font-size:14px}
+.co-study-room-roster .co-member-points{grid-column:2;grid-row:1;font-size:13px;text-align:right}
+.co-study-room-roster .co-member-time{grid-column:1;grid-row:2;font-size:21px;line-height:1.15}
+.co-study-room-roster .co-member-time small{font-size:12px}
+.co-study-room-roster .co-member-time-label{grid-column:2;grid-row:2;font-size:12px;text-align:right;white-space:nowrap}
+.co-study-room-roster .co-member-task{grid-column:1/-1;grid-row:3;font-size:13px;line-height:1.3}
+.co-study-controls{min-width:0}
+.co-study-controls .co-study-readiness{margin:0 0 8px;padding:0 0 6px}
+.co-study-controls .co-study-preparation{max-width:none;padding:8px 10px;border:1px solid var(--edge-soft);background:var(--raised)}
+.co-study-controls .co-study-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.6fr);gap:6px 14px;align-items:center;position:relative}
+.co-study-controls .co-study-fields>label[for=coStudyTask]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.co-study-controls .co-study-fields>#coStudyTask{grid-column:1;grid-row:1;margin:0}
+.co-study-controls .co-study-fields:not(:has(#coStudyRoomMode))>#coStudyTask{grid-column:1/-1}
+.co-study-controls .co-study-mode-label{grid-column:2;grid-row:1;display:flex;flex-direction:row;gap:8px;margin:0!important;font-size:14px}
+.co-study-controls .co-study-mode-label select{max-width:none;flex:1;min-width:0}
+.co-study-controls .co-study-check{margin:2px 0;font-size:14px;line-height:1.3}
+.co-study-controls label:has(#coStudyShare){grid-column:1;grid-row:2}
+.co-study-controls label:has(#coStudyConsent){grid-column:2;grid-row:2}
+.co-study-controls .co-study-preparation:has(.co-study-fields[hidden]){padding:0;border:0;background:transparent}
+.co-study-controls .co-study-actions{justify-content:center;margin:8px 0 4px;gap:8px}
+.co-study-controls .co-study-actions>button{min-width:112px}
+.co-study-controls .co-study-footer{margin-top:8px;padding-top:6px}
+.co-study-controls .co-study-review{margin:8px 0;padding:10px}
+.co-study-controls .co-review-summary{margin:8px 0}
+.co-study-controls .co-study-countdown{padding:6px 0;background:var(--selected);border:1px solid var(--edge-soft)}
+#coStudyBody:has(.co-study-stage)>.co-study-rules{margin-top:8px;padding-top:4px}
+@media(max-width:700px){
+ #coStudyDialog:has(.co-study-stage){width:calc(100vw - 16px);max-width:calc(100vw - 16px)}
+ #coStudyBody:has(.co-study-stage){padding:8px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading{gap:6px;margin-bottom:8px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading h3{font-size:17px}
+ .co-study-room:has(.co-study-stage) .co-study-room-heading>span{font-size:12px;line-height:1.2}
+ .co-study-panel .co-study-wave{min-width:44px;padding:4px 7px;font-size:17px}
+ .co-study-stage{margin-bottom:8px}
+ #coStudyScene{min-height:160px;max-height:250px}
+ .co-study-room-roster .co-member{padding:6px 7px;gap:3px}
+ .co-study-room-roster .co-member .co-member-identity{min-height:20px;gap:3px}
+ .co-study-room-roster .co-member-identity strong{font-size:15px}
+ .co-study-room-roster .co-member-you{font-size:11px;padding:2px 3px}
+ .co-study-room-roster .co-member-host{font-size:11px}
+ .co-study-room-roster .co-member .co-member-details{grid-template-columns:minmax(0,1fr) 44px;gap:2px 4px}
+ .co-study-room-roster .co-member-status{font-size:13px}
+ .co-study-room-roster .co-member-status::before{margin-right:4px;width:4px;height:4px}
+ .co-study-room-roster .co-member-time{font-size:18px}
+ .co-study-room-roster .co-member-time small{font-size:11px}
+ .co-study-room-roster .co-member-time-label{font-size:11px!important}
+ .co-study-room-roster .co-member-task,.co-study-room-roster .co-member-points{font-size:12px}
+ .co-study-controls .co-study-preparation{padding:7px}
+ .co-study-controls .co-study-fields{grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:6px 8px}
+ .co-study-controls .co-study-fields>#coStudyTask{grid-column:1/-1;grid-row:1}
+ .co-study-controls .co-study-mode-label{grid-column:2;grid-row:2;gap:5px;font-size:13px}
+ .co-study-controls .co-study-mode-label select{padding:6px 4px}
+ .co-study-controls label:has(#coStudyShare){grid-column:1;grid-row:2}
+ .co-study-controls label:has(#coStudyConsent){grid-column:1/-1;grid-row:3}
+ .co-study-controls .co-study-actions>button{min-width:0;flex:1}
+ .co-study-controls .co-study-footer{margin-top:6px;padding-top:6px}
+}
+@media(max-height:600px) and (min-width:701px){
+ #coStudyScene{max-height:210px}
+ .co-study-room-roster .co-member{padding:5px 10px}
+}
+@media(max-width:959px),(pointer:coarse){
+ #coStudyDialog button{min-height:44px}
+ .co-study-heading #coStudyClose{min-height:44px;min-width:44px}
+ .co-study-panel input:not([type=checkbox]),.co-study-panel select{font-size:16px}
+}
